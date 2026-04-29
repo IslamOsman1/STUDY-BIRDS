@@ -2,6 +2,8 @@
 
 Study Birds is a full-stack MERN study abroad platform with original branding, a student application flow, and an admin operations dashboard.
 
+Deployment guide: see `DEPLOYMENT.md`.
+
 ## Stack
 
 - Frontend: React, TypeScript, Vite, Tailwind CSS, React Router, Axios, React Hook Form, Zod, Lucide React, Framer Motion
