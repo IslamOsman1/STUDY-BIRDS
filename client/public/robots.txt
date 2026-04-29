@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /student
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /api/
+
+Sitemap: https://studybirds.com/sitemap.xml

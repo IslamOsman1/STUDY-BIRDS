@@ -1,0 +1,26 @@
+import { api } from "../lib/api";
+import type {
+  Country,
+  ExhibitionArticle,
+  NotificationItem,
+  Testimonial,
+} from "../types";
+
+export const contentService = {
+  getCountries: async () => {
+    const { data } = await api.get<Country[]>("/content/countries");
+    return data;
+  },
+  getTestimonials: async () => {
+    const { data } = await api.get<Testimonial[]>("/content/testimonials");
+    return data;
+  },
+  getExhibitionArticles: async () => {
+    const { data } = await api.get<ExhibitionArticle[]>("/content/exhibitions");
+    return data;
+  },
+  getNotifications: async () => {
+    const { data } = await api.get<NotificationItem[]>("/content/notifications");
+    return data;
+  },
+};
