@@ -2,34 +2,35 @@
 
 This repository is prepared for:
 
-- `client/` on Vercel
-- `server/` on Render
+- `client/` on Render Static Site
+- `server/` on Render Web Service
 - MongoDB on Atlas
 
-## Frontend on Vercel
+## Frontend on Render
 
 Official reference:
 
-- Vite on Vercel: https://vercel.com/docs/frameworks/frontend/vite
-- Rewrites: https://vercel.com/docs/rewrites
+- Static Sites: https://render.com/docs/static-sites/
+- Blueprint spec: https://render.com/docs/blueprint-spec
+- Create React App routing rewrite guidance: https://render.com/docs/deploy-create-react-app
 
 Project settings:
 
-- Framework preset: `Vite`
+- Service type: `Static Site`
 - Root directory: `client`
-- Build command: `npm run build`
-- Output directory: `dist`
+- Build command: `npm install && npm run build`
+- Publish directory: `dist`
 
 Environment variables:
 
 - `VITE_API_URL=https://your-render-service.onrender.com/api`
-- `VITE_SITE_URL=https://your-vercel-domain.vercel.app`
+- `VITE_SITE_URL=https://your-render-frontend.onrender.com`
 - `VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com`
 
 Notes:
 
-- `client/vercel.json` adds the SPA rewrite required for React Router deep links.
-- After the first deploy, copy the public Vercel URL and use it in the Render backend env vars.
+- `render.yaml` already defines a catch-all rewrite from `/*` to `/index.html` for React Router deep links.
+- The frontend is set up as the `study-birds-web` static site inside the shared Blueprint.
 
 ## Backend on Render
 
@@ -60,7 +61,7 @@ Environment variables to provide:
 - `JWT_SECRET`
   A strong production secret. The Blueprint can generate one automatically.
 - `CLIENT_URL`
-  Your main Vercel frontend URL.
+  Your main Render frontend URL.
 - `CLIENT_URLS`
   Optional comma-separated allowed origins if you use multiple frontend URLs.
 - `GOOGLE_CLIENT_ID`
@@ -70,13 +71,16 @@ Environment variables to provide:
 
 ## Recommended Order
 
-1. Deploy the backend on Render with `render.yaml`.
-2. Copy the Render API URL.
-3. Deploy the frontend on Vercel using the `client` directory.
-4. Set `VITE_API_URL` in Vercel to the Render API URL.
-5. Copy the Vercel frontend URL.
-6. Set `CLIENT_URL` on Render to the Vercel URL.
-7. If Google sign-in is enabled, add both production URLs to your Google OAuth allowed origins.
+1. Deploy the Blueprint on Render from this repository.
+2. Wait for Render to create both services:
+   - `study-birds-web`
+   - `study-birds-api`
+3. Open the backend URL and confirm `/api/health` is healthy.
+4. Copy the public Render backend URL into `VITE_API_URL` on the static site.
+5. Copy the public Render frontend URL into `CLIENT_URL` on the web service.
+6. If you use more than one frontend hostname, add them to `CLIENT_URLS`.
+7. If Google sign-in is enabled, add both Render URLs to your Google OAuth allowed origins.
+8. Redeploy both services after setting the final env vars.
 
 ## Example Production Values
 
@@ -84,7 +88,7 @@ Frontend:
 
 ```env
 VITE_API_URL=https://study-birds-api.onrender.com/api
-VITE_SITE_URL=https://study-birds.vercel.app
+VITE_SITE_URL=https://study-birds-web.onrender.com
 VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 ```
 
@@ -94,8 +98,14 @@ Backend:
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/study-birds?retryWrites=true&w=majority
 JWT_SECRET=change-me
 JWT_EXPIRES_IN=7d
-CLIENT_URL=https://study-birds.vercel.app
-CLIENT_URLS=https://study-birds.vercel.app,https://www.study-birds.com
+CLIENT_URL=https://study-birds-web.onrender.com
+CLIENT_URLS=https://study-birds-web.onrender.com,https://www.study-birds.com
 GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 UPLOAD_DIR=/opt/render/project/src/uploads
 ```
+
+## Render-Only Notes
+
+- This setup keeps the database on Atlas, but both app services on Render.
+- The frontend does not need Vercel in this configuration.
+- The backend keeps a persistent disk for `uploads`, so it should stay on a paid Render plan.

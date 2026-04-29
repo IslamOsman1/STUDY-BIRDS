@@ -3,6 +3,7 @@
 Study Birds is a full-stack MERN study abroad platform with original branding, a student application flow, and an admin operations dashboard.
 
 Deployment guide: see `DEPLOYMENT.md`.
+Render-only deployment is supported with `render.yaml` for both frontend and backend services.
 
 ## Stack
 

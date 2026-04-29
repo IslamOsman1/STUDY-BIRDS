@@ -1,5 +1,25 @@
 services:
   - type: web
+    name: study-birds-web
+    runtime: static
+    repo: https://github.com/IslamOsman1/STUDY-BIRDS
+    rootDir: client
+    plan: free
+    autoDeployTrigger: commit
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_SITE_URL
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+  - type: web
     name: study-birds-api
     runtime: node
     repo: https://github.com/IslamOsman1/STUDY-BIRDS
