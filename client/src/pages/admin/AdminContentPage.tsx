@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Globe2, MessageSquareQuote, PencilLine, Plus, Trash2 } from "lucide-react";
+import { Globe2, GraduationCap, MessageSquareQuote, PencilLine, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 import { adminService } from "../../services/adminService";
-import type { Country, SiteSettings, Testimonial } from "../../types";
+import type { Country, SiteSettings, StudyField, Testimonial } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
 import { dt } from "../../utils/dashboardTranslations";
 
@@ -34,25 +34,39 @@ const emptySiteSettingsForm = {
   officeLocations: "",
 };
 
+const emptyStudyFieldForm = {
+  name: "",
+  description: "",
+  image: "",
+  featured: true,
+  sortOrder: "0",
+};
+
 export const AdminContentPage = () => {
   const { language, t } = useLanguage();
   const [countries, setCountries] = useState<Country[]>([]);
+  const [studyFields, setStudyFields] = useState<StudyField[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [siteSettingsForm, setSiteSettingsForm] = useState(emptySiteSettingsForm);
+  const [studyFieldForm, setStudyFieldForm] = useState(emptyStudyFieldForm);
   const [countryForm, setCountryForm] = useState(emptyCountryForm);
   const [testimonialForm, setTestimonialForm] = useState(emptyTestimonialForm);
+  const [editingStudyFieldId, setEditingStudyFieldId] = useState<string | null>(null);
   const [editingCountryId, setEditingCountryId] = useState<string | null>(null);
   const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
   const [formError, setFormError] = useState("");
   const [uploadingCountryImage, setUploadingCountryImage] = useState(false);
+  const [uploadingStudyFieldImage, setUploadingStudyFieldImage] = useState(false);
 
   const loadData = async () => {
-    const [countriesData, testimonialsData, siteSettingsData] = await Promise.all([
+    const [countriesData, studyFieldsData, testimonialsData, siteSettingsData] = await Promise.all([
       adminService.getCountries(),
+      adminService.getStudyFields(),
       adminService.getTestimonials(),
       adminService.getSiteSettings(),
     ]);
     setCountries(countriesData);
+    setStudyFields(studyFieldsData);
     setTestimonials(testimonialsData);
     setSiteSettingsForm({
       contactEmail: siteSettingsData.contactEmail || "",
@@ -72,6 +86,11 @@ export const AdminContentPage = () => {
   const resetCountryForm = () => {
     setEditingCountryId(null);
     setCountryForm(emptyCountryForm);
+  };
+
+  const resetStudyFieldForm = () => {
+    setEditingStudyFieldId(null);
+    setStudyFieldForm(emptyStudyFieldForm);
   };
 
   const resetTestimonialForm = () => {
@@ -107,6 +126,47 @@ export const AdminContentPage = () => {
       setFormError(getErrorMessage(error, dt(language, "imageUploadFailed")));
     } finally {
       setUploadingCountryImage(false);
+    }
+  };
+
+  const submitStudyField = async (event: FormEvent) => {
+    event.preventDefault();
+    setFormError("");
+
+    const payload = {
+      name: studyFieldForm.name,
+      description: studyFieldForm.description || "",
+      image: studyFieldForm.image || "",
+      featured: studyFieldForm.featured,
+      sortOrder: Number(studyFieldForm.sortOrder || 0),
+    };
+
+    try {
+      if (editingStudyFieldId) {
+        await adminService.updateStudyField(editingStudyFieldId, payload);
+      } else {
+        await adminService.createStudyField(payload);
+      }
+
+      resetStudyFieldForm();
+      await loadData();
+    } catch (error) {
+      setFormError(getErrorMessage(error, dt(language, "saveContentFailed")));
+    }
+  };
+
+  const handleStudyFieldImageUpload = async (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    setFormError("");
+    setUploadingStudyFieldImage(true);
+
+    try {
+      const imageUrl = await adminService.uploadStudyFieldImage(fileList[0]);
+      setStudyFieldForm((current) => ({ ...current, image: imageUrl }));
+    } catch (error) {
+      setFormError(getErrorMessage(error, dt(language, "imageUploadFailed")));
+    } finally {
+      setUploadingStudyFieldImage(false);
     }
   };
 
@@ -259,6 +319,89 @@ export const AdminContentPage = () => {
       <section className="panel p-6">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
+            <GraduationCap className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">{language === "ar" ? "مجالات الدراسة" : "Study fields"}</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {language === "ar"
+                ? "أضف التخصصات مع صورة ووصف قصير لتظهر في الصفحة الرئيسية وقائمة البرامج."
+                : "Manage the study fields shown on the homepage and in program filters."}
+            </p>
+          </div>
+        </div>
+        <form onSubmit={submitStudyField} className="mt-6 space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "اسم المجال" : "Field name"}</span>
+              <input
+                value={studyFieldForm.name}
+                onChange={(event) => setStudyFieldForm((current) => ({ ...current, name: event.target.value }))}
+                required
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "الترتيب" : "Sort order"}</span>
+              <input
+                type="number"
+                value={studyFieldForm.sortOrder}
+                onChange={(event) => setStudyFieldForm((current) => ({ ...current, sortOrder: event.target.value }))}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+              />
+            </label>
+          </div>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "وصف قصير" : "Short description"}</span>
+            <textarea
+              value={studyFieldForm.description}
+              onChange={(event) => setStudyFieldForm((current) => ({ ...current, description: event.target.value }))}
+              rows={3}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <p className="text-sm font-medium text-slate-700">{language === "ar" ? "صورة المجال" : "Field image"}</p>
+            <input type="file" accept="image/*" onChange={(event) => handleStudyFieldImageUpload(event.target.files)} className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+            <p className="mt-2 text-xs text-slate-500">
+              {uploadingStudyFieldImage
+                ? `${dt(language, "uploadImages")}...`
+                : language === "ar"
+                  ? "ارفع صورة تظهر فوق بطاقة المجال في الصفحة الرئيسية."
+                  : "Upload the image shown on the homepage study field card."}
+            </p>
+            {studyFieldForm.image ? (
+              <div className="mt-4 rounded-2xl border border-slate-200 p-3">
+                <img src={getApiAssetUrl(studyFieldForm.image)} alt="Study field" className="h-40 w-full rounded-2xl object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setStudyFieldForm((current) => ({ ...current, image: "" }))}
+                  className="mt-3 rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700"
+                >
+                  {dt(language, "removeImage")}
+                </button>
+              </div>
+            ) : null}
+          </div>
+          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3">
+            <input type="checkbox" checked={studyFieldForm.featured} onChange={(event) => setStudyFieldForm((current) => ({ ...current, featured: event.target.checked }))} />
+            <span className="text-sm font-medium text-slate-700">{language === "ar" ? "إظهاره في الواجهة الرئيسية" : "Show on homepage"}</span>
+          </label>
+          <div className="flex flex-wrap gap-3">
+            <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 font-semibold text-white">
+              <Plus className="h-4 w-4" />
+              {editingStudyFieldId ? (language === "ar" ? "تحديث المجال" : "Update field") : language === "ar" ? "إضافة مجال" : "Create field"}
+            </button>
+            <button type="button" onClick={resetStudyFieldForm} className="rounded-full border border-slate-200 px-5 py-3 font-semibold text-slate-700">
+              {dt(language, "clearForm")}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="panel p-6">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
             <Globe2 className="h-5 w-5" />
           </div>
           <div>
@@ -344,6 +487,48 @@ export const AdminContentPage = () => {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
+        <section className="space-y-4">
+          {studyFields.map((studyField) => (
+            <div key={studyField._id} className="panel p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex-1">
+                  {studyField.image ? <img src={getApiAssetUrl(studyField.image)} alt={studyField.name} className="h-40 w-full rounded-3xl object-cover" /> : null}
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <p className="text-lg font-semibold text-slate-900">{studyField.name}</p>
+                    {studyField.featured ? <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">{dt(language, "featured")}</span> : null}
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                      {language === "ar" ? `ترتيب ${studyField.sortOrder || 0}` : `Order ${studyField.sortOrder || 0}`}
+                    </span>
+                  </div>
+                  {studyField.description ? <p className="mt-3 text-sm leading-6 text-slate-600">{studyField.description}</p> : null}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingStudyFieldId(studyField._id);
+                      setStudyFieldForm({
+                        name: studyField.name,
+                        description: studyField.description || "",
+                        image: studyField.image || "",
+                        featured: Boolean(studyField.featured),
+                        sortOrder: String(studyField.sortOrder || 0),
+                      });
+                    }}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-700"
+                  >
+                    <PencilLine className="h-4 w-4" />
+                    {dt(language, "edit")}
+                  </button>
+                  <button onClick={() => adminService.removeStudyField(studyField._id).then(loadData)} className="inline-flex items-center gap-2 rounded-full border border-rose-200 px-4 py-2 font-medium text-rose-700">
+                    <Trash2 className="h-4 w-4" />
+                    {dt(language, "delete")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </section>
+
         <section className="space-y-4">
           {countries.map((country) => (
             <div key={country._id} className="panel p-5">

@@ -36,6 +36,17 @@ export interface SiteSettings {
   officeLocations?: string;
 }
 
+export interface StudyField {
+  _id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  image?: string;
+  featured?: boolean;
+  sortOrder?: number;
+  createdAt?: string;
+}
+
 export interface University {
   _id: string;
   name: string;

@@ -5,12 +5,13 @@ import { HeroSection } from "../components/marketing/HeroSection";
 import { Seo } from "../components/seo/Seo";
 import { StatsCard } from "../components/dashboard/StatsCard";
 import { DestinationCard } from "../components/marketing/DestinationCard";
+import { StudyFieldCard } from "../components/marketing/StudyFieldCard";
 import { UniversityCard } from "../components/marketing/UniversityCard";
 import { TestimonialCard } from "../components/marketing/TestimonialCard";
 import { useAuth } from "../hooks/useAuth";
 import { contentService } from "../services/contentService";
 import { universityService } from "../services/universityService";
-import type { Country, Testimonial, University } from "../types";
+import type { Country, StudyField, Testimonial, University } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { SITE_NAME, getSiteUrl, seoText } from "../seo/site";
 import { dt } from "../utils/dashboardTranslations";
@@ -19,6 +20,7 @@ export const HomePage = () => {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const [countries, setCountries] = useState<Country[]>([]);
+  const [studyFields, setStudyFields] = useState<StudyField[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const primaryHref =
@@ -35,10 +37,12 @@ export const HomePage = () => {
   useEffect(() => {
     Promise.all([
       contentService.getCountries(),
+      contentService.getStudyFields(),
       universityService.getAll(),
       contentService.getTestimonials(),
-    ]).then(([countriesData, universitiesData, testimonialsData]) => {
+    ]).then(([countriesData, studyFieldsData, universitiesData, testimonialsData]) => {
       setCountries(countriesData.slice(0, 7));
+      setStudyFields(studyFieldsData.slice(0, 6));
       setUniversities(universitiesData.slice(0, 3));
       setTestimonials(testimonialsData.slice(0, 3));
     });
@@ -121,6 +125,31 @@ export const HomePage = () => {
           ))}
         </div>
       </section>
+
+      {studyFields.length ? (
+        <section className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">
+                {language === "ar" ? "التخصصات" : "Study fields"}
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold text-slate-900">
+                {language === "ar" ? "اعرف المزيد عن أهم التخصصات" : "Discover the most in-demand study paths"}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                {language === "ar"
+                  ? "أضف التخصصات من لوحة التحكم مع صورها، وسيظهر كل تخصص هنا مع رابط مباشر إلى البرامج المرتبطة به."
+                  : "Manage study fields from the dashboard and spotlight them here with direct links to matching programs."}
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+            {studyFields.map((studyField) => (
+              <StudyFieldCard key={studyField._id} studyField={studyField} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section>
         <div className="flex items-end justify-between">

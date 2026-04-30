@@ -4,6 +4,7 @@ import type {
   ExhibitionArticle,
   NotificationItem,
   SiteSettings,
+  StudyField,
   Testimonial,
 } from "../types";
 
@@ -22,6 +23,10 @@ export const contentService = {
   },
   getSiteSettings: async () => {
     const { data } = await api.get<SiteSettings>("/content/site-settings");
+    return data;
+  },
+  getStudyFields: async () => {
+    const { data } = await api.get<StudyField[]>("/content/study-fields");
     return data;
   },
   getNotifications: async () => {

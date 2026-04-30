@@ -7,7 +7,7 @@ import { Seo } from "../components/seo/Seo";
 import { programService } from "../services/programService";
 import { universityService } from "../services/universityService";
 import { contentService } from "../services/contentService";
-import type { Country, Program, University } from "../types";
+import type { Country, Program, StudyField, University } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { seoText } from "../seo/site";
 
@@ -17,6 +17,7 @@ export const ProgramsPage = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
+  const [studyFields, setStudyFields] = useState<StudyField[]>([]);
   const [keyword, setKeyword] = useState(() => searchParams.get("keyword") || "");
   const [filters, setFilters] = useState<Record<string, string>>(() => ({
     country: searchParams.get("country") || "",
@@ -34,10 +35,12 @@ export const ProgramsPage = () => {
       contentService.getCountries(),
       universityService.getAll(),
       programService.getAll(),
-    ]).then(([countryData, universityData, programData]) => {
+      contentService.getStudyFields(),
+    ]).then(([countryData, universityData, programData, studyFieldData]) => {
       setCountries(countryData);
       setUniversities(universityData);
       setPrograms(programData);
+      setStudyFields(studyFieldData);
     });
   }, []);
 
@@ -72,6 +75,7 @@ export const ProgramsPage = () => {
         filters={filters}
         countries={countries}
         universities={universities}
+        studyFields={studyFields}
         onKeywordChange={setKeyword}
         onFilterChange={(key, value) => setFilters((current) => ({ ...current, [key]: value }))}
       />

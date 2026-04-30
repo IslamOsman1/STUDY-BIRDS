@@ -1,8 +1,7 @@
-import type { Country, University } from "../../types";
+import type { Country, StudyField, University } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import {
   PROGRAM_DEGREE_LEVELS,
-  PROGRAM_FIELDS_OF_STUDY,
   PROGRAM_INTAKES,
 } from "../../constants/programOptions";
 
@@ -11,6 +10,7 @@ interface SearchFilterProps {
   filters: Record<string, string>;
   countries: Country[];
   universities: University[];
+  studyFields: StudyField[];
   onKeywordChange: (value: string) => void;
   onFilterChange: (key: string, value: string) => void;
 }
@@ -20,6 +20,7 @@ export const SearchFilter = ({
   filters,
   countries,
   universities,
+  studyFields,
   onKeywordChange,
   onFilterChange,
 }: SearchFilterProps) => {
@@ -75,9 +76,9 @@ export const SearchFilter = ({
         className="rounded-2xl border border-slate-200 px-4 py-3"
       >
         <option value="">{t("allFields")}</option>
-        {PROGRAM_FIELDS_OF_STUDY.map((option) => (
-          <option key={option.value} value={option.value}>
-            {t(option.translationKey)}
+        {studyFields.map((studyField) => (
+          <option key={studyField._id} value={studyField.name}>
+            {tv(studyField.name)}
           </option>
         ))}
       </select>

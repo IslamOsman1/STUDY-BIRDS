@@ -2,12 +2,12 @@ import { useEffect, useState, type FormEvent } from "react";
 import { BookOpenText, PencilLine, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
+import { adminService } from "../../services/adminService";
 import { programService } from "../../services/programService";
 import { universityService } from "../../services/universityService";
-import type { Program, University } from "../../types";
+import type { Program, StudyField, University } from "../../types";
 import {
   PROGRAM_DEGREE_LEVELS,
-  PROGRAM_FIELDS_OF_STUDY,
   PROGRAM_INTAKES,
 } from "../../constants/programOptions";
 import { getErrorMessage } from "../../utils/errors";
@@ -35,15 +35,21 @@ export const AdminProgramsPage = () => {
   const { language, t } = useLanguage();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
+  const [studyFields, setStudyFields] = useState<StudyField[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyProgramForm);
   const [formError, setFormError] = useState("");
   const [uploadingCover, setUploadingCover] = useState(false);
 
   const loadData = async () => {
-    const [programsData, universitiesData] = await Promise.all([programService.getAll(), universityService.getAll()]);
+    const [programsData, universitiesData, studyFieldsData] = await Promise.all([
+      programService.getAll(),
+      universityService.getAll(),
+      adminService.getStudyFields(),
+    ]);
     setPrograms(programsData);
     setUniversities(universitiesData);
+    setStudyFields(studyFieldsData);
   };
 
   useEffect(() => {
@@ -136,6 +142,11 @@ export const AdminProgramsPage = () => {
     }
   };
 
+  const studyFieldOptions =
+    form.fieldOfStudy && !studyFields.some((studyField) => studyField.name === form.fieldOfStudy)
+      ? [{ _id: "current-study-field", name: form.fieldOfStudy }, ...studyFields]
+      : studyFields;
+
   return (
     <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
       <section className="panel p-6">
@@ -183,10 +194,10 @@ export const AdminProgramsPage = () => {
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{t("fieldOfStudy")}</span>
               <select value={form.fieldOfStudy} onChange={(event) => setForm((current) => ({ ...current, fieldOfStudy: event.target.value }))} required className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring">
-                <option value="">{dt(language, "engineeringBusiness")}</option>
-                {PROGRAM_FIELDS_OF_STUDY.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.translationKey)}
+                <option value="">{language === "ar" ? "اختر مجال الدراسة" : "Select field of study"}</option>
+                {studyFieldOptions.map((studyField) => (
+                  <option key={studyField._id} value={studyField.name}>
+                    {studyField.name}
                   </option>
                 ))}
               </select>

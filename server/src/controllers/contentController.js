@@ -3,6 +3,7 @@ const ExhibitionArticle = require("../models/ExhibitionArticle");
 const Testimonial = require("../models/Testimonial");
 const Notification = require("../models/Notification");
 const SiteSettings = require("../models/SiteSettings");
+const StudyField = require("../models/StudyField");
 const asyncHandler = require("../utils/asyncHandler");
 
 const getCountries = asyncHandler(async (req, res) => {
@@ -40,10 +41,21 @@ const getSiteSettings = asyncHandler(async (req, res) => {
   );
 });
 
+const getStudyFields = asyncHandler(async (req, res) => {
+  const studyFields = await StudyField.find().sort({
+    featured: -1,
+    sortOrder: 1,
+    createdAt: -1,
+    name: 1,
+  });
+  res.json(studyFields);
+});
+
 module.exports = {
   getCountries,
   getTestimonials,
   getExhibitionArticles,
   getNotifications,
   getSiteSettings,
+  getStudyFields,
 };

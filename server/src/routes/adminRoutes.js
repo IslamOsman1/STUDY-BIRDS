@@ -22,6 +22,13 @@ const {
   deleteTestimonial,
   deleteExhibitionArticle,
 } = require("../controllers/adminController");
+const {
+  getStudyFields,
+  createStudyField,
+  updateStudyField,
+  deleteStudyField,
+  uploadStudyFieldImage,
+} = require("../controllers/studyFieldController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -41,6 +48,11 @@ router.put("/countries/:id", updateCountry);
 router.delete("/countries/:id", deleteCountry);
 router.get("/site-settings", getSiteSettingsAdmin);
 router.put("/site-settings", updateSiteSettings);
+router.get("/study-fields", getStudyFields);
+router.post("/study-fields/upload-image", upload.single("file"), uploadStudyFieldImage);
+router.post("/study-fields", createStudyField);
+router.put("/study-fields/:id", updateStudyField);
+router.delete("/study-fields/:id", deleteStudyField);
 router.get("/testimonials", getTestimonialsAdmin);
 router.post("/testimonials", createTestimonial);
 router.put("/testimonials/:id", updateTestimonial);

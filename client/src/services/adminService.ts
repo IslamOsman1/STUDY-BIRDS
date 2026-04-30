@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { AdminOverview, Application, Country, ExhibitionArticle, SiteSettings, Testimonial, User } from "../types";
+import type { AdminOverview, Application, Country, ExhibitionArticle, SiteSettings, StudyField, Testimonial, User } from "../types";
 
 export const adminService = {
   getOverview: async () => {
@@ -34,6 +34,10 @@ export const adminService = {
     const { data } = await api.get<SiteSettings>("/admin/site-settings");
     return data;
   },
+  getStudyFields: async () => {
+    const { data } = await api.get<StudyField[]>("/admin/study-fields");
+    return data;
+  },
   createCountry: async (payload: Partial<Country>) => {
     const { data } = await api.post<Country>("/admin/countries", payload);
     return data;
@@ -52,6 +56,26 @@ export const adminService = {
   },
   updateSiteSettings: async (payload: Partial<SiteSettings>) => {
     const { data } = await api.put<SiteSettings>("/admin/site-settings", payload);
+    return data;
+  },
+  createStudyField: async (payload: Partial<StudyField>) => {
+    const { data } = await api.post<StudyField>("/admin/study-fields", payload);
+    return data;
+  },
+  uploadStudyFieldImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/study-fields/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
+  },
+  updateStudyField: async (id: string, payload: Partial<StudyField>) => {
+    const { data } = await api.put<StudyField>(`/admin/study-fields/${id}`, payload);
+    return data;
+  },
+  removeStudyField: async (id: string) => {
+    const { data } = await api.delete(`/admin/study-fields/${id}`);
     return data;
   },
   removeCountry: async (id: string) => {

@@ -465,6 +465,8 @@ export const FloatingAssistant = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages(content, language));
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const activePointerIdRef = useRef<number | null>(null);
   const dragMovedRef = useRef(false);
   const activeRequestRef = useRef(0);
   const visibleMessages = messages.length ? messages : buildInitialMessages(content, language);
@@ -536,12 +538,27 @@ export const FloatingAssistant = () => {
   }, []);
 
   useEffect(() => {
-    if (!isDragging) {
+    if (activePointerIdRef.current === null) {
       return;
     }
 
     const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerId !== activePointerIdRef.current) {
+        return;
+      }
+
+      const deltaX = Math.abs(event.clientX - dragStartRef.current.x);
+      const deltaY = Math.abs(event.clientY - dragStartRef.current.y);
+
+      if (!dragMovedRef.current && deltaX < 6 && deltaY < 6) {
+        return;
+      }
+
       dragMovedRef.current = true;
+      if (!isDragging) {
+        setIsDragging(true);
+      }
+
       setButtonPosition(
         clampPosition({
           x: event.clientX - dragOffsetRef.current.x,
@@ -550,18 +567,25 @@ export const FloatingAssistant = () => {
       );
     };
 
-    const handlePointerUp = () => {
+    const stopDragging = (event?: PointerEvent) => {
+      if (event && event.pointerId !== activePointerIdRef.current) {
+        return;
+      }
+
+      activePointerIdRef.current = null;
       window.setTimeout(() => {
         setIsDragging(false);
       }, 0);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp, { once: true });
+    window.addEventListener("pointerup", stopDragging);
+    window.addEventListener("pointercancel", stopDragging);
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointerup", stopDragging);
+      window.removeEventListener("pointercancel", stopDragging);
     };
   }, [isDragging]);
 
@@ -618,13 +642,18 @@ export const FloatingAssistant = () => {
       return;
     }
 
+    activePointerIdRef.current = event.pointerId;
     dragMovedRef.current = false;
     const rect = event.currentTarget.getBoundingClientRect();
+    dragStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+    };
     dragOffsetRef.current = {
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
     };
-    setIsDragging(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handleButtonClick = () => {
@@ -825,6 +854,7 @@ export const FloatingAssistant = () => {
           className={`inline-flex items-center gap-2 rounded-full bg-brand-900 px-3 py-2.5 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(10,33,79,0.28)] transition hover:bg-brand-700 ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
+          style={{ touchAction: "none", userSelect: "none", WebkitUserSelect: "none" }}
           aria-expanded={open}
           aria-label={language === "ar" ? "فتح مساعد المنصة" : "Open platform assistant"}
         >
