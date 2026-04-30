@@ -33,7 +33,7 @@ export const Footer = () => {
           <h4 className="font-semibold">{t("contact")}</h4>
           <div className="mt-4 space-y-4 text-sm text-sky-100">
             <p>{siteSettings.contactEmail}</p>
-            <p>{t("heroSubtitle")}</p>
+            <p>{t("contactBody")}</p>
             <SocialLinks
               settings={siteSettings}
               className="flex flex-wrap gap-3"

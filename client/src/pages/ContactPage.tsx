@@ -17,7 +17,7 @@ export const ContactPage = () => {
         description={seoText(
           language,
           `Contact ${SITE_NAME} for support with university applications, international programs, and study abroad planning.`,
-          `Contact ${SITE_NAME} for support with university applications, international programs, and study abroad planning.`
+          `تواصل مع ${SITE_NAME} للحصول على دعم في التقديم الجامعي، اختيار البرامج، والتخطيط للدراسة بالخارج.`
         )}
       />
       <div className="panel p-8">

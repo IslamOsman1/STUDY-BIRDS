@@ -5,6 +5,9 @@ const photoUrl = (id: string, width = 900) =>
 
 export const studentHeroImage = photoUrl("photo-1522202176988-66273c2fd55f", 1200);
 export const campusFallbackImage = photoUrl("photo-1523050854058-8df90110c9f1", 900);
+export const advisorDeskImage = photoUrl("photo-1523240795612-9a054b0db644", 900);
+export const documentPrepImage = photoUrl("photo-1450101499163-c8848c66ca85", 900);
+export const cityLightsImage = photoUrl("photo-1494526585095-c41746248156", 900);
 
 export const studentPortraits = [
   {
@@ -26,6 +29,21 @@ export const studentPortraits = [
   {
     name: "Maya Salem",
     src: photoUrl("photo-1544005313-94ddf0286df2", 420),
+  },
+];
+
+export const journeyShowcaseImages = [
+  {
+    title: "Campus planning",
+    src: advisorDeskImage,
+  },
+  {
+    title: "Document preparation",
+    src: documentPrepImage,
+  },
+  {
+    title: "City life",
+    src: cityLightsImage,
   },
 ];
 

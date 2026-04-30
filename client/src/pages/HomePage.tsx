@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { BookOpenCheck, Building2, Globe2, ListChecks, SearchCheck, Send, UserRoundPlus, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HeroSection } from "../components/marketing/HeroSection";
@@ -15,6 +16,7 @@ import type { Country, StudyField, Testimonial, University } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { SITE_NAME, getSiteUrl, seoText } from "../seo/site";
 import { dt } from "../utils/dashboardTranslations";
+import { advisorDeskImage, documentPrepImage, journeyShowcaseImages, studentPortraits } from "../utils/marketingVisuals";
 
 export const HomePage = () => {
   const { t, language } = useLanguage();
@@ -51,7 +53,7 @@ export const HomePage = () => {
   const homeDescription = seoText(
     language,
     `Explore universities, compare international programs, and apply to study abroad with ${SITE_NAME} in English and Arabic.`,
-    `استكشف الجامعات وقارن البرامج الدولية وقدّم للدراسة بالخارج مع ${SITE_NAME} بالعربية والإنجليزية.`
+    `Ø§Ø³ØªÙƒØ´Ù Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª ÙˆÙ‚Ø§Ø±Ù† Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬ Ø§Ù„Ø¯ÙˆÙ„ÙŠØ© ÙˆÙ‚Ø¯Ù‘Ù… Ù„Ù„Ø¯Ø±Ø§Ø³Ø© Ø¨Ø§Ù„Ø®Ø§Ø±Ø¬ Ù…Ø¹ ${SITE_NAME} Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ÙˆØ§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©.`
   );
 
   const structuredData = [
@@ -75,6 +77,7 @@ export const HomePage = () => {
       },
     },
   ];
+
   const journeySteps = [
     { label: t("createProfile"), icon: UserRoundPlus },
     { label: t("findBestProgram"), icon: SearchCheck },
@@ -82,38 +85,129 @@ export const HomePage = () => {
     { label: t("trackAdmission"), icon: ListChecks },
   ];
 
+  const sectionTransition = { duration: 0.55, ease: "easeOut" } as const;
+
   return (
     <div className="space-y-16">
       <Seo
-        title={seoText(language, "Study Abroad Platform", "منصة الدراسة بالخارج")}
+        title={seoText(language, "Study Abroad Platform", "Ù…Ù†ØµØ© Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø¨Ø§Ù„Ø®Ø§Ø±Ø¬")}
         description={homeDescription}
         keywords={[
           SITE_NAME,
           "study abroad platform",
           "international programs",
           "university applications",
-          "الدراسة بالخارج",
-          "التقديم على الجامعات",
+          "Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø¨Ø§Ù„Ø®Ø§Ø±Ø¬",
+          "Ø§Ù„ØªÙ‚Ø¯ÙŠÙ… Ø¹Ù„Ù‰ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª",
         ]}
         structuredData={structuredData}
       />
+
       <HeroSection />
 
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatsCard label={t("studentsHelped")} value="50,000+" icon={<UsersRound size={20} />} />
-        <StatsCard label={t("programs")} value="10,000+" icon={<BookOpenCheck size={20} />} />
-        <StatsCard label={t("partnerInstitutions")} value="500+" icon={<Building2 size={20} />} />
-        <StatsCard label={t("studyDestinations")} value="20+" icon={<Globe2 size={20} />} />
-      </section>
+      <motion.section
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.25 }}
+        transition={sectionTransition}
+        className="grid gap-5 md:grid-cols-2 xl:grid-cols-4"
+      >
+        {[
+          { label: t("studentsHelped"), value: "50,000+", icon: <UsersRound size={20} /> },
+          { label: t("programs"), value: "10,000+", icon: <BookOpenCheck size={20} /> },
+          { label: t("partnerInstitutions"), value: "500+", icon: <Building2 size={20} /> },
+          { label: t("studyDestinations"), value: "20+", icon: <Globe2 size={20} /> },
+        ].map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.4, delay: index * 0.08 }}
+          >
+            <StatsCard label={stat.label} value={stat.value} icon={stat.icon} />
+          </motion.div>
+        ))}
+      </motion.section>
 
-      <section className="panel p-8">
-        <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("howItWorks")}</p>
-          <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("guidedPath")}</h2>
+      <motion.section
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={sectionTransition}
+        className="panel overflow-hidden p-8"
+      >
+        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("howItWorks")}</p>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("guidedPath")}</h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              {language === "ar"
+                ? "من اختيار الوجهة إلى رفع المستندات ومتابعة الطلب، صممنا رحلة أوضح للطالب حتى يعرف ما الذي يفعله ومتى ينتقل للخطوة التالية."
+                : "From choosing a destination to uploading documents and tracking applications, the flow is built so students always know what to do next."}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              {studentPortraits.slice(0, 5).map((student, index) => (
+                <motion.img
+                  key={student.name}
+                  src={student.src}
+                  alt={student.name}
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
+                  className="h-14 w-14 rounded-2xl object-cover shadow-soft ring-2 ring-white"
+                />
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45 }}
+              className="overflow-hidden rounded-[1.8rem] bg-slate-100"
+            >
+              <img src={advisorDeskImage} alt="Student planning session" className="h-48 w-full object-cover" />
+              <div className="p-4">
+                <p className="text-sm font-semibold text-slate-900">
+                  {language === "ar" ? "اختيار الجامعة والبرنامج" : "University and program planning"}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {language === "ar" ? "ابدأ بمقارنة الخيارات قبل اتخاذ قرار التقديم." : "Compare options early before moving into applications."}
+                </p>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: 0.1 }}
+              className="overflow-hidden rounded-[1.8rem] bg-slate-100"
+            >
+              <img src={documentPrepImage} alt="Study documents preparation" className="h-48 w-full object-cover" />
+              <div className="p-4">
+                <p className="text-sm font-semibold text-slate-900">
+                  {language === "ar" ? "ملف ومستندات أكثر ترتيبًا" : "Better document readiness"}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {language === "ar" ? "جهّز المطلوب مبكرًا لتسير خطواتك بسلاسة." : "Prepare your documents early to keep momentum."}
+                </p>
+              </div>
+            </motion.div>
+          </div>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {journeySteps.map(({ label, icon: Icon }, index) => (
-            <div key={label} className="rounded-3xl bg-slate-50 p-6">
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.35, delay: index * 0.08 }}
+              className="rounded-3xl bg-slate-50 p-6"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div className="text-sm font-semibold text-accent">0{index + 1}</div>
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-brand-700 shadow-sm">
@@ -121,75 +215,188 @@ export const HomePage = () => {
                 </span>
               </div>
               <p className="mt-5 text-lg font-medium">{label}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
+
+      <motion.section
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={sectionTransition}
+        className="overflow-hidden rounded-[2.5rem] bg-slate-950 px-8 py-10 text-white sm:px-10"
+      >
+        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-200">
+              {language === "ar" ? "داخل التجربة" : "Inside the experience"}
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold">
+              {language === "ar" ? "صور أكثر تعبر عن رحلة الطالب" : "A richer visual story for the student journey"}
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+              {language === "ar"
+                ? "أضفنا صورًا داعمة وحركة هادئة في الواجهة لتوضيح فكرة الاستكشاف، تجهيز الملف، والانتقال بين الدول والجامعات والبرامج."
+                : "We added supporting imagery and calm motion to make discovery, preparation, and decision-making feel clearer across the experience."}
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {journeyShowcaseImages.map((image, index) => (
+              <motion.div
+                key={image.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.42, delay: index * 0.1 }}
+                className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
+              >
+                <img src={image.src} alt={image.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
 
       {studyFields.length ? (
-        <section className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10">
+        <motion.section
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={sectionTransition}
+          className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10"
+        >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">
-                {language === "ar" ? "التخصصات" : "Study fields"}
+                {language === "ar" ? "Ø§Ù„ØªØ®ØµØµØ§Øª" : "Study fields"}
               </p>
               <h2 className="mt-3 text-3xl font-semibold text-slate-900">
-                {language === "ar" ? "اعرف المزيد عن أهم التخصصات" : "Discover the most in-demand study paths"}
+                {language === "ar" ? "Ø§Ø¹Ø±Ù Ø§Ù„Ù…Ø²ÙŠØ¯ Ø¹Ù† Ø£Ù‡Ù… Ø§Ù„ØªØ®ØµØµØ§Øª" : "Discover the most in-demand study paths"}
               </h2>
               <p className="mt-3 text-sm leading-7 text-slate-600">
                 {language === "ar"
-                  ? "أضف التخصصات من لوحة التحكم مع صورها، وسيظهر كل تخصص هنا مع رابط مباشر إلى البرامج المرتبطة به."
+                  ? "Ø£Ø¶Ù Ø§Ù„ØªØ®ØµØµØ§Øª Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… Ù…Ø¹ ØµÙˆØ±Ù‡Ø§ØŒ ÙˆØ³ÙŠØ¸Ù‡Ø± ÙƒÙ„ ØªØ®ØµØµ Ù‡Ù†Ø§ Ù…Ø¹ Ø±Ø§Ø¨Ø· Ù…Ø¨Ø§Ø´Ø± Ø¥Ù„Ù‰ Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬ Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ù‡."
                   : "Manage study fields from the dashboard and spotlight them here with direct links to matching programs."}
               </p>
             </div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45 }}
+              className="hidden overflow-hidden rounded-[1.8rem] border border-white/60 bg-white/60 p-2 shadow-soft lg:block"
+            >
+              <img src={journeyShowcaseImages[0]?.src} alt="Study fields" className="h-28 w-48 rounded-[1.3rem] object-cover" />
+            </motion.div>
           </div>
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
             {studyFields.map((studyField) => (
-              <StudyFieldCard key={studyField._id} studyField={studyField} />
+              <motion.div
+                key={studyField._id}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4 }}
+              >
+                <StudyFieldCard studyField={studyField} />
+              </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
       ) : null}
 
-      <section>
-        <div className="flex items-end justify-between">
+      <motion.section
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={sectionTransition}
+        className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10"
+      >
+        <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("destinations")}</p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("featuredDestinations")}</h2>
           </div>
+          <img
+            src={journeyShowcaseImages[2]?.src}
+            alt="Study destinations"
+            className="hidden h-24 w-36 rounded-[1.4rem] object-cover shadow-soft lg:block"
+          />
         </div>
-        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {countries.map((country) => (
-            <DestinationCard key={country._id} country={country} />
+            <motion.div
+              key={country._id}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.4 }}
+            >
+              <DestinationCard country={country} />
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <section>
+      <motion.section
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={sectionTransition}
+        className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10"
+      >
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("universities")}</p>
           <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("featuredUniversities")}</h2>
         </div>
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
           {universities.map((university) => (
-            <UniversityCard key={university._id} university={university} />
+            <motion.div
+              key={university._id}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.4 }}
+            >
+              <UniversityCard university={university} />
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <section>
+      <motion.section
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={sectionTransition}
+      >
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("studentStories")}</p>
           <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("testimonialsTitle")}</h2>
         </div>
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
           {testimonials.map((testimonial) => (
-            <TestimonialCard key={testimonial._id} testimonial={testimonial} />
+            <motion.div
+              key={testimonial._id}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.4 }}
+            >
+              <TestimonialCard testimonial={testimonial} />
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="panel overflow-hidden bg-brand-900 p-8 text-white">
+      <motion.section
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={sectionTransition}
+        className="panel overflow-hidden bg-brand-900 p-8 text-white"
+      >
         <h2 className="text-3xl font-semibold">{t("readyNextChapter")}</h2>
         <p className="mt-4 max-w-2xl text-sky-100">{t("ctaDescription")}</p>
         <div className="mt-6">
@@ -197,7 +404,7 @@ export const HomePage = () => {
             {primaryLabel}
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 };
