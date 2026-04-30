@@ -7,6 +7,7 @@ const ExhibitionArticle = require("../models/ExhibitionArticle");
 const SiteSettings = require("../models/SiteSettings");
 const Testimonial = require("../models/Testimonial");
 const asyncHandler = require("../utils/asyncHandler");
+const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
@@ -162,7 +163,8 @@ const uploadCountryHeroImage = asyncHandler(async (req, res) => {
     throw new Error("Country cover image is required");
   }
 
-  res.status(201).json({ url: `/uploads/${req.file.filename}` });
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/countries");
+  res.status(201).json({ url: uploadResult.url });
 });
 
 const updateCountry = asyncHandler(async (req, res) => {
@@ -196,6 +198,8 @@ const getSiteSettingsAdmin = asyncHandler(async (req, res) => {
       facebookUrl: "",
       instagramUrl: "",
       tiktokUrl: "",
+      supportHours: "",
+      officeLocations: "",
     }
   );
 });
@@ -207,6 +211,8 @@ const updateSiteSettings = asyncHandler(async (req, res) => {
     facebookUrl: req.body.facebookUrl || "",
     instagramUrl: req.body.instagramUrl || "",
     tiktokUrl: req.body.tiktokUrl || "",
+    supportHours: req.body.supportHours || "",
+    officeLocations: req.body.officeLocations || "",
   };
 
   const existingSettings = await SiteSettings.findOne().sort({ createdAt: -1 });

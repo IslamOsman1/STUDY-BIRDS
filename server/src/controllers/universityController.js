@@ -1,5 +1,6 @@
 const University = require("../models/University");
 const asyncHandler = require("../utils/asyncHandler");
+const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 
 const getUniversities = asyncHandler(async (req, res) => {
   const query = {};
@@ -65,7 +66,10 @@ const uploadUniversityImages = asyncHandler(async (req, res) => {
     throw new Error("At least one image is required");
   }
 
-  const urls = req.files.map((file) => `/uploads/${file.filename}`);
+  const uploads = await Promise.all(
+    req.files.map((file) => uploadFileToCloudinary(file, "study-birds/universities"))
+  );
+  const urls = uploads.map((item) => item.url);
   res.status(201).json({ urls });
 });
 

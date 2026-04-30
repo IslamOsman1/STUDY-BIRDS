@@ -24,9 +24,10 @@ study-birds/
 2. `copy .env.example .env`
 3. Update `MONGODB_URI` and `JWT_SECRET`
 4. Optional: add `GOOGLE_CLIENT_ID` to enable Sign in with Google
-5. `npm install`
-6. `npm run seed`
-7. `npm run dev`
+5. Add `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` for persistent file uploads
+6. `npm install`
+7. `npm run seed`
+8. `npm run dev`
 
 ### MongoDB Atlas
 
@@ -65,7 +66,7 @@ Seeded accounts:
 - Student profile management
 - Program search and filtering
 - Online application submission
-- Document uploads with Multer
+- Persistent image and document uploads via Cloudinary
 - In-app assistant guidance without external AI provider setup
 - Admin stats and application management
 - Seed data for countries, universities, programs, testimonials, and users
@@ -80,6 +81,9 @@ Server:
 - `CLIENT_URLS`: optional comma-separated list of allowed frontend URLs
 - `GOOGLE_CLIENT_ID`: optional if using Google sign-in
 - `UPLOAD_DIR`: optional writable uploads path on the host
+- `CLOUDINARY_CLOUD_NAME`: Cloudinary cloud name for persistent uploads
+- `CLOUDINARY_API_KEY`: Cloudinary API key
+- `CLOUDINARY_API_SECRET`: Cloudinary API secret
 
 Client:
 
@@ -95,7 +99,7 @@ Client:
 ## Deployment note
 
 - MongoDB Atlas solves the database hosting part only
-- Uploaded files are still stored on the server filesystem through `UPLOAD_DIR`, so on many cloud hosts you may later want object storage such as S3, Cloudinary, or similar if you need persistent uploads across redeploys
+- Uploaded files should use Cloudinary in production so they persist across deploys and server restarts
 
 ## Verification checklist
 

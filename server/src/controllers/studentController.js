@@ -3,6 +3,7 @@ const Document = require("../models/Document");
 const Application = require("../models/Application");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
+const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
@@ -81,13 +82,15 @@ const uploadDocument = asyncHandler(async (req, res) => {
     throw new Error("File is required");
   }
 
-const document = await Document.create({
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/documents");
+
+  const document = await Document.create({
     student: req.user._id,
     type: req.body.type || "general",
-    fileName: req.file.filename,
-    filePath: `/uploads/${req.file.filename}`,
+    fileName: req.file.originalname,
+    filePath: uploadResult.url,
     mimeType: req.file.mimetype,
-    size: req.file.size,
+    size: uploadResult.bytes || req.file.size,
   });
 
   res.status(201).json(document);

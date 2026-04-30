@@ -34,6 +34,8 @@ const getSiteSettings = asyncHandler(async (req, res) => {
       facebookUrl: "",
       instagramUrl: "",
       tiktokUrl: "",
+      supportHours: "",
+      officeLocations: "",
     }
   );
 });

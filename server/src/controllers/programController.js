@@ -1,5 +1,6 @@
 const Program = require("../models/Program");
 const asyncHandler = require("../utils/asyncHandler");
+const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 
 const getPrograms = asyncHandler(async (req, res) => {
   const query = {};
@@ -107,7 +108,8 @@ const uploadProgramCover = asyncHandler(async (req, res) => {
     throw new Error("Cover image is required");
   }
 
-  res.status(201).json({ url: `/uploads/${req.file.filename}` });
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/programs");
+  res.status(201).json({ url: uploadResult.url });
 });
 
 module.exports = {

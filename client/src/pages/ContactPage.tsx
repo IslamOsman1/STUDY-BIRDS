@@ -7,6 +7,8 @@ import { SITE_NAME, seoText } from "../seo/site";
 export const ContactPage = () => {
   const { t, language } = useLanguage();
   const siteSettings = useSiteSettings();
+  const supportHoursText = siteSettings.supportHours?.trim() || t("supportHours");
+  const officeLocationsText = siteSettings.officeLocations?.trim() || t("offices");
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -26,8 +28,14 @@ export const ContactPage = () => {
       <div className="panel p-8">
         <div className="space-y-4 text-slate-700">
           <p>{t("email")}: {siteSettings.contactEmail}</p>
-          <p>{t("supportHours")}</p>
-          <p>{t("offices")}</p>
+          <div>
+            <p className="font-semibold text-slate-900">{language === "ar" ? "مواعيد العمل" : "Support hours"}</p>
+            <p className="mt-1 whitespace-pre-line">{supportHoursText}</p>
+          </div>
+          <div>
+            <p className="font-semibold text-slate-900">{language === "ar" ? "مواقع المكاتب" : "Office locations"}</p>
+            <p className="mt-1 whitespace-pre-line">{officeLocationsText}</p>
+          </div>
           <div className="pt-2">
             <SocialLinks
               settings={siteSettings}

@@ -14,6 +14,8 @@ export const defaultSiteSettings: SiteSettings = {
   facebookUrl: import.meta.env.VITE_FACEBOOK_URL?.trim() || "https://facebook.com/studybirds",
   instagramUrl: import.meta.env.VITE_INSTAGRAM_URL?.trim() || "https://instagram.com/studybirds",
   tiktokUrl: import.meta.env.VITE_TIKTOK_URL?.trim() || "https://tiktok.com/@studybirds",
+  supportHours: "",
+  officeLocations: "",
 };
 
 type ContactLink = {

@@ -30,6 +30,8 @@ const emptySiteSettingsForm = {
   facebookUrl: "",
   instagramUrl: "",
   tiktokUrl: "",
+  supportHours: "",
+  officeLocations: "",
 };
 
 export const AdminContentPage = () => {
@@ -58,6 +60,8 @@ export const AdminContentPage = () => {
       facebookUrl: siteSettingsData.facebookUrl || "",
       instagramUrl: siteSettingsData.instagramUrl || "",
       tiktokUrl: siteSettingsData.tiktokUrl || "",
+      supportHours: siteSettingsData.supportHours || "",
+      officeLocations: siteSettingsData.officeLocations || "",
     });
   };
 
@@ -307,6 +311,26 @@ export const AdminContentPage = () => {
               value={siteSettingsForm.tiktokUrl}
               onChange={(event) => setSiteSettingsForm((current) => ({ ...current, tiktokUrl: event.target.value }))}
               placeholder="https://tiktok.com/@your-profile"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <label className="block md:col-span-2">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "مواعيد العمل" : "Support hours"}</span>
+            <textarea
+              value={siteSettingsForm.supportHours}
+              onChange={(event) => setSiteSettingsForm((current) => ({ ...current, supportHours: event.target.value }))}
+              rows={3}
+              placeholder={language === "ar" ? "السبت إلى الخميس - 10 صباحًا إلى 6 مساءً" : "Saturday to Thursday - 10 AM to 6 PM"}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <label className="block md:col-span-2">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "مواقع المكاتب" : "Office locations"}</span>
+            <textarea
+              value={siteSettingsForm.officeLocations}
+              onChange={(event) => setSiteSettingsForm((current) => ({ ...current, officeLocations: event.target.value }))}
+              rows={4}
+              placeholder={language === "ar" ? "القاهرة - مدينة نصر\nالإسكندرية - سموحة" : "Cairo - Nasr City\nAlexandria - Smouha"}
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
             />
           </label>

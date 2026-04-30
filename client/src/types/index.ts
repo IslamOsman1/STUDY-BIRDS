@@ -32,6 +32,8 @@ export interface SiteSettings {
   facebookUrl?: string;
   instagramUrl?: string;
   tiktokUrl?: string;
+  supportHours?: string;
+  officeLocations?: string;
 }
 
 export interface University {

@@ -7,6 +7,8 @@ const siteSettingsSchema = new mongoose.Schema(
     facebookUrl: String,
     instagramUrl: String,
     tiktokUrl: String,
+    supportHours: String,
+    officeLocations: String,
   },
   { timestamps: true }
 );
