@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Globe2, MessageSquareQuote, PencilLine, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../../hooks/useLanguage";
+import { getApiAssetUrl } from "../../lib/api";
 import { adminService } from "../../services/adminService";
-import type { Country, Testimonial } from "../../types";
+import type { Country, SiteSettings, Testimonial } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
 import { dt } from "../../utils/dashboardTranslations";
 
@@ -11,6 +12,7 @@ const emptyCountryForm = {
   code: "",
   description: "",
   visaNotes: "",
+  heroImage: "",
   featured: false,
 };
 
@@ -22,20 +24,41 @@ const emptyTestimonialForm = {
   featured: true,
 };
 
+const emptySiteSettingsForm = {
+  contactEmail: "",
+  whatsappUrl: "",
+  facebookUrl: "",
+  instagramUrl: "",
+  tiktokUrl: "",
+};
+
 export const AdminContentPage = () => {
   const { language, t } = useLanguage();
   const [countries, setCountries] = useState<Country[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [siteSettingsForm, setSiteSettingsForm] = useState(emptySiteSettingsForm);
   const [countryForm, setCountryForm] = useState(emptyCountryForm);
   const [testimonialForm, setTestimonialForm] = useState(emptyTestimonialForm);
   const [editingCountryId, setEditingCountryId] = useState<string | null>(null);
   const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
   const [formError, setFormError] = useState("");
+  const [uploadingCountryImage, setUploadingCountryImage] = useState(false);
 
   const loadData = async () => {
-    const [countriesData, testimonialsData] = await Promise.all([adminService.getCountries(), adminService.getTestimonials()]);
+    const [countriesData, testimonialsData, siteSettingsData] = await Promise.all([
+      adminService.getCountries(),
+      adminService.getTestimonials(),
+      adminService.getSiteSettings(),
+    ]);
     setCountries(countriesData);
     setTestimonials(testimonialsData);
+    setSiteSettingsForm({
+      contactEmail: siteSettingsData.contactEmail || "",
+      whatsappUrl: siteSettingsData.whatsappUrl || "",
+      facebookUrl: siteSettingsData.facebookUrl || "",
+      instagramUrl: siteSettingsData.instagramUrl || "",
+      tiktokUrl: siteSettingsData.tiktokUrl || "",
+    });
   };
 
   useEffect(() => {
@@ -68,6 +91,21 @@ export const AdminContentPage = () => {
     }
   };
 
+  const handleCountryImageUpload = async (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    setFormError("");
+    setUploadingCountryImage(true);
+
+    try {
+      const imageUrl = await adminService.uploadCountryImage(fileList[0]);
+      setCountryForm((current) => ({ ...current, heroImage: imageUrl }));
+    } catch (error) {
+      setFormError(getErrorMessage(error, dt(language, "imageUploadFailed")));
+    } finally {
+      setUploadingCountryImage(false);
+    }
+  };
+
   const submitTestimonial = async (event: FormEvent) => {
     event.preventDefault();
     setFormError("");
@@ -79,6 +117,18 @@ export const AdminContentPage = () => {
         await adminService.createTestimonial(payload);
       }
       resetTestimonialForm();
+      await loadData();
+    } catch (error) {
+      setFormError(getErrorMessage(error, dt(language, "saveContentFailed")));
+    }
+  };
+
+  const submitSiteSettings = async (event: FormEvent) => {
+    event.preventDefault();
+    setFormError("");
+
+    try {
+      await adminService.updateSiteSettings(siteSettingsForm as SiteSettings);
       await loadData();
     } catch (error) {
       setFormError(getErrorMessage(error, dt(language, "saveContentFailed")));
@@ -119,6 +169,25 @@ export const AdminContentPage = () => {
               <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "visaNotes")}</span>
               <textarea value={countryForm.visaNotes} onChange={(event) => setCountryForm((current) => ({ ...current, visaNotes: event.target.value }))} rows={3} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
             </label>
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <p className="text-sm font-medium text-slate-700">{language === "ar" ? "غلاف الدولة" : "Country cover image"}</p>
+              <input type="file" accept="image/*" onChange={(event) => handleCountryImageUpload(event.target.files)} className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+              <p className="mt-2 text-xs text-slate-500">
+                {uploadingCountryImage ? `${dt(language, "uploadImages")}...` : language === "ar" ? "ارفع صورة تظهر في بطاقة الدولة داخل الموقع." : "Upload the image shown on the destination card."}
+              </p>
+              {countryForm.heroImage ? (
+                <div className="mt-4 rounded-2xl border border-slate-200 p-3">
+                  <img src={getApiAssetUrl(countryForm.heroImage)} alt="Country cover" className="h-36 w-full rounded-2xl object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setCountryForm((current) => ({ ...current, heroImage: "" }))}
+                    className="mt-3 rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700"
+                  >
+                    {dt(language, "removeImage")}
+                  </button>
+                </div>
+              ) : null}
+            </div>
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3">
               <input type="checkbox" checked={countryForm.featured} onChange={(event) => setCountryForm((current) => ({ ...current, featured: event.target.checked }))} />
               <span className="text-sm font-medium text-slate-700">{dt(language, "featureDestination")}</span>
@@ -183,6 +252,73 @@ export const AdminContentPage = () => {
         </section>
       </div>
 
+      <section className="panel p-6">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
+            <Globe2 className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">{language === "ar" ? "روابط التواصل" : "Contact links"}</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {language === "ar" ? "تحكم في البريد وروابط واتساب وفيسبوك وإنستجرام وتيك توك الظاهرة في الموقع." : "Manage the public email and social links shown across the website."}
+            </p>
+          </div>
+        </div>
+        <form onSubmit={submitSiteSettings} className="mt-6 grid gap-4 md:grid-cols-2">
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "البريد الإلكتروني" : "Email"}</span>
+            <input
+              type="email"
+              value={siteSettingsForm.contactEmail}
+              onChange={(event) => setSiteSettingsForm((current) => ({ ...current, contactEmail: event.target.value }))}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">WhatsApp</span>
+            <input
+              value={siteSettingsForm.whatsappUrl}
+              onChange={(event) => setSiteSettingsForm((current) => ({ ...current, whatsappUrl: event.target.value }))}
+              placeholder="https://wa.me/201000000000"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">Facebook</span>
+            <input
+              value={siteSettingsForm.facebookUrl}
+              onChange={(event) => setSiteSettingsForm((current) => ({ ...current, facebookUrl: event.target.value }))}
+              placeholder="https://facebook.com/your-page"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">Instagram</span>
+            <input
+              value={siteSettingsForm.instagramUrl}
+              onChange={(event) => setSiteSettingsForm((current) => ({ ...current, instagramUrl: event.target.value }))}
+              placeholder="https://instagram.com/your-profile"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <label className="block md:col-span-2">
+            <span className="mb-2 block text-sm font-medium text-slate-700">TikTok</span>
+            <input
+              value={siteSettingsForm.tiktokUrl}
+              onChange={(event) => setSiteSettingsForm((current) => ({ ...current, tiktokUrl: event.target.value }))}
+              placeholder="https://tiktok.com/@your-profile"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
+          <div className="md:col-span-2 flex flex-wrap gap-3">
+            <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 font-semibold text-white">
+              <Plus className="h-4 w-4" />
+              {language === "ar" ? "حفظ روابط التواصل" : "Save contact links"}
+            </button>
+          </div>
+        </form>
+      </section>
+
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="space-y-4">
           {countries.map((country) => (
@@ -194,6 +330,7 @@ export const AdminContentPage = () => {
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{country.code}</span>
                     {country.featured ? <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">{dt(language, "featured")}</span> : null}
                   </div>
+                  {country.heroImage ? <img src={getApiAssetUrl(country.heroImage)} alt={country.name} className="mt-4 h-32 w-full rounded-2xl object-cover" /> : null}
                   {country.description ? <p className="mt-3 text-sm leading-6 text-slate-600">{country.description}</p> : null}
                   {country.visaNotes ? <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">{country.visaNotes}</p> : null}
                 </div>
@@ -206,6 +343,7 @@ export const AdminContentPage = () => {
                         code: country.code,
                         description: country.description || "",
                         visaNotes: country.visaNotes || "",
+                        heroImage: country.heroImage || "",
                         featured: Boolean(country.featured),
                       });
                     }}

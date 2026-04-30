@@ -1,13 +1,15 @@
 import { MapPinned } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { Country } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getDestinationImage } from "../../utils/marketingVisuals";
 
 export const DestinationCard = ({ country }: { country: Country }) => {
-  const { tv } = useLanguage();
+  const { tv, language } = useLanguage();
+  const ctaText = language === "ar" ? "استعرض جامعات هذه الدولة" : "Browse universities";
 
   return (
-    <div className="panel overflow-hidden p-0">
+    <Link to={`/universities?country=${country._id}`} className="panel block overflow-hidden p-0 transition hover:-translate-y-1 hover:shadow-xl">
       <div className="relative h-44">
         <img
           src={getDestinationImage(country.name, country.heroImage)}
@@ -28,7 +30,8 @@ export const DestinationCard = ({ country }: { country: Country }) => {
       <div className="p-6">
         <h3 className="text-xl font-semibold text-slate-900">{tv(country.name)}</h3>
         <p className="mt-3 text-sm text-slate-600">{country.description}</p>
+        <span className="mt-5 inline-flex text-sm font-semibold text-brand-700">{ctaText}</span>
       </div>
-    </div>
+    </Link>
   );
 };

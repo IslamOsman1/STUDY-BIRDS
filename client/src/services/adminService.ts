@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { AdminOverview, Application, Country, ExhibitionArticle, Testimonial, User } from "../types";
+import type { AdminOverview, Application, Country, ExhibitionArticle, SiteSettings, Testimonial, User } from "../types";
 
 export const adminService = {
   getOverview: async () => {
@@ -30,12 +30,28 @@ export const adminService = {
     const { data } = await api.get<Country[]>("/admin/countries");
     return data;
   },
+  getSiteSettings: async () => {
+    const { data } = await api.get<SiteSettings>("/admin/site-settings");
+    return data;
+  },
   createCountry: async (payload: Partial<Country>) => {
     const { data } = await api.post<Country>("/admin/countries", payload);
     return data;
   },
+  uploadCountryImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/countries/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
+  },
   updateCountry: async (id: string, payload: Partial<Country>) => {
     const { data } = await api.put<Country>(`/admin/countries/${id}`, payload);
+    return data;
+  },
+  updateSiteSettings: async (payload: Partial<SiteSettings>) => {
+    const { data } = await api.put<SiteSettings>("/admin/site-settings", payload);
     return data;
   },
   removeCountry: async (id: string) => {

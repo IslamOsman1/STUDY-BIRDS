@@ -2,6 +2,7 @@ const Country = require("../models/Country");
 const ExhibitionArticle = require("../models/ExhibitionArticle");
 const Testimonial = require("../models/Testimonial");
 const Notification = require("../models/Notification");
+const SiteSettings = require("../models/SiteSettings");
 const asyncHandler = require("../utils/asyncHandler");
 
 const getCountries = asyncHandler(async (req, res) => {
@@ -24,9 +25,23 @@ const getNotifications = asyncHandler(async (req, res) => {
   res.json(notifications);
 });
 
+const getSiteSettings = asyncHandler(async (req, res) => {
+  const settings = await SiteSettings.findOne().sort({ createdAt: -1 });
+  res.json(
+    settings || {
+      contactEmail: "",
+      whatsappUrl: "",
+      facebookUrl: "",
+      instagramUrl: "",
+      tiktokUrl: "",
+    }
+  );
+});
+
 module.exports = {
   getCountries,
   getTestimonials,
   getExhibitionArticles,
   getNotifications,
+  getSiteSettings,
 };

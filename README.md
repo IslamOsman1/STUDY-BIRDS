@@ -86,6 +86,11 @@ Client:
 - `VITE_API_URL`: deployed backend API URL, for example `https://api.example.com/api`
 - `VITE_GOOGLE_CLIENT_ID`: optional if using Google sign-in
 - `VITE_SITE_URL`: deployed frontend URL
+- `VITE_CONTACT_EMAIL`: public support email shown in the footer and contact page
+- `VITE_WHATSAPP_URL`: WhatsApp chat link
+- `VITE_FACEBOOK_URL`: Facebook page link
+- `VITE_INSTAGRAM_URL`: Instagram profile link
+- `VITE_TIKTOK_URL`: TikTok profile link
 
 ## Deployment note
 

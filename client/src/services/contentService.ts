@@ -3,6 +3,7 @@ import type {
   Country,
   ExhibitionArticle,
   NotificationItem,
+  SiteSettings,
   Testimonial,
 } from "../types";
 
@@ -17,6 +18,10 @@ export const contentService = {
   },
   getExhibitionArticles: async () => {
     const { data } = await api.get<ExhibitionArticle[]>("/content/exhibitions");
+    return data;
+  },
+  getSiteSettings: async () => {
+    const { data } = await api.get<SiteSettings>("/content/site-settings");
     return data;
   },
   getNotifications: async () => {

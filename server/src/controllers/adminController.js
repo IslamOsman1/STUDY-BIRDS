@@ -4,6 +4,7 @@ const University = require("../models/University");
 const Program = require("../models/Program");
 const Country = require("../models/Country");
 const ExhibitionArticle = require("../models/ExhibitionArticle");
+const SiteSettings = require("../models/SiteSettings");
 const Testimonial = require("../models/Testimonial");
 const asyncHandler = require("../utils/asyncHandler");
 const {
@@ -155,6 +156,15 @@ const createCountry = asyncHandler(async (req, res) => {
   res.status(201).json(country);
 });
 
+const uploadCountryHeroImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Country cover image is required");
+  }
+
+  res.status(201).json({ url: `/uploads/${req.file.filename}` });
+});
+
 const updateCountry = asyncHandler(async (req, res) => {
   const country = await Country.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
 
@@ -175,6 +185,39 @@ const deleteCountry = asyncHandler(async (req, res) => {
   }
 
   res.json({ message: "Country deleted" });
+});
+
+const getSiteSettingsAdmin = asyncHandler(async (req, res) => {
+  const settings = await SiteSettings.findOne().sort({ createdAt: -1 });
+  res.json(
+    settings || {
+      contactEmail: "",
+      whatsappUrl: "",
+      facebookUrl: "",
+      instagramUrl: "",
+      tiktokUrl: "",
+    }
+  );
+});
+
+const updateSiteSettings = asyncHandler(async (req, res) => {
+  const payload = {
+    contactEmail: req.body.contactEmail || "",
+    whatsappUrl: req.body.whatsappUrl || "",
+    facebookUrl: req.body.facebookUrl || "",
+    instagramUrl: req.body.instagramUrl || "",
+    tiktokUrl: req.body.tiktokUrl || "",
+  };
+
+  const existingSettings = await SiteSettings.findOne().sort({ createdAt: -1 });
+  const settings = existingSettings
+    ? await SiteSettings.findByIdAndUpdate(existingSettings._id, payload, {
+        new: true,
+        runValidators: true,
+      })
+    : await SiteSettings.create(payload);
+
+  res.json(settings);
 });
 
 const getTestimonialsAdmin = asyncHandler(async (req, res) => {
@@ -250,8 +293,11 @@ module.exports = {
   updateUser,
   getCountriesAdmin,
   createCountry,
+  uploadCountryHeroImage,
   updateCountry,
   deleteCountry,
+  getSiteSettingsAdmin,
+  updateSiteSettings,
   getTestimonialsAdmin,
   getExhibitionArticlesAdmin,
   createTestimonial,

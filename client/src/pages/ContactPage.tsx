@@ -1,9 +1,12 @@
+import { SocialLinks } from "../components/SocialLinks";
+import { useSiteSettings } from "../hooks/useSiteSettings";
 import { Seo } from "../components/seo/Seo";
 import { useLanguage } from "../hooks/useLanguage";
 import { SITE_NAME, seoText } from "../seo/site";
 
 export const ContactPage = () => {
   const { t, language } = useLanguage();
+  const siteSettings = useSiteSettings();
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -22,9 +25,17 @@ export const ContactPage = () => {
       </div>
       <div className="panel p-8">
         <div className="space-y-4 text-slate-700">
-          <p>{t("email")}: hello@studybirds.com</p>
+          <p>{t("email")}: {siteSettings.contactEmail}</p>
           <p>{t("supportHours")}</p>
           <p>{t("offices")}</p>
+          <div className="pt-2">
+            <SocialLinks
+              settings={siteSettings}
+              className="grid gap-3 sm:grid-cols-2"
+              itemClassName="group inline-flex items-center gap-3 rounded-3xl border border-slate-200 bg-white px-4 py-4 text-slate-700 transition hover:-translate-y-0.5 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-900"
+              labelClassName="text-sm font-medium"
+            />
+          </div>
         </div>
       </div>
     </div>

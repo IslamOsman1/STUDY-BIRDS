@@ -25,6 +25,15 @@ export interface Country {
   createdAt?: string;
 }
 
+export interface SiteSettings {
+  _id?: string;
+  contactEmail?: string;
+  whatsappUrl?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+}
+
 export interface University {
   _id: string;
   name: string;

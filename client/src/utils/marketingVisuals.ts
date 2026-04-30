@@ -1,3 +1,5 @@
+import { getApiAssetUrl } from "../lib/api";
+
 const photoUrl = (id: string, width = 900) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=82`;
 
@@ -49,7 +51,7 @@ export const getStudentPhoto = (studentName?: string) => {
 
 export const getDestinationImage = (countryName?: string, providedImage?: string) => {
   if (providedImage) {
-    return providedImage;
+    return getApiAssetUrl(providedImage);
   }
 
   return destinationImages[countryName || ""] || campusFallbackImage;

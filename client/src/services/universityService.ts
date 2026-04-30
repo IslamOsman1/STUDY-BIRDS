@@ -18,8 +18,8 @@ type UniversityPayload = {
 };
 
 export const universityService = {
-  getAll: async () => {
-    const { data } = await api.get<University[]>("/universities");
+  getAll: async (params?: { country?: string; featured?: boolean }) => {
+    const { data } = await api.get<University[]>("/universities", { params });
     return data;
   },
   getById: async (id: string) => {
