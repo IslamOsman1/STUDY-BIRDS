@@ -5,8 +5,7 @@ import { useLanguage } from "../../hooks/useLanguage";
 import { getDestinationImage } from "../../utils/marketingVisuals";
 
 export const DestinationCard = ({ country }: { country: Country }) => {
-  const { tv, language } = useLanguage();
-  const ctaText = language === "ar" ? "استعرض جامعات هذه الدولة" : "Browse universities";
+  const { t, tv } = useLanguage();
 
   return (
     <Link
@@ -30,13 +29,11 @@ export const DestinationCard = ({ country }: { country: Country }) => {
             <div>
               <div className="inline-flex items-center gap-2 text-sm text-white/85">
                 <MapPinned className="h-4 w-4" />
-                <span>{language === "ar" ? "وجهة دراسية" : "Study destination"}</span>
+                <span>{t("destinationBadge")}</span>
               </div>
               <h3 className="mt-2 text-2xl font-semibold">{tv(country.name)}</h3>
-              {country.description ? (
-                <p className="mt-2 max-w-xs text-sm leading-6 text-white/85">{country.description}</p>
-              ) : null}
-              <p className="mt-3 text-sm font-medium text-sky-100">{ctaText}</p>
+              {country.description ? <p className="mt-2 max-w-xs text-sm leading-6 text-white/85">{country.description}</p> : null}
+              <p className="mt-3 text-sm font-medium text-sky-100">{t("destinationCta")}</p>
             </div>
             <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition group-hover:-translate-y-1">
               <ArrowUpLeft className="h-5 w-5" />

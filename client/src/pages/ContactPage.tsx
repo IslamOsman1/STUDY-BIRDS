@@ -13,27 +13,31 @@ export const ContactPage = () => {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <Seo
-        title={seoText(language, `Contact ${SITE_NAME}`, `Contact ${SITE_NAME}`)}
+        title={seoText(language, `Contact ${SITE_NAME}`, `تواصل مع ${SITE_NAME}`)}
         description={seoText(
           language,
           `Contact ${SITE_NAME} for support with university applications, international programs, and study abroad planning.`,
-          `تواصل مع ${SITE_NAME} للحصول على دعم في التقديم الجامعي، اختيار البرامج، والتخطيط للدراسة بالخارج.`
+          `تواصل مع ${SITE_NAME} للحصول على دعم في التقديم الجامعي، واختيار البرامج، والتخطيط للدراسة بالخارج.`
         )}
       />
+
       <div className="panel p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("contact")}</p>
         <h1 className="mt-3 text-4xl font-semibold text-slate-900">{t("contactTitle")}</h1>
         <p className="mt-4 text-slate-600">{t("contactBody")}</p>
       </div>
+
       <div className="panel p-8">
         <div className="space-y-4 text-slate-700">
-          <p>{t("email")}: {siteSettings.contactEmail}</p>
+          <p>
+            {t("email")}: {siteSettings.contactEmail}
+          </p>
           <div>
-            <p className="font-semibold text-slate-900">{language === "ar" ? "مواعيد العمل" : "Support hours"}</p>
+            <p className="font-semibold text-slate-900">{t("supportHoursLabel")}</p>
             <p className="mt-1 whitespace-pre-line">{supportHoursText}</p>
           </div>
           <div>
-            <p className="font-semibold text-slate-900">{language === "ar" ? "مواقع المكاتب" : "Office locations"}</p>
+            <p className="font-semibold text-slate-900">{t("officeLocationsLabel")}</p>
             <p className="mt-1 whitespace-pre-line">{officeLocationsText}</p>
           </div>
           <div className="pt-2">

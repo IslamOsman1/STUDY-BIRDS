@@ -8,11 +8,11 @@ export const AboutPage = () => {
   return (
     <div className="panel p-8">
       <Seo
-        title={seoText(language, `About ${SITE_NAME}`, `About ${SITE_NAME}`)}
+        title={seoText(language, `About ${SITE_NAME}`, `عن ${SITE_NAME}`)}
         description={seoText(
           language,
           `Learn how ${SITE_NAME} helps students compare universities, apply to international programs, and manage study abroad journeys.`,
-          `تعرّف على كيفية مساعدة ${SITE_NAME} للطلاب في مقارنة الجامعات، اختيار البرامج، وتنظيم رحلة الدراسة بالخارج بوضوح.`
+          `تعرّف على كيفية مساعدة ${SITE_NAME} للطلاب في مقارنة الجامعات، واختيار البرامج، وتنظيم رحلة الدراسة بالخارج بوضوح.`
         )}
       />
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("about")}</p>

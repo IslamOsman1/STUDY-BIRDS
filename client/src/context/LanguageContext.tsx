@@ -52,6 +52,12 @@ type TranslationKey =
   | "heroStep2"
   | "heroStep3"
   | "heroStep4"
+  | "heroStatAdmissionsTitle"
+  | "heroStatAdmissionsBody"
+  | "heroStatWorkspaceTitle"
+  | "heroStatWorkspaceBody"
+  | "heroPlanningCaption"
+  | "heroDocumentsCaption"
   | "howItWorks"
   | "intake"
   | "intakeFall2026"
@@ -126,9 +132,26 @@ type TranslationKey =
   | "destinationsTitle"
   | "forgotPasswordBody"
   | "guidedPath"
+  | "homeJourneyIntro"
+  | "homePlanningTitle"
+  | "homePlanningBody"
+  | "homeDocumentsTitle"
+  | "homeDocumentsBody"
+  | "homeExperienceEyebrow"
+  | "homeExperienceTitle"
+  | "homeExperienceBody"
+  | "studyFieldsEyebrow"
+  | "studyFieldsTitle"
+  | "studyFieldsBody"
+  | "studyFieldBadge"
+  | "destinationBadge"
+  | "destinationCta"
+  | "universityBadge"
+  | "exhibitions"
   | "notFoundBody"
   | "notFoundTitle"
   | "offices"
+  | "officeLocationsLabel"
   | "partnerBody"
   | "partnerInstitutions"
   | "partnerStatus"
@@ -138,6 +161,7 @@ type TranslationKey =
   | "signingIn"
   | "studyDestinations"
   | "supportHours"
+  | "supportHoursLabel"
   | "universitiesTitle"
   | "footerBody"
   | "welcomeBack";
@@ -186,12 +210,19 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     flyBeyondBorders: "Study Abroad Starts Here",
     forgotPassword: "Forgot password",
     gpa: "GPA",
-    heroSubtitle: "Study Birds helps you discover universities, compare tuition and programs, and move from inquiry to application in one clear place.",
+    heroSubtitle:
+      "Study Birds helps you discover universities, compare tuition and programs, and move from inquiry to application in one clear place.",
     heroTitle: "Plan your study abroad journey with Study Birds",
     heroStep1: "Choose the right country and university",
     heroStep2: "Compare programs, tuition, and intakes",
     heroStep3: "Prepare your profile and required documents",
     heroStep4: "Apply and follow every update",
+    heroStatAdmissionsTitle: "Clearer admissions",
+    heroStatAdmissionsBody: "Structured guidance, easier follow-up, and a smoother path to applying.",
+    heroStatWorkspaceTitle: "One student space",
+    heroStatWorkspaceBody: "Programs, documents, applications, and updates organized together.",
+    heroPlanningCaption: "A clearer planning stage",
+    heroDocumentsCaption: "Documents prepared with ease",
     howItWorks: "How Study Birds works",
     intake: "Intake",
     intakeFall2026: "Fall 2026",
@@ -242,7 +273,8 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     students: "Students",
     studentsHelped: "Students Helped",
     submitApplication: "Submit Application",
-    submitApplicationNote: "Confirm your profile, upload your documents, add notes, and submit your application in a few steps.",
+    submitApplicationNote:
+      "Confirm your profile, upload your documents, add notes, and submit your application in a few steps.",
     submitApplicationSuccess: "Application submitted successfully.",
     submitApplicationLoginRequired: "Student login required to apply.",
     submitting: "Submitting...",
@@ -257,19 +289,43 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     uploadedDocuments: "Uploaded documents",
     yes: "Yes",
     no: "No",
-    aboutBody: "Study Birds brings together countries, universities, programs, and application guidance so students can plan each step clearly and make better decisions faster.",
+    aboutBody:
+      "Study Birds brings together countries, universities, programs, and application guidance so students can plan each step clearly and make better decisions faster.",
     aboutTitle: "Your guide to studying abroad with confidence",
     city: "City",
-    contactBody: "Reach the Study Birds team for help with choosing a destination, preparing documents, or following up on applications.",
+    contactBody:
+      "Reach the Study Birds team for help with choosing a destination, preparing documents, or following up on applications.",
     contactTitle: "Talk to the Study Birds team",
-    ctaDescription: "Create your account, organize your documents, compare programs, and let Study Birds guide you from first search to final submission.",
+    ctaDescription:
+      "Create your account, organize your documents, compare programs, and let Study Birds guide you from first search to final submission.",
     destinationsTitle: "Explore countries that fit your study plan",
-    forgotPasswordBody: "Password reset delivery can be added next. For now, use seeded accounts or create a fresh student profile.",
+    forgotPasswordBody:
+      "Password reset delivery can be added next. For now, use seeded accounts or create a fresh student profile.",
     guidedPath: "How Study Birds moves you from search to application",
+    homeJourneyIntro:
+      "From the first search to the final application step, Study Birds keeps countries, universities, documents, and follow-up in one clear workflow.",
+    homePlanningTitle: "University and program planning",
+    homePlanningBody: "Compare destinations, universities, and tuition early before deciding where to apply.",
+    homeDocumentsTitle: "Better document readiness",
+    homeDocumentsBody: "Prepare your documents early so your application moves faster and with fewer delays.",
+    homeExperienceEyebrow: "Inside the experience",
+    homeExperienceTitle: "A clearer visual journey for every student",
+    homeExperienceBody:
+      "The homepage now highlights discovery, document preparation, and application follow-up with imagery that reflects the real student journey.",
+    studyFieldsEyebrow: "Study fields",
+    studyFieldsTitle: "Discover the study paths students ask about most",
+    studyFieldsBody: "Showcase your most important study fields with images and direct links to the matching programs.",
+    studyFieldBadge: "Explore field",
+    destinationBadge: "Study destination",
+    destinationCta: "Browse universities in this country",
+    universityBadge: "University",
+    exhibitions: "Exhibitions Station",
     notFoundBody: "The page you are looking for could not be found.",
     notFoundTitle: "This page could not be found",
     offices: "Offices and support points",
-    partnerBody: "Study Birds helps universities and recruitment partners present programs clearly, receive qualified students, and manage communication in a more organized way.",
+    officeLocationsLabel: "Office locations",
+    partnerBody:
+      "Study Birds helps universities and recruitment partners present programs clearly, receive qualified students, and manage communication in a more organized way.",
     partnerInstitutions: "Partner Institutions",
     partnerStatus: "Partner",
     partnerTitle: "Work with Study Birds to reach more students",
@@ -278,8 +334,10 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     signingIn: "Signing in...",
     studyDestinations: "Study Countries",
     supportHours: "Support hours: Sunday to Thursday, 10:00 to 18:00",
+    supportHoursLabel: "Support hours",
     universitiesTitle: "Browse universities on Study Birds",
-    footerBody: "Study Birds helps students explore countries, compare universities and programs, and stay organized through every step of the study abroad process.",
+    footerBody:
+      "Study Birds helps students explore countries, compare universities and programs, and stay organized through every step of the study abroad process.",
     welcomeBack: "Welcome back to Study Birds",
   },
   ar: {
@@ -299,7 +357,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     contact: "تواصل معنا",
     country: "الدولة",
     createAccount: "أنشئ حسابك",
-    creatingAccount: "جاري إنشاء الحساب...",
+    creatingAccount: "جارٍ إنشاء الحساب...",
     createProfile: "أنشئ ملفك الشخصي",
     currentEducation: "المؤهل الحالي",
     dashboard: "لوحة التحكم",
@@ -325,12 +383,19 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     flyBeyondBorders: "الدراسة بالخارج تبدأ من هنا",
     forgotPassword: "نسيت كلمة المرور",
     gpa: "المعدل الدراسي",
-    heroSubtitle: "تساعدك Study Birds على اختيار الدولة المناسبة، مقارنة الجامعات والبرامج، وتنظيم التقديم خطوة بخطوة من مكان واحد.",
+    heroSubtitle:
+      "تساعدك Study Birds على اختيار الدولة المناسبة، ومقارنة الجامعات والبرامج، وتنظيم التقديم خطوة بخطوة من مكان واحد.",
     heroTitle: "ابدأ رحلتك الدراسية مع Study Birds",
     heroStep1: "اختر الدولة والجامعة المناسبة",
     heroStep2: "قارن بين البرامج والرسوم ومواعيد الدراسة",
     heroStep3: "جهّز ملفك ومستنداتك المطلوبة",
     heroStep4: "قدّم وتابع كل تحديث بسهولة",
+    heroStatAdmissionsTitle: "قبول أوضح",
+    heroStatAdmissionsBody: "خطوات مرتبة، متابعة أسهل، ومسار أكثر وضوحًا حتى التقديم.",
+    heroStatWorkspaceTitle: "ملف واحد للطالب",
+    heroStatWorkspaceBody: "البرامج والمستندات والطلبات والتحديثات كلها في مكان واحد.",
+    heroPlanningCaption: "تخطيط أوضح قبل التقديم",
+    heroDocumentsCaption: "تجهيز المستندات بسهولة",
     howItWorks: "كيف تعمل Study Birds",
     intake: "موعد الدراسة",
     intakeFall2026: "خريف 2026",
@@ -357,7 +422,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     phone: "الهاتف",
     preferredIntake: "موعد الدراسة المفضل",
     programs: "البرامج",
-    popularity: "الأكثر طلباً",
+    popularity: "الأكثر طلبًا",
     ranking: "التصنيف",
     recentApplications: "أحدث الطلبات",
     register: "إنشاء حساب",
@@ -384,7 +449,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     submitApplicationNote: "راجع ملفك، ارفع مستنداتك، أضف ملاحظاتك، ثم أرسل طلبك بخطوات بسيطة.",
     submitApplicationSuccess: "تم إرسال الطلب بنجاح.",
     submitApplicationLoginRequired: "يجب تسجيل الدخول كطالب للتقديم.",
-    submitting: "جاري الإرسال...",
+    submitting: "جارٍ الإرسال...",
     submitYourApplication: "أرسل طلبك",
     testimonialsTitle: "ماذا يقول الطلاب عن رحلتهم معنا",
     trackAdmission: "تابع حالة القبول",
@@ -396,29 +461,54 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     uploadedDocuments: "المستندات المرفوعة",
     yes: "نعم",
     no: "لا",
-    aboutBody: "تجمع Study Birds بين الدول والجامعات والبرامج وإرشادات التقديم في مكان واحد، لتساعدك على التخطيط بوضوح واتخاذ القرار المناسب بسرعة أكبر.",
+    aboutBody:
+      "تجمع Study Birds بين الدول والجامعات والبرامج وإرشادات التقديم في مكان واحد، لتساعدك على التخطيط بوضوح واتخاذ القرار المناسب بسرعة أكبر.",
     aboutTitle: "دليلك للدراسة بالخارج بثقة",
     city: "المدينة",
     contactBody: "تواصل مع فريق Study Birds إذا كنت تحتاج مساعدة في اختيار الوجهة، تجهيز المستندات، أو متابعة التقديم.",
     contactTitle: "تواصل مع فريق Study Birds",
-    ctaDescription: "أنشئ حسابك، نظّم مستنداتك، قارن بين البرامج، واترك لـ Study Birds مهمة إرشادك من أول بحث حتى إرسال الطلب.",
+    ctaDescription:
+      "أنشئ حسابك، نظّم مستنداتك، قارن بين البرامج، واترك لـ Study Birds مهمة إرشادك من أول بحث حتى إرسال الطلب.",
     destinationsTitle: "استكشف دولًا تناسب خطتك الدراسية",
-    forgotPasswordBody: "يمكن إضافة إرسال رابط إعادة تعيين كلمة المرور لاحقاً. حالياً استخدم الحسابات التجريبية أو أنشئ حساب طالب جديد.",
+    forgotPasswordBody:
+      "يمكن إضافة إرسال رابط إعادة تعيين كلمة المرور لاحقًا. حاليًا استخدم الحسابات التجريبية أو أنشئ حساب طالب جديد.",
     guidedPath: "كيف تنقلك Study Birds من البحث إلى التقديم",
+    homeJourneyIntro:
+      "من أول بحث حتى آخر خطوة في التقديم، تجمع Study Birds الدول والجامعات والمستندات والمتابعة في مسار واحد واضح للطالب.",
+    homePlanningTitle: "اختيار الجامعة والبرنامج",
+    homePlanningBody: "قارن بين الوجهات والجامعات والرسوم مبكرًا قبل تحديد قرار التقديم الأنسب لك.",
+    homeDocumentsTitle: "تجهيز أفضل للمستندات",
+    homeDocumentsBody: "رتّب مستنداتك مبكرًا حتى تسير خطوات التقديم بسرعة وبأقل تأخير ممكن.",
+    homeExperienceEyebrow: "داخل التجربة",
+    homeExperienceTitle: "رحلة أوضح للطالب داخل المنصة",
+    homeExperienceBody:
+      "تعرض الواجهة الآن مراحل الاستكشاف وتجهيز الملف ومتابعة التقديم بصور أقرب لتجربة الطالب الحقيقية.",
+    studyFieldsEyebrow: "التخصصات",
+    studyFieldsTitle: "اكتشف المسارات الدراسية الأكثر طلبًا",
+    studyFieldsBody: "اعرض أهم مجالات الدراسة بالصور مع رابط مباشر للبرامج المرتبطة بكل تخصص.",
+    studyFieldBadge: "استكشف التخصص",
+    destinationBadge: "وجهة دراسية",
+    destinationCta: "استعرض جامعات هذه الدولة",
+    universityBadge: "جامعة",
+    exhibitions: "محطة المعارض",
     notFoundBody: "لم نتمكن من العثور على الصفحة المطلوبة.",
     notFoundTitle: "الصفحة غير موجودة",
     offices: "مكاتبنا ونقاط الدعم",
-    partnerBody: "تساعد Study Birds الجامعات والشركاء على عرض البرامج بوضوح، والوصول إلى طلاب مؤهلين، وتنظيم التواصل وخطوات القبول بشكل أفضل.",
+    officeLocationsLabel: "مواقع المكاتب",
+    partnerBody:
+      "تساعد Study Birds الجامعات والشركاء على عرض البرامج بوضوح، والوصول إلى طلاب مؤهلين، وتنظيم التواصل وخطوات القبول بشكل أفضل.",
     partnerInstitutions: "مؤسسة شريكة",
     partnerStatus: "شريك",
     partnerTitle: "تعاون مع Study Birds للوصول إلى طلاب أكثر",
     readyNextChapter: "جاهز لخطوتك التالية؟",
     returnHome: "العودة للرئيسية",
-    signingIn: "جاري تسجيل الدخول...",
+    signingIn: "جارٍ تسجيل الدخول...",
     studyDestinations: "دول الدراسة",
     supportHours: "ساعات الدعم: من الأحد إلى الخميس، 10:00 صباحًا إلى 6:00 مساءً",
+    supportHoursLabel: "مواعيد العمل",
     universitiesTitle: "تصفح الجامعات على Study Birds",
-    footerBody: "تساعد Study Birds الطلاب على استكشاف الدول، مقارنة الجامعات والبرامج، وتنظيم رحلة الدراسة بالخارج من البداية حتى التقديم.",
+    footerBody:
+      "تساعد Study Birds الطلاب على استكشاف الدول، ومقارنة الجامعات والبرامج، وتنظيم رحلة الدراسة بالخارج من البداية حتى التقديم.",
     welcomeBack: "مرحبًا بعودتك إلى Study Birds",
   },
 };

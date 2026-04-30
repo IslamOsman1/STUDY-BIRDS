@@ -25,6 +25,7 @@ export const HomePage = () => {
   const [studyFields, setStudyFields] = useState<StudyField[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
   const primaryHref =
     !user
       ? "/register"
@@ -33,6 +34,7 @@ export const HomePage = () => {
         : user.role === "partner"
           ? "/partner/profile"
           : "/student";
+
   const primaryLabel =
     !user ? t("startJourney") : user.role === "student" ? t("studentProfile") : user.role === "partner" ? dt(language, "profileHub") : t("dashboard");
 
@@ -53,7 +55,7 @@ export const HomePage = () => {
   const homeDescription = seoText(
     language,
     `Explore universities, compare international programs, and apply to study abroad with ${SITE_NAME} in English and Arabic.`,
-    `Ø§Ø³ØªÙƒØ´Ù Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª ÙˆÙ‚Ø§Ø±Ù† Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬ Ø§Ù„Ø¯ÙˆÙ„ÙŠØ© ÙˆÙ‚Ø¯Ù‘Ù… Ù„Ù„Ø¯Ø±Ø§Ø³Ø© Ø¨Ø§Ù„Ø®Ø§Ø±Ø¬ Ù…Ø¹ ${SITE_NAME} Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ÙˆØ§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©.`
+    `استكشف الجامعات، وقارن البرامج الدولية، وقدّم للدراسة بالخارج مع ${SITE_NAME} باللغتين العربية والإنجليزية.`
   );
 
   const structuredData = [
@@ -90,15 +92,15 @@ export const HomePage = () => {
   return (
     <div className="space-y-16">
       <Seo
-        title={seoText(language, "Study Abroad Platform", "Ù…Ù†ØµØ© Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø¨Ø§Ù„Ø®Ø§Ø±Ø¬")}
+        title={seoText(language, "Study Abroad Platform", "منصة الدراسة بالخارج")}
         description={homeDescription}
         keywords={[
           SITE_NAME,
           "study abroad platform",
           "international programs",
           "university applications",
-          "Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø¨Ø§Ù„Ø®Ø§Ø±Ø¬",
-          "Ø§Ù„ØªÙ‚Ø¯ÙŠÙ… Ø¹Ù„Ù‰ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª",
+          "الدراسة بالخارج",
+          "التقديم على الجامعات",
         ]}
         structuredData={structuredData}
       />
@@ -141,11 +143,7 @@ export const HomePage = () => {
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("howItWorks")}</p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("guidedPath")}</h2>
-            <p className="mt-4 text-sm leading-7 text-slate-600">
-              {language === "ar"
-                ? "من اختيار الوجهة إلى رفع المستندات ومتابعة الطلب، صممنا رحلة أوضح للطالب حتى يعرف ما الذي يفعله ومتى ينتقل للخطوة التالية."
-                : "From choosing a destination to uploading documents and tracking applications, the flow is built so students always know what to do next."}
-            </p>
+            <p className="mt-4 text-sm leading-7 text-slate-600">{t("homeJourneyIntro")}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               {studentPortraits.slice(0, 5).map((student, index) => (
                 <motion.img
@@ -161,6 +159,7 @@ export const HomePage = () => {
               ))}
             </div>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -171,14 +170,11 @@ export const HomePage = () => {
             >
               <img src={advisorDeskImage} alt="Student planning session" className="h-48 w-full object-cover" />
               <div className="p-4">
-                <p className="text-sm font-semibold text-slate-900">
-                  {language === "ar" ? "اختيار الجامعة والبرنامج" : "University and program planning"}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {language === "ar" ? "ابدأ بمقارنة الخيارات قبل اتخاذ قرار التقديم." : "Compare options early before moving into applications."}
-                </p>
+                <p className="text-sm font-semibold text-slate-900">{t("homePlanningTitle")}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{t("homePlanningBody")}</p>
               </div>
             </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -188,16 +184,13 @@ export const HomePage = () => {
             >
               <img src={documentPrepImage} alt="Study documents preparation" className="h-48 w-full object-cover" />
               <div className="p-4">
-                <p className="text-sm font-semibold text-slate-900">
-                  {language === "ar" ? "ملف ومستندات أكثر ترتيبًا" : "Better document readiness"}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {language === "ar" ? "جهّز المطلوب مبكرًا لتسير خطواتك بسلاسة." : "Prepare your documents early to keep momentum."}
-                </p>
+                <p className="text-sm font-semibold text-slate-900">{t("homeDocumentsTitle")}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{t("homeDocumentsBody")}</p>
               </div>
             </motion.div>
           </div>
         </div>
+
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {journeySteps.map(({ label, icon: Icon }, index) => (
             <motion.div
@@ -229,18 +222,11 @@ export const HomePage = () => {
       >
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-200">
-              {language === "ar" ? "داخل التجربة" : "Inside the experience"}
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold">
-              {language === "ar" ? "صور أكثر تعبر عن رحلة الطالب" : "A richer visual story for the student journey"}
-            </h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
-              {language === "ar"
-                ? "أضفنا صورًا داعمة وحركة هادئة في الواجهة لتوضيح فكرة الاستكشاف، تجهيز الملف، والانتقال بين الدول والجامعات والبرامج."
-                : "We added supporting imagery and calm motion to make discovery, preparation, and decision-making feel clearer across the experience."}
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-200">{t("homeExperienceEyebrow")}</p>
+            <h2 className="mt-3 text-3xl font-semibold">{t("homeExperienceTitle")}</h2>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">{t("homeExperienceBody")}</p>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-3">
             {journeyShowcaseImages.map((image, index) => (
               <motion.div
@@ -268,18 +254,11 @@ export const HomePage = () => {
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">
-                {language === "ar" ? "Ø§Ù„ØªØ®ØµØµØ§Øª" : "Study fields"}
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold text-slate-900">
-                {language === "ar" ? "Ø§Ø¹Ø±Ù Ø§Ù„Ù…Ø²ÙŠØ¯ Ø¹Ù† Ø£Ù‡Ù… Ø§Ù„ØªØ®ØµØµØ§Øª" : "Discover the most in-demand study paths"}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                {language === "ar"
-                  ? "Ø£Ø¶Ù Ø§Ù„ØªØ®ØµØµØ§Øª Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… Ù…Ø¹ ØµÙˆØ±Ù‡Ø§ØŒ ÙˆØ³ÙŠØ¸Ù‡Ø± ÙƒÙ„ ØªØ®ØµØµ Ù‡Ù†Ø§ Ù…Ø¹ Ø±Ø§Ø¨Ø· Ù…Ø¨Ø§Ø´Ø± Ø¥Ù„Ù‰ Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬ Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ù‡."
-                  : "Manage study fields from the dashboard and spotlight them here with direct links to matching programs."}
-              </p>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("studyFieldsEyebrow")}</p>
+              <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("studyFieldsTitle")}</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">{t("studyFieldsBody")}</p>
             </div>
+
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -290,6 +269,7 @@ export const HomePage = () => {
               <img src={journeyShowcaseImages[0]?.src} alt="Study fields" className="h-28 w-48 rounded-[1.3rem] object-cover" />
             </motion.div>
           </div>
+
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
             {studyFields.map((studyField) => (
               <motion.div
@@ -324,6 +304,7 @@ export const HomePage = () => {
             className="hidden h-24 w-36 rounded-[1.4rem] object-cover shadow-soft lg:block"
           />
         </div>
+
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {countries.map((country) => (
             <motion.div
@@ -350,6 +331,7 @@ export const HomePage = () => {
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("universities")}</p>
           <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("featuredUniversities")}</h2>
         </div>
+
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
           {universities.map((university) => (
             <motion.div
@@ -375,6 +357,7 @@ export const HomePage = () => {
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("studentStories")}</p>
           <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("testimonialsTitle")}</h2>
         </div>
+
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
           {testimonials.map((testimonial) => (
             <motion.div

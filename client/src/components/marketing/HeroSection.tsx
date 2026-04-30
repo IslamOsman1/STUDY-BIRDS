@@ -9,12 +9,14 @@ import { dt } from "../../utils/dashboardTranslations";
 export const HeroSection = () => {
   const { t, language } = useLanguage();
   const { user } = useAuth();
+
   const heroSteps = [
     { label: t("heroStep1"), icon: Search },
     { label: t("heroStep2"), icon: GraduationCap },
     { label: t("heroStep3"), icon: FileCheck2 },
     { label: t("heroStep4"), icon: TrendingUp },
   ];
+
   const primaryHref =
     !user
       ? "/register"
@@ -23,16 +25,18 @@ export const HeroSection = () => {
         : user.role === "partner"
           ? "/partner/profile"
           : "/student";
+
   const primaryLabel =
     !user ? t("startJourney") : user.role === "student" ? t("studentProfile") : user.role === "partner" ? dt(language, "profileHub") : t("dashboard");
+
   const quickStats = [
     {
-      value: language === "ar" ? "قبول أوضح" : "Clearer admissions",
-      label: language === "ar" ? "خطوات مرتبة ومتابعة أسهل" : "A structured process and easier follow-up",
+      value: t("heroStatAdmissionsTitle"),
+      label: t("heroStatAdmissionsBody"),
     },
     {
-      value: language === "ar" ? "ملف واحد" : "One student space",
-      label: language === "ar" ? "البرامج والمستندات والتقديم" : "Programs, documents, and applications together",
+      value: t("heroStatWorkspaceTitle"),
+      label: t("heroStatWorkspaceBody"),
     },
   ];
 
@@ -53,11 +57,10 @@ export const HeroSection = () => {
 
       <div className="container-shell grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <p className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-sky-100">
-            {t("flyBeyondBorders")}
-          </p>
+          <p className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-sky-100">{t("flyBeyondBorders")}</p>
           <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-tight">{t("heroTitle")}</h1>
           <p className="mt-6 max-w-2xl text-lg text-sky-50">{t("heroSubtitle")}</p>
+
           <div className="mt-8 flex flex-wrap gap-4">
             <Link to={primaryHref} className="rounded-full bg-white px-6 py-3 font-semibold text-brand-900">
               {primaryLabel}
@@ -66,6 +69,7 @@ export const HeroSection = () => {
               {t("explorePrograms")}
             </Link>
           </div>
+
           <div className="mt-8 flex items-center gap-4">
             <div className="flex -space-x-3 rtl:space-x-reverse">
               {studentPortraits.slice(0, 4).map((student) => (
@@ -82,6 +86,7 @@ export const HeroSection = () => {
               <p>{t("studentsHelped")}</p>
             </div>
           </div>
+
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {quickStats.map((item, index) => (
               <motion.div
@@ -113,6 +118,7 @@ export const HeroSection = () => {
             <PlaneTakeoff size={17} />
             {t("startJourney")}
           </div>
+
           <div className="absolute -bottom-6 left-4 right-4 rounded-[1.75rem] border border-white/30 bg-white/95 p-4 text-brand-900 shadow-soft backdrop-blur md:left-8 md:right-8">
             <div className="grid gap-3 sm:grid-cols-2">
               {heroSteps.map(({ label, icon: Icon }, index) => (
@@ -130,10 +136,12 @@ export const HeroSection = () => {
               ))}
             </div>
           </div>
+
           <div className="absolute -right-3 bottom-24 hidden rounded-2xl border border-white/20 bg-brand-900/85 p-4 text-sm shadow-soft backdrop-blur lg:block">
             <BookOpenCheck size={22} className="mb-3 text-accent" />
             <p className="max-w-32 font-semibold">{t("explorePrograms")}</p>
           </div>
+
           <div className="absolute -left-6 top-24 hidden w-40 gap-3 lg:grid">
             {journeyShowcaseImages.slice(0, 2).map((image, index) => (
               <motion.div
@@ -144,15 +152,7 @@ export const HeroSection = () => {
                 className="overflow-hidden rounded-[1.4rem] border border-white/20 bg-white/10 p-2 shadow-soft backdrop-blur-sm"
               >
                 <img src={image.src} alt={image.title} className="h-24 w-full rounded-[1rem] object-cover" />
-                <p className="mt-2 px-1 text-xs font-medium text-sky-50">
-                  {language === "ar"
-                    ? index === 0
-                      ? "تخطيط أوضح قبل التقديم"
-                      : "تجهيز المستندات بسهولة"
-                    : index === 0
-                      ? "A clearer planning stage"
-                      : "Documents prepared with ease"}
-                </p>
+                <p className="mt-2 px-1 text-xs font-medium text-sky-50">{index === 0 ? t("heroPlanningCaption") : t("heroDocumentsCaption")}</p>
               </motion.div>
             ))}
           </div>

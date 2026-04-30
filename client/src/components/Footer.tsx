@@ -5,9 +5,8 @@ import { useLanguage } from "../hooks/useLanguage";
 import { BRAND_LOGO_PATH, SITE_NAME } from "../seo/site";
 
 export const Footer = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const siteSettings = useSiteSettings();
-  const exhibitionsText = language === "ar" ? "محطة المعارض" : "Exhibitions Station";
 
   return (
     <footer className="mt-20 bg-brand-900 text-white">
@@ -19,16 +18,18 @@ export const Footer = () => {
           </div>
           <p className="mt-4 max-w-sm text-sm text-sky-100">{t("footerBody")}</p>
         </div>
+
         <div>
           <h4 className="font-semibold">{t("explore")}</h4>
           <div className="mt-4 flex flex-col gap-3 text-sm text-sky-100">
             <Link to="/programs">{t("programs")}</Link>
             <Link to="/universities">{t("universities")}</Link>
             <Link to="/destinations">{t("destinations")}</Link>
-            <Link to="/exhibitions">{exhibitionsText}</Link>
+            <Link to="/exhibitions">{t("exhibitions")}</Link>
             <Link to="/partner">{t("partner")}</Link>
           </div>
         </div>
+
         <div>
           <h4 className="font-semibold">{t("contact")}</h4>
           <div className="mt-4 space-y-4 text-sm text-sky-100">
