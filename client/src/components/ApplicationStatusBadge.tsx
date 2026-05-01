@@ -1,7 +1,7 @@
 import { useLanguage } from "../hooks/useLanguage";
 
 const styleMap: Record<string, string> = {
-  submitted: "bg-sky-100 text-sky-700",
+  submitted: "bg-brand-100 text-brand-700",
   "under-review": "bg-amber-100 text-amber-700",
   accepted: "bg-emerald-100 text-emerald-700",
   rejected: "bg-rose-100 text-rose-700",

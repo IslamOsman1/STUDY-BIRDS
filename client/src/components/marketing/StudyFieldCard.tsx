@@ -17,7 +17,7 @@ export const StudyFieldCard = ({ studyField }: { studyField: StudyField }) => {
       {imageSrc ? (
         <img src={imageSrc} alt={studyField.name} className="h-72 w-full object-cover transition duration-500 group-hover:scale-105" />
       ) : (
-        <div className="h-72 w-full bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.55),_transparent_34%),linear-gradient(135deg,_#0f172a,_#1e3a8a_55%,_#0f766e)]" />
+        <div className="h-72 w-full bg-fusion" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-slate-950/5" />
       <div className="absolute inset-x-0 bottom-0 p-6">

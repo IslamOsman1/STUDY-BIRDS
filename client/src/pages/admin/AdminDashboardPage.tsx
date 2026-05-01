@@ -41,7 +41,7 @@ export const AdminDashboardPage = () => {
       <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 text-white shadow-2xl shadow-slate-900/10">
         <div className="grid gap-8 px-8 py-9 lg:grid-cols-[1.35fr_0.85fr]">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-sky-300">{dt(language, "adminMissionControl")}</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-brand-300">{dt(language, "adminMissionControl")}</p>
             <h1 className="mt-3 text-3xl font-semibold leading-tight">{dt(language, "professionalDashboard")}</h1>
             <p className="mt-4 max-w-2xl text-sm text-slate-300">
               {dt(language, "monitorEverything")}
@@ -69,9 +69,9 @@ export const AdminDashboardPage = () => {
               </div>
               <p className="mt-3 text-sm text-slate-200">{dt(language, "modulesConnected")}</p>
             </div>
-            <div className="rounded-3xl border border-sky-400/20 bg-sky-400/10 p-5">
+            <div className="rounded-3xl border border-brand-300/20 bg-brand-300/10 p-5">
               <div className="flex items-center gap-3">
-                <BellRing className="h-5 w-5 text-sky-300" />
+                <BellRing className="h-5 w-5 text-brand-300" />
                 <p className="font-semibold">{dt(language, "whatNeedsAttention")}</p>
               </div>
               <p className="mt-3 text-sm text-slate-200">
@@ -153,7 +153,7 @@ export const AdminDashboardPage = () => {
               {recentUsers.map((user) => (
                 <div key={user._id} className="flex items-center justify-between rounded-3xl border border-slate-200 px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-100 text-brand-700">
                       <UserPlus className="h-4 w-4" />
                     </div>
                     <div>

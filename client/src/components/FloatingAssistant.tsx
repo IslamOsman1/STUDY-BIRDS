@@ -51,6 +51,9 @@ interface FloatingPosition {
   y: number;
 }
 
+const ASSISTANT_NAME = "bird Ai";
+const ASSISTANT_POSITION_KEY = "studyBirdsAssistantPosition";
+
 const getAssistantContent = (pathname: string, role: Role | undefined, language: "ar" | "en"): AssistantContent => {
   if (language === "ar") {
     if (pathname.startsWith("/student/documents")) {
@@ -308,7 +311,7 @@ const buildInitialMessages = (content: AssistantContent, language: "ar" | "en"):
     text:
       language === "ar"
         ? `مرحبًا، أنا مساعدك داخل المنصة. ${content.description}`
-        : `Hi, I am your in-app assistant. ${content.description}`,
+        : `Hi, I am ${ASSISTANT_NAME}. ${content.description}`,
   },
 ];
 
@@ -525,6 +528,15 @@ export const FloatingAssistant = () => {
           return clampPosition(current);
         }
 
+        const storedPosition = window.localStorage.getItem(ASSISTANT_POSITION_KEY);
+        if (storedPosition) {
+          try {
+            return clampPosition(JSON.parse(storedPosition) as FloatingPosition);
+          } catch {
+            window.localStorage.removeItem(ASSISTANT_POSITION_KEY);
+          }
+        }
+
         return clampPosition({
           x: window.innerWidth - buttonWidth - 16,
           y: window.innerHeight - buttonHeight - 24,
@@ -536,6 +548,14 @@ export const FloatingAssistant = () => {
     window.addEventListener("resize", updateViewport);
     return () => window.removeEventListener("resize", updateViewport);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !buttonPosition) {
+      return;
+    }
+
+    window.localStorage.setItem(ASSISTANT_POSITION_KEY, JSON.stringify(buttonPosition));
+  }, [buttonPosition]);
 
   useEffect(() => {
     if (activePointerIdRef.current === null) {
@@ -637,11 +657,7 @@ export const FloatingAssistant = () => {
     }
   };
 
-  const handleButtonPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (open) {
-      return;
-    }
-
+  const startDragging = (event: ReactPointerEvent<HTMLElement>) => {
     activePointerIdRef.current = event.pointerId;
     dragMovedRef.current = false;
     const rect = event.currentTarget.getBoundingClientRect();
@@ -654,6 +670,22 @@ export const FloatingAssistant = () => {
       y: event.clientY - rect.top,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleButtonPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (open) {
+      return;
+    }
+
+    startDragging(event);
+  };
+
+  const handlePanelPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("button, a, textarea")) {
+      return;
+    }
+
+    startDragging(event);
   };
 
   const handleButtonClick = () => {
@@ -686,39 +718,43 @@ export const FloatingAssistant = () => {
       >
         {open ? (
           <div
-            className={`absolute h-[min(72vh,680px)] w-[calc(100vw-2rem)] max-w-[420px] overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_30px_90px_rgba(10,33,79,0.24)] backdrop-blur ${
+            className={`absolute h-[min(72vh,680px)] w-[calc(100vw-2rem)] max-w-[420px] overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_30px_90px_rgba(10,25,49,0.24)] backdrop-blur ${
               panelOpensToLeft ? "right-0" : "left-0"
             } ${panelOpensAbove ? "bottom-[calc(100%+0.75rem)]" : "top-[calc(100%+0.75rem)]"}`}
           >
-            <div className="flex h-full flex-col bg-[linear-gradient(180deg,rgba(248,251,255,0.98)_0%,rgba(255,255,255,0.98)_100%)]">
-              <div className="border-b border-slate-200/80 bg-hero px-5 pb-4 pt-5 text-white">
+            <div className="flex h-full flex-col bg-[linear-gradient(180deg,rgba(246,248,252,0.98)_0%,rgba(255,255,255,0.98)_100%)]">
+              <div className="border-b border-slate-200/80 bg-fusion px-5 pb-4 pt-5 text-white">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-50">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-50">
                       <span className="h-2 w-2 rounded-full bg-emerald-300" />
                       {content.badge}
                     </div>
-                    <div className="mt-4 flex items-center gap-3">
+                    <div
+                      className={`mt-4 flex items-center gap-3 ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+                      onPointerDown={handlePanelPointerDown}
+                      style={{ touchAction: "none", userSelect: "none", WebkitUserSelect: "none" }}
+                    >
                       <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
                         <Bot size={22} />
                       </div>
                       <div className="min-w-0">
                         <h3 className="truncate text-xl font-semibold">
-                          {language === "ar" ? "مساعد المنصة" : "Platform Assistant"}
+                          {ASSISTANT_NAME}
                         </h3>
-                        <p className="text-sm text-sky-100">
-                          {language === "ar" ? "إرشاد فوري داخل المنصة" : "Instant guidance inside the platform"}
+                        <p className="text-sm text-brand-100">
+                          {language === "ar" ? "اسحبني لتغيير مكاني" : "Drag me to reposition"}
                         </p>
                       </div>
                     </div>
-                    <p className="mt-4 max-w-sm text-sm leading-6 text-sky-50/95">{content.title}</p>
+                    <p className="mt-4 max-w-sm text-sm leading-6 text-brand-50/95">{content.title}</p>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
                     className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
-                    aria-label={language === "ar" ? "إغلاق المساعد" : "Close assistant"}
+                    aria-label={language === "ar" ? `إغلاق ${ASSISTANT_NAME}` : `Close ${ASSISTANT_NAME}`}
                   >
                     <X size={18} />
                   </button>
@@ -728,7 +764,7 @@ export const FloatingAssistant = () => {
                   {content.tips.slice(0, 2).map((tip) => (
                     <div
                       key={tip}
-                      className="shrink-0 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-xs leading-5 text-sky-50"
+                      className="shrink-0 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-xs leading-5 text-brand-50"
                     >
                       {tip}
                     </div>
@@ -755,9 +791,9 @@ export const FloatingAssistant = () => {
                             key={action.href}
                             to={action.href}
                             onClick={() => setOpen(false)}
-                            className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800"
+                            className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-accent-300 hover:bg-accent-50 hover:text-accent-700"
                           >
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-brand-700 transition group-hover:bg-brand-100">
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent-50 text-accent-700 transition group-hover:bg-accent-100">
                               <Icon size={14} />
                             </span>
                             <span>{action.label}</span>
@@ -780,14 +816,14 @@ export const FloatingAssistant = () => {
                             : "Ask about programs, applications, or documents"}
                         </p>
                       </div>
-                      <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-700">
+                      <span className="rounded-full border border-brand-100 bg-brand-50 px-2.5 py-1 text-[11px] font-medium text-brand-700">
                         {language === "ar" ? "داخل المنصة" : "In-app"}
                       </span>
                     </div>
 
                     <div
                       ref={messagesRef}
-                      className="min-h-[260px] space-y-3 overflow-y-auto rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-3 pr-2 sm:min-h-[300px]"
+                      className="min-h-[260px] space-y-3 overflow-y-auto rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f6f8fc_0%,#ffffff_100%)] p-3 pr-2 sm:min-h-[300px]"
                       style={{ scrollbarGutter: "stable" }}
                     >
                       {visibleMessages.map((message) => (
@@ -834,7 +870,7 @@ export const FloatingAssistant = () => {
                       <button
                         type="submit"
                         disabled={!draft.trim() || isThinking}
-                        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-900 text-white shadow-[0_12px_24px_rgba(10,33,79,0.18)] transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-900 text-white shadow-[0_12px_24px_rgba(10,25,49,0.18)] transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                         aria-label={language === "ar" ? "إرسال الرسالة" : "Send message"}
                       >
                         <SendHorizontal size={18} className={isRtl ? "scale-x-[-1]" : ""} />
@@ -851,19 +887,19 @@ export const FloatingAssistant = () => {
           type="button"
           onPointerDown={handleButtonPointerDown}
           onClick={handleButtonClick}
-          className={`inline-flex items-center gap-2 rounded-full bg-brand-900 px-3 py-2.5 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(10,33,79,0.28)] transition hover:bg-brand-700 ${
+          className={`inline-flex items-center gap-2 rounded-full bg-fusion px-3 py-2.5 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(10,25,49,0.28)] transition hover:brightness-110 ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
           style={{ touchAction: "none", userSelect: "none", WebkitUserSelect: "none" }}
           aria-expanded={open}
-          aria-label={language === "ar" ? "فتح مساعد المنصة" : "Open platform assistant"}
+          aria-label={language === "ar" ? `فتح ${ASSISTANT_NAME}` : `Open ${ASSISTANT_NAME}`}
         >
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/14">
             <Bot size={18} />
           </span>
           <span className="flex flex-col items-start leading-tight">
-            <span>{language === "ar" ? "مساعد المنصة" : "Platform Assistant"}</span>
-            <span className="text-[11px] font-medium text-sky-100">
+            <span>{ASSISTANT_NAME}</span>
+            <span className="text-[11px] font-medium text-brand-100">
               {language === "ar" ? "اسحبني لأي مكان" : "Drag me anywhere"}
             </span>
           </span>

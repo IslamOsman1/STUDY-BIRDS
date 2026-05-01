@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { HeroSection } from "../components/marketing/HeroSection";
 import { Seo } from "../components/seo/Seo";
 import { StatsCard } from "../components/dashboard/StatsCard";
+import { AccentWave } from "../components/ui/AccentWave";
 import { DestinationCard } from "../components/marketing/DestinationCard";
 import { StudyFieldCard } from "../components/marketing/StudyFieldCard";
 import { UniversityCard } from "../components/marketing/UniversityCard";
@@ -137,13 +138,24 @@ export const HomePage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={sectionTransition}
-        className="panel overflow-hidden p-8"
+        className="panel relative overflow-hidden border-t-4 border-t-accent-700 bg-[linear-gradient(180deg,rgba(20,45,93,0.99)_0%,rgba(10,25,49,0.99)_100%)] p-8"
       >
-        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <AccentWave
+          className="-right-10 bottom-0 h-28 w-80 rounded-tl-[5rem] rounded-bl-[2.8rem] rounded-tr-[1.4rem] opacity-95"
+          shadowClassName="-left-[8%] -top-[52%] h-[80%] w-[118%]"
+          glowClassName="bottom-[-22%] h-[48%]"
+        />
+        <AccentWave
+          className="right-20 bottom-10 h-20 w-52 rounded-tl-[3.4rem] rounded-bl-[2.3rem] rounded-tr-[1rem] opacity-75"
+          shadowClassName="-left-[8%] -top-[58%] h-[78%] w-[118%]"
+          glowClassName="bottom-[-24%] h-[44%] opacity-70"
+        />
+        <div className="pointer-events-none absolute -left-8 top-0 h-24 w-56 rounded-[999px] bg-brand-300/20 blur-3xl" />
+        <div className="relative z-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("howItWorks")}</p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("guidedPath")}</h2>
-            <p className="mt-4 text-sm leading-7 text-slate-600">{t("homeJourneyIntro")}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent-300">{t("howItWorks")}</p>
+            <h2 className="mt-3 text-3xl font-semibold text-white">{t("guidedPath")}</h2>
+            <p className="mt-4 text-sm leading-7 text-brand-100/85">{t("homeJourneyIntro")}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               {studentPortraits.slice(0, 5).map((student, index) => (
                 <motion.img
@@ -166,12 +178,15 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45 }}
-              className="overflow-hidden rounded-[1.8rem] bg-slate-100"
+              className="overflow-hidden rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(26,58,122,0.92)_0%,rgba(10,25,49,0.96)_100%)] shadow-[0_14px_36px_rgba(15,23,42,0.18)]"
             >
               <img src={advisorDeskImage} alt="Student planning session" className="h-48 w-full object-cover" />
               <div className="p-4">
-                <p className="text-sm font-semibold text-slate-900">{t("homePlanningTitle")}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{t("homePlanningBody")}</p>
+                <div className="mb-3 h-2 w-20 overflow-hidden rounded-full bg-[#4d2108]">
+                  <div className="h-full w-full rounded-full bg-gradient-to-r from-[#f07a1f] via-[#d25500] to-[#8f3200]" />
+                </div>
+                <p className="text-sm font-semibold text-white">{t("homePlanningTitle")}</p>
+                <p className="mt-2 text-sm leading-6 text-brand-100/80">{t("homePlanningBody")}</p>
               </div>
             </motion.div>
 
@@ -180,18 +195,21 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: 0.1 }}
-              className="overflow-hidden rounded-[1.8rem] bg-slate-100"
+              className="overflow-hidden rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(26,58,122,0.92)_0%,rgba(10,25,49,0.96)_100%)] shadow-[0_14px_36px_rgba(15,23,42,0.18)]"
             >
               <img src={documentPrepImage} alt="Study documents preparation" className="h-48 w-full object-cover" />
               <div className="p-4">
-                <p className="text-sm font-semibold text-slate-900">{t("homeDocumentsTitle")}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{t("homeDocumentsBody")}</p>
+                <div className="mb-3 h-2 w-20 overflow-hidden rounded-full bg-[#4d2108]">
+                  <div className="h-full w-full rounded-full bg-gradient-to-r from-[#f07a1f] via-[#d25500] to-[#8f3200]" />
+                </div>
+                <p className="text-sm font-semibold text-white">{t("homeDocumentsTitle")}</p>
+                <p className="mt-2 text-sm leading-6 text-brand-100/80">{t("homeDocumentsBody")}</p>
               </div>
             </motion.div>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="relative z-10 mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {journeySteps.map(({ label, icon: Icon }, index) => (
             <motion.div
               key={label}
@@ -199,15 +217,20 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.35, delay: index * 0.08 }}
-              className="rounded-3xl bg-slate-50 p-6"
+              className="relative overflow-hidden rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(26,58,122,0.88)_0%,rgba(10,25,49,0.96)_100%)] p-6 shadow-[0_10px_26px_rgba(15,23,42,0.18)]"
             >
+              <AccentWave
+                className="right-0 top-0 h-14 w-24 rounded-bl-[1.8rem] rounded-tl-[2.4rem] rounded-br-[0.35rem] opacity-70"
+                shadowClassName="-left-[2%] -top-[56%] h-[78%] w-[108%]"
+                glowClassName="bottom-[-34%] h-[42%] opacity-60"
+              />
               <div className="flex items-center justify-between gap-4">
-                <div className="text-sm font-semibold text-accent">0{index + 1}</div>
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-brand-700 shadow-sm">
+                <div className="relative z-10 text-sm font-semibold text-accent-300">0{index + 1}</div>
+                <span className="relative z-10 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-accent-300 shadow-sm backdrop-blur-sm">
                   <Icon size={21} />
                 </span>
               </div>
-              <p className="mt-5 text-lg font-medium">{label}</p>
+              <p className="relative z-10 mt-5 text-lg font-medium text-white">{label}</p>
             </motion.div>
           ))}
         </div>
@@ -218,11 +241,11 @@ export const HomePage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={sectionTransition}
-        className="overflow-hidden rounded-[2.5rem] bg-slate-950 px-8 py-10 text-white sm:px-10"
+        className="overflow-hidden rounded-[2.5rem] bg-fusion px-8 py-10 text-white sm:px-10"
       >
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-200">{t("homeExperienceEyebrow")}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-100">{t("homeExperienceEyebrow")}</p>
             <h2 className="mt-3 text-3xl font-semibold">{t("homeExperienceTitle")}</h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">{t("homeExperienceBody")}</p>
           </div>
@@ -250,13 +273,13 @@ export const HomePage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={sectionTransition}
-          className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10"
+          className="panel overflow-hidden bg-[linear-gradient(180deg,rgba(20,45,93,0.98)_0%,rgba(10,25,49,0.98)_100%)] p-8 sm:p-10"
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("studyFieldsEyebrow")}</p>
-              <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("studyFieldsTitle")}</h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600">{t("studyFieldsBody")}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent-300">{t("studyFieldsEyebrow")}</p>
+              <h2 className="mt-3 text-3xl font-semibold text-white">{t("studyFieldsTitle")}</h2>
+              <p className="mt-3 text-sm leading-7 text-brand-100/85">{t("studyFieldsBody")}</p>
             </div>
 
             <motion.div
@@ -264,7 +287,7 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45 }}
-              className="hidden overflow-hidden rounded-[1.8rem] border border-white/60 bg-white/60 p-2 shadow-soft lg:block"
+              className="hidden overflow-hidden rounded-[1.8rem] border border-white/10 bg-white/5 p-2 shadow-soft backdrop-blur-sm lg:block"
             >
               <img src={journeyShowcaseImages[0]?.src} alt="Study fields" className="h-28 w-48 rounded-[1.3rem] object-cover" />
             </motion.div>
@@ -291,12 +314,17 @@ export const HomePage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={sectionTransition}
-        className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10"
+        className="panel relative overflow-hidden border-t-4 border-t-accent-700 bg-[linear-gradient(180deg,rgba(20,45,93,0.98)_0%,rgba(10,25,49,0.98)_100%)] p-8 sm:p-10"
       >
-        <div className="flex items-end justify-between gap-4">
+        <AccentWave
+          className="right-5 top-0 h-24 w-36 rounded-bl-[2.5rem] rounded-tl-[3.8rem] rounded-br-[0.8rem] opacity-90"
+          shadowClassName="-left-[6%] -top-[56%] h-[80%] w-[112%]"
+          glowClassName="bottom-[-30%] h-[46%]"
+        />
+        <div className="relative z-10 flex items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("destinations")}</p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("featuredDestinations")}</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent-300">{t("destinations")}</p>
+            <h2 className="mt-3 text-3xl font-semibold text-white">{t("featuredDestinations")}</h2>
           </div>
           <img
             src={journeyShowcaseImages[2]?.src}
@@ -325,11 +353,23 @@ export const HomePage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={sectionTransition}
-        className="overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,_rgba(219,234,254,0.85),_rgba(240,249,255,0.92)_42%,_rgba(224,242,254,0.96))] p-8 sm:p-10"
+        className="panel relative overflow-hidden border-t-4 border-t-accent-700 bg-[linear-gradient(180deg,rgba(20,45,93,0.98)_0%,rgba(10,25,49,0.98)_100%)] p-8 sm:p-10"
       >
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("universities")}</p>
-          <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("featuredUniversities")}</h2>
+        <AccentWave
+          className="right-5 top-0 h-24 w-36 rounded-bl-[2.5rem] rounded-tl-[3.8rem] rounded-br-[0.8rem] opacity-90"
+          shadowClassName="-left-[6%] -top-[56%] h-[80%] w-[112%]"
+          glowClassName="bottom-[-30%] h-[46%]"
+        />
+        <div className="relative z-10 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent-300">{t("universities")}</p>
+            <h2 className="mt-3 text-3xl font-semibold text-white">{t("featuredUniversities")}</h2>
+          </div>
+          <img
+            src={journeyShowcaseImages[1]?.src}
+            alt="Featured universities"
+            className="hidden h-24 w-36 rounded-[1.4rem] object-cover shadow-soft lg:block"
+          />
         </div>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
@@ -378,10 +418,10 @@ export const HomePage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={sectionTransition}
-        className="panel overflow-hidden bg-brand-900 p-8 text-white"
+        className="panel overflow-hidden bg-fusion p-8 text-white"
       >
         <h2 className="text-3xl font-semibold">{t("readyNextChapter")}</h2>
-        <p className="mt-4 max-w-2xl text-sky-100">{t("ctaDescription")}</p>
+        <p className="mt-4 max-w-2xl text-brand-100">{t("ctaDescription")}</p>
         <div className="mt-6">
           <Link to={primaryHref} className="rounded-full bg-white px-6 py-3 font-semibold text-brand-900">
             {primaryLabel}

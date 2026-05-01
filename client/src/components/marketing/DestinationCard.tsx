@@ -33,7 +33,7 @@ export const DestinationCard = ({ country }: { country: Country }) => {
               </div>
               <h3 className="mt-2 text-2xl font-semibold">{tv(country.name)}</h3>
               {country.description ? <p className="mt-2 max-w-xs text-sm leading-6 text-white/85">{country.description}</p> : null}
-              <p className="mt-3 text-sm font-medium text-sky-100">{t("destinationCta")}</p>
+              <p className="mt-3 text-sm font-medium text-brand-100">{t("destinationCta")}</p>
             </div>
             <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition group-hover:-translate-y-1">
               <ArrowUpLeft className="h-5 w-5" />

@@ -52,18 +52,18 @@ export const ExhibitionsPage = () => {
         keywords={["study abroad fairs", "university events", "youtube", "articles", "محطة المعارض", "الدراسة بالخارج"]}
       />
 
-      <section className="relative overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#071330_0%,#102a63_55%,#ff7a00_140%)] px-8 py-12 text-white">
+      <section className="relative overflow-hidden rounded-[2rem] bg-fusion px-8 py-12 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_34%)]" />
         <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-sky-100">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-100">
               <Newspaper className="h-4 w-4" />
               {exhibitionsText}
             </div>
             <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">
               {language === "ar" ? "دليلك إلى معارض الدراسة بالخارج وفعاليات الجامعات" : "Your hub for study abroad fairs and university event coverage"}
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-sky-100 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base leading-8 text-brand-100 sm:text-lg">
               {language === "ar"
                 ? "اكتشف هنا أحدث أخبار المعارض التعليمية، لقاءات الجامعات، ونصائح التقديم والسفر، مع فيديوهات يوتيوب مدمجة تساعد الطالب على فهم الفرص المتاحة قبل اتخاذ القرار."
                 : "Discover the latest education fair updates, university meetings, and study abroad guidance, with embedded YouTube videos that help students understand available opportunities before making a decision."}
@@ -72,11 +72,11 @@ export const ExhibitionsPage = () => {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
-              <p className="text-sm text-sky-100">{language === "ar" ? "مقالات المعارض التعليمية" : "Educational fair articles"}</p>
+              <p className="text-sm text-brand-100">{language === "ar" ? "مقالات المعارض التعليمية" : "Educational fair articles"}</p>
               <p className="mt-3 text-4xl font-semibold">{articles.length}</p>
             </div>
             <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
-              <p className="text-sm text-sky-100">{language === "ar" ? "محتوى مرئي داعم" : "Supporting video content"}</p>
+              <p className="text-sm text-brand-100">{language === "ar" ? "محتوى مرئي داعم" : "Supporting video content"}</p>
               <p className="mt-3 text-lg font-semibold">{language === "ar" ? "شرح مباشر داخل الصفحة" : "Watch guidance without leaving the page"}</p>
             </div>
           </div>

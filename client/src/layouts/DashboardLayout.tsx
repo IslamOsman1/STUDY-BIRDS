@@ -48,7 +48,7 @@ export const DashboardLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#eff6ff_0%,_#f8fafc_40%,_#f8fafc_100%)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#d8e1f1_0%,_#f6f8fc_40%,_#f8fafc_100%)]">
       <Seo
         title={
           user?.role === "admin"

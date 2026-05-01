@@ -49,11 +49,11 @@ export const UniversitiesPage = () => {
       <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("universities")}</p>
       <h1 className="mt-3 text-4xl font-semibold text-slate-900">{t("universitiesTitle")}</h1>
       {selectedCountry ? (
-        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-3xl border border-brand-100 bg-brand-50 px-5 py-4 text-sm text-brand-900">
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-3xl border border-accent-100 bg-white px-5 py-4 text-sm text-slate-900 shadow-sm">
           <span className="font-semibold">
             {language === "ar" ? `عرض جامعات ${tv(selectedCountry.name)}` : `Showing universities in ${tv(selectedCountry.name)}`}
           </span>
-          <Link to="/universities" className="rounded-full bg-white px-4 py-2 font-semibold text-brand-700 shadow-sm">
+          <Link to="/universities" className="rounded-full bg-white px-4 py-2 font-semibold text-accent-700 shadow-sm">
             {language === "ar" ? "عرض كل الجامعات" : "View all universities"}
           </Link>
         </div>

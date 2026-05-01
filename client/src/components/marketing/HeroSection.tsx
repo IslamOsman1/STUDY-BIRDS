@@ -41,25 +41,25 @@ export const HeroSection = () => {
   ];
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] bg-hero text-white shadow-soft">
+    <section className="relative overflow-hidden rounded-[2rem] bg-fusion text-white shadow-soft">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
           animate={{ x: [0, 16, 0], y: [0, -14, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -left-16 top-10 h-52 w-52 rounded-full bg-cyan-300/12 blur-3xl"
+          className="absolute -left-16 top-10 h-52 w-52 rounded-full bg-brand-300/18 blur-3xl"
         />
         <motion.div
           animate={{ x: [0, -18, 0], y: [0, 20, 0] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute right-0 top-0 h-72 w-72 rounded-full bg-sky-200/10 blur-3xl"
+          className="absolute right-0 top-0 h-72 w-72 rounded-full bg-accent-300/16 blur-3xl"
         />
       </div>
 
       <div className="container-shell grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <p className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-sky-100">{t("flyBeyondBorders")}</p>
+          <p className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-brand-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">{t("flyBeyondBorders")}</p>
           <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-tight">{t("heroTitle")}</h1>
-          <p className="mt-6 max-w-2xl text-lg text-sky-50">{t("heroSubtitle")}</p>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/86">{t("heroSubtitle")}</p>
 
           <div className="mt-8 flex flex-wrap gap-4">
             <Link to={primaryHref} className="rounded-full bg-white px-6 py-3 font-semibold text-brand-900">
@@ -81,7 +81,7 @@ export const HeroSection = () => {
                 />
               ))}
             </div>
-            <div className="text-sm text-sky-50">
+            <div className="text-sm text-brand-50">
               <p className="font-semibold text-white">50,000+</p>
               <p>{t("studentsHelped")}</p>
             </div>
@@ -94,10 +94,10 @@ export const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.2 + index * 0.12 }}
-                className="rounded-[1.4rem] border border-white/15 bg-white/10 p-4 backdrop-blur-sm"
+                className="rounded-[1.4rem] border border-white/12 bg-[rgba(9,18,36,0.26)] p-4 backdrop-blur-md"
               >
                 <p className="text-sm font-semibold text-white">{item.value}</p>
-                <p className="mt-2 text-sm leading-6 text-sky-100">{item.label}</p>
+                <p className="mt-2 text-sm leading-6 text-white/72">{item.label}</p>
               </motion.div>
             ))}
           </div>
@@ -122,8 +122,8 @@ export const HeroSection = () => {
           <div className="absolute -bottom-6 left-4 right-4 rounded-[1.75rem] border border-white/30 bg-white/95 p-4 text-brand-900 shadow-soft backdrop-blur md:left-8 md:right-8">
             <div className="grid gap-3 sm:grid-cols-2">
               {heroSteps.map(({ label, icon: Icon }, index) => (
-                <div key={label} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                <div key={label} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-100 text-accent-700">
                     <Icon size={18} />
                   </span>
                   <div>
@@ -152,7 +152,7 @@ export const HeroSection = () => {
                 className="overflow-hidden rounded-[1.4rem] border border-white/20 bg-white/10 p-2 shadow-soft backdrop-blur-sm"
               >
                 <img src={image.src} alt={image.title} className="h-24 w-full rounded-[1rem] object-cover" />
-                <p className="mt-2 px-1 text-xs font-medium text-sky-50">{index === 0 ? t("heroPlanningCaption") : t("heroDocumentsCaption")}</p>
+                <p className="mt-2 px-1 text-xs font-medium text-brand-50">{index === 0 ? t("heroPlanningCaption") : t("heroDocumentsCaption")}</p>
               </motion.div>
             ))}
           </div>

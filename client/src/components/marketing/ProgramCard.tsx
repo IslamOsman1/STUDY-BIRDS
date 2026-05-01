@@ -15,7 +15,7 @@ export const ProgramCard = ({ program }: { program: Program }) => {
   const tuitionLabel = isPartnerUser ? t("partnerPrice") : t("tuition");
 
   return (
-    <div className="panel overflow-hidden p-0">
+    <div className="panel overflow-hidden bg-white p-0">
       {coverImage ? <img src={getApiAssetUrl(coverImage)} alt={program.title} className="h-48 w-full object-cover" /> : null}
       <div className="p-6">
       <div className="flex flex-wrap gap-2">
@@ -23,7 +23,7 @@ export const ProgramCard = ({ program }: { program: Program }) => {
           <GraduationCap size={14} />
           {tv(program.degreeLevel)}
         </span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+        <span className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold text-accent-700">
           <School size={14} />
           {tv(program.fieldOfStudy)}
         </span>
@@ -54,7 +54,7 @@ export const ProgramCard = ({ program }: { program: Program }) => {
           {t("deadline")}: {formatDate(program.applicationDeadline)}
         </p>
       </div>
-      <Link to={`/programs/${program._id}`} className="mt-6 inline-flex text-sm font-semibold text-brand-700">
+      <Link to={`/programs/${program._id}`} className="mt-6 inline-flex text-sm font-semibold text-accent-700">
         {t("exploreProgram")}
       </Link>
       </div>
