@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MapPinned, ScrollText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
+import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { UniversityCard } from "../components/marketing/UniversityCard";
 import { Seo } from "../components/seo/Seo";
 import { universityService } from "../services/universityService";
@@ -99,6 +100,7 @@ export const UniversitiesPage = () => {
           </div>
         </div>
       ) : null}
+      {selectedCountry ? <ArticleContentSection article={selectedCountry} language={language} /> : null}
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
         {universities.map((university) => (
           <UniversityCard key={university._id} university={university} />

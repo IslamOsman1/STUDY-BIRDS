@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { FormInput } from "../components/forms/FormInput";
 import { PhoneNumberField } from "../components/forms/PhoneNumberField";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -328,6 +329,8 @@ export const ProgramDetailsPage = () => {
           </div>
         </div>
       </section>
+
+      <ArticleContentSection article={program} language={language} />
 
       <section className="panel p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{dt(language, "submitUniversityApplication")}</p>

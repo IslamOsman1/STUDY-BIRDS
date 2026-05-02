@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Seo } from "../components/seo/Seo";
 import { useLanguage } from "../hooks/useLanguage";
@@ -155,6 +156,8 @@ export const UniversityDetailsPage = () => {
           <p className="mt-4 max-w-4xl text-base leading-8 text-slate-600">{university.overview}</p>
         </section>
       ) : null}
+
+      <ArticleContentSection article={university} language={language} />
 
       {university.campusImages?.length ? (
         <section className="panel p-8">

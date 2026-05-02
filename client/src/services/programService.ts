@@ -13,6 +13,9 @@ type ProgramPayload = {
   intake?: string;
   requirements?: string[];
   summary?: string;
+  articleTitle?: string;
+  articleHeadings?: string[];
+  articleBodies?: string[];
   featured?: boolean;
   popularity?: number;
   coverImage?: string;

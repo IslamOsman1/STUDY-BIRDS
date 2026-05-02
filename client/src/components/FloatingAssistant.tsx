@@ -467,6 +467,7 @@ export const FloatingAssistant = () => {
   );
   const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages(content, language));
   const messagesRef = useRef<HTMLDivElement | null>(null);
+  const floatingContainerRef = useRef<HTMLDivElement | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const activePointerIdRef = useRef<number | null>(null);
@@ -474,16 +475,16 @@ export const FloatingAssistant = () => {
   const activeRequestRef = useRef(0);
   const visibleMessages = messages.length ? messages : buildInitialMessages(content, language);
 
-  const buttonWidth = 172;
-  const buttonHeight = 56;
-
   const clampPosition = (position: FloatingPosition) => {
     if (typeof window === "undefined") {
       return position;
     }
 
-    const maxX = Math.max(12, window.innerWidth - buttonWidth - 12);
-    const maxY = Math.max(12, window.innerHeight - buttonHeight - 12);
+    const floatingRect = floatingContainerRef.current?.getBoundingClientRect();
+    const elementWidth = floatingRect?.width || 172;
+    const elementHeight = floatingRect?.height || 56;
+    const maxX = Math.max(12, window.innerWidth - elementWidth - 12);
+    const maxY = Math.max(12, window.innerHeight - elementHeight - 12);
 
     return {
       x: Math.min(Math.max(12, position.x), maxX),
@@ -538,8 +539,8 @@ export const FloatingAssistant = () => {
         }
 
         return clampPosition({
-          x: window.innerWidth - buttonWidth - 16,
-          y: window.innerHeight - buttonHeight - 24,
+          x: window.innerWidth - 188,
+          y: window.innerHeight - 80,
         });
       });
     };
@@ -558,12 +559,16 @@ export const FloatingAssistant = () => {
   }, [buttonPosition]);
 
   useEffect(() => {
-    if (activePointerIdRef.current === null) {
+    if (!buttonPosition) {
       return;
     }
 
+    setButtonPosition((current) => (current ? clampPosition(current) : current));
+  }, [open]);
+
+  useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
-      if (event.pointerId !== activePointerIdRef.current) {
+      if (activePointerIdRef.current === null || event.pointerId !== activePointerIdRef.current) {
         return;
       }
 
@@ -588,7 +593,10 @@ export const FloatingAssistant = () => {
     };
 
     const stopDragging = (event?: PointerEvent) => {
-      if (event && event.pointerId !== activePointerIdRef.current) {
+      if (
+        activePointerIdRef.current === null ||
+        (event && event.pointerId !== activePointerIdRef.current)
+      ) {
         return;
       }
 
@@ -607,7 +615,7 @@ export const FloatingAssistant = () => {
       window.removeEventListener("pointerup", stopDragging);
       window.removeEventListener("pointercancel", stopDragging);
     };
-  }, [isDragging]);
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -703,6 +711,7 @@ export const FloatingAssistant = () => {
   return (
     <div className="pointer-events-none fixed inset-0 z-50" dir={isRtl ? "rtl" : "ltr"}>
       <div
+        ref={floatingContainerRef}
         className="pointer-events-auto absolute"
         style={
           buttonPosition

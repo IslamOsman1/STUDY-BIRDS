@@ -50,6 +50,9 @@ const testimonialData = [
   { studentName: "Maya Salem", destination: "Australia", quote: "The platform felt modern, supportive, and built around real student needs." },
 ];
 
+const buildArticleHeadings = (prefix, items) => items.map((item) => `${prefix} ${item}`);
+const buildArticleBodies = (subject, items) => items.map((item) => `${subject} ${item}.`);
+
 const seed = async () => {
   await connectDatabase();
 
@@ -97,7 +100,30 @@ const seed = async () => {
     }))
   );
 
-  const countries = await Country.insertMany(countriesData);
+  const countries = await Country.insertMany(
+    countriesData.map((country) => ({
+      ...country,
+      articleTitle: `${country.name} study guide`,
+      articleHeadings: buildArticleHeadings(`About ${country.name}:`, [
+        "Why students choose it",
+        "Popular cities",
+        "University options",
+        "Tuition expectations",
+        "Living costs",
+        "Visa preparation",
+        "Next application step",
+      ]),
+      articleBodies: buildArticleBodies(`${country.name} offers guidance on`, [
+        "the main reasons students choose this destination",
+        "the most popular cities for study and lifestyle",
+        "the variety of universities available",
+        "expected tuition ranges and budgeting ideas",
+        "daily living costs and accommodation planning",
+        "visa preparation steps and document checks",
+        "the best next move before starting an application",
+      ]),
+    }))
+  );
   const countryMap = Object.fromEntries(countries.map((country) => [country.name, country]));
 
   const universities = await University.insertMany(
@@ -106,6 +132,25 @@ const seed = async () => {
       country: countryMap[countryName]._id,
       city,
       overview: `${name} offers career-ready education for international students.`,
+      articleTitle: `${name} university guide`,
+      articleHeadings: buildArticleHeadings(`${name}:`, [
+        "Campus environment",
+        "Academic strengths",
+        "International student support",
+        "Tuition overview",
+        "City life",
+        "Admission expectations",
+        "Programs to explore",
+      ]),
+      articleBodies: buildArticleBodies(`${name} highlights`, [
+        "what students can expect from the campus environment",
+        "the academic areas where the university stands out",
+        "support services available for international students",
+        "a broad picture of tuition and study costs",
+        "the student experience in the surrounding city",
+        "key expectations before applying",
+        "useful programs worth exploring first",
+      ]),
       ranking: 50 + index * 12,
       tuitionRange: { min: 12000 + index * 500, max: 24000 + index * 800 },
       featured: index < 5,
@@ -132,6 +177,25 @@ const seed = async () => {
           intake: templateIndex % 2 === 0 ? "Fall 2026" : "Spring 2027",
           requirements: ["Academic transcripts", "Passport", "English proficiency"],
           summary: `A ${degreeLevel.toLowerCase()} program focused on ${fieldOfStudy.toLowerCase()} outcomes.`,
+          articleTitle: `${title} article overview`,
+          articleHeadings: buildArticleHeadings(`${title}:`, [
+            "Program focus",
+            "Skills gained",
+            "Study duration",
+            "Tuition planning",
+            "Admission requirements",
+            "Career pathways",
+            "How to apply",
+          ]),
+          articleBodies: buildArticleBodies(`${title} explains`, [
+            "what this program focuses on academically",
+            "the practical and academic skills students develop",
+            "how long the study path usually takes",
+            "how to think about tuition and budget planning",
+            "what documents and requirements matter most",
+            "possible career directions after graduation",
+            "the main steps to start the application",
+          ]),
           featured: universityIndex < 3 && templateIndex < 2,
           popularity: 100 - universityIndex * 3 - templateIndex,
         });

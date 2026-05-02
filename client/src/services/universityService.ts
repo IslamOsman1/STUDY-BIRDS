@@ -7,6 +7,9 @@ type UniversityPayload = {
   city?: string;
   ranking?: number;
   overview?: string;
+  articleTitle?: string;
+  articleHeadings?: string[];
+  articleBodies?: string[];
   featured?: boolean;
   isPartnerInstitution?: boolean;
   logo?: string;

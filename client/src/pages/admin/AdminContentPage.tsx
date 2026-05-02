@@ -1,9 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Globe2, GraduationCap, MessageSquareQuote, PencilLine, Plus, Trash2 } from "lucide-react";
+import { ArticleContentFields } from "../../components/admin/ArticleContentFields";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 import { adminService } from "../../services/adminService";
 import type { Country, SiteSettings, StudyField, Testimonial } from "../../types";
+import { createEmptyArticleBodies, createEmptyArticleHeadings, normalizeArticleBodies, normalizeArticleHeadings } from "../../constants/articleContent";
 import { getErrorMessage } from "../../utils/errors";
 import { dt } from "../../utils/dashboardTranslations";
 
@@ -13,6 +15,9 @@ const emptyCountryForm = {
   description: "",
   visaNotes: "",
   heroImage: "",
+  articleTitle: "",
+  articleHeadings: createEmptyArticleHeadings(),
+  articleBodies: createEmptyArticleBodies(),
   featured: false,
 };
 
@@ -102,10 +107,16 @@ export const AdminContentPage = () => {
     event.preventDefault();
     setFormError("");
     try {
+      const payload = {
+        ...countryForm,
+        articleTitle: countryForm.articleTitle.trim(),
+        articleHeadings: countryForm.articleHeadings.map((item) => item.trim()).filter(Boolean),
+        articleBodies: countryForm.articleBodies.map((item) => item.trim()).filter(Boolean),
+      };
       if (editingCountryId) {
-        await adminService.updateCountry(editingCountryId, countryForm);
+        await adminService.updateCountry(editingCountryId, payload);
       } else {
-        await adminService.createCountry(countryForm);
+        await adminService.createCountry(payload);
       }
       resetCountryForm();
       await loadData();
@@ -203,8 +214,8 @@ export const AdminContentPage = () => {
     <div className="space-y-6">
       {formError ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{formError}</div> : null}
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <section className="panel p-6">
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <section className="panel p-7">
           <div className="flex items-center gap-3">
             <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
               <Globe2 className="h-5 w-5" />
@@ -233,6 +244,25 @@ export const AdminContentPage = () => {
               <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "visaNotes")}</span>
               <textarea value={countryForm.visaNotes} onChange={(event) => setCountryForm((current) => ({ ...current, visaNotes: event.target.value }))} rows={3} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
             </label>
+            <ArticleContentFields
+              articleTitle={countryForm.articleTitle}
+              articleHeadings={countryForm.articleHeadings}
+              articleBodies={countryForm.articleBodies}
+              onArticleTitleChange={(value) => setCountryForm((current) => ({ ...current, articleTitle: value }))}
+              onArticleHeadingChange={(index, value) =>
+                setCountryForm((current) => ({
+                  ...current,
+                  articleHeadings: current.articleHeadings.map((item, itemIndex) => (itemIndex === index ? value : item)),
+                }))
+              }
+              onArticleBodyChange={(index, value) =>
+                setCountryForm((current) => ({
+                  ...current,
+                  articleBodies: current.articleBodies.map((item, itemIndex) => (itemIndex === index ? value : item)),
+                }))
+              }
+              language={language}
+            />
             <div className="rounded-2xl border border-slate-200 p-4">
               <p className="text-sm font-medium text-slate-700">{language === "ar" ? "غلاف الدولة" : "Country cover image"}</p>
               <input type="file" accept="image/*" onChange={(event) => handleCountryImageUpload(event.target.files)} className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
@@ -553,6 +583,9 @@ export const AdminContentPage = () => {
                         description: country.description || "",
                         visaNotes: country.visaNotes || "",
                         heroImage: country.heroImage || "",
+                        articleTitle: country.articleTitle || "",
+                        articleHeadings: normalizeArticleHeadings(country.articleHeadings),
+                        articleBodies: normalizeArticleBodies(country.articleBodies),
                         featured: Boolean(country.featured),
                       });
                     }}

@@ -1,10 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Building2, PencilLine, Plus, Trash2 } from "lucide-react";
+import { ArticleContentFields } from "../../components/admin/ArticleContentFields";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 import { adminService } from "../../services/adminService";
 import { universityService } from "../../services/universityService";
 import type { Country, University } from "../../types";
+import { createEmptyArticleBodies, createEmptyArticleHeadings, normalizeArticleBodies, normalizeArticleHeadings } from "../../constants/articleContent";
 import { getErrorMessage } from "../../utils/errors";
 import { formatCurrency } from "../../utils/format";
 import { dt } from "../../utils/dashboardTranslations";
@@ -17,6 +19,9 @@ const emptyUniversityForm = {
   tuitionMin: "",
   tuitionMax: "",
   overview: "",
+  articleTitle: "",
+  articleHeadings: createEmptyArticleHeadings(),
+  articleBodies: createEmptyArticleBodies(),
   featured: false,
   isPartnerInstitution: false,
   logo: "",
@@ -58,6 +63,9 @@ export const AdminUniversitiesPage = () => {
       tuitionMin: university.tuitionRange?.min ? String(university.tuitionRange.min) : "",
       tuitionMax: university.tuitionRange?.max ? String(university.tuitionRange.max) : "",
       overview: university.overview || "",
+      articleTitle: university.articleTitle || "",
+      articleHeadings: normalizeArticleHeadings(university.articleHeadings),
+      articleBodies: normalizeArticleBodies(university.articleBodies),
       featured: Boolean(university.featured),
       isPartnerInstitution: Boolean(university.isPartnerInstitution),
       logo: university.logo || "",
@@ -103,6 +111,9 @@ export const AdminUniversitiesPage = () => {
       city: form.city || undefined,
       ranking: form.ranking ? Number(form.ranking) : undefined,
       overview: form.overview || undefined,
+      articleTitle: form.articleTitle.trim() || undefined,
+      articleHeadings: form.articleHeadings.map((item) => item.trim()).filter(Boolean),
+      articleBodies: form.articleBodies.map((item) => item.trim()).filter(Boolean),
       featured: form.featured,
       isPartnerInstitution: form.isPartnerInstitution,
       logo: form.logo || undefined,
@@ -140,8 +151,8 @@ export const AdminUniversitiesPage = () => {
   };
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-      <section className="panel p-6">
+    <div className="grid gap-6 xl:grid-cols-[1.45fr_0.75fr] 2xl:grid-cols-[1.6fr_0.7fr]">
+      <section className="panel p-7 2xl:p-8">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
             <Building2 className="h-5 w-5" />
@@ -152,7 +163,7 @@ export const AdminUniversitiesPage = () => {
           </div>
         </div>
         {formError ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{formError}</div> : null}
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "universityName")}</span>
@@ -204,6 +215,26 @@ export const AdminUniversitiesPage = () => {
             <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "overviewText")}</span>
             <textarea value={form.overview} onChange={(event) => setForm((current) => ({ ...current, overview: event.target.value }))} rows={5} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
           </label>
+
+          <ArticleContentFields
+            articleTitle={form.articleTitle}
+            articleHeadings={form.articleHeadings}
+            articleBodies={form.articleBodies}
+            onArticleTitleChange={(value) => setForm((current) => ({ ...current, articleTitle: value }))}
+            onArticleHeadingChange={(index, value) =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: current.articleHeadings.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            onArticleBodyChange={(index, value) =>
+              setForm((current) => ({
+                ...current,
+                articleBodies: current.articleBodies.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            language={language}
+          />
 
           <div className="rounded-2xl border border-slate-200 p-4">
             <p className="text-sm font-medium text-slate-700">{dt(language, "imageUploadHelp")}</p>
@@ -260,7 +291,7 @@ export const AdminUniversitiesPage = () => {
         </form>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-4 xl:max-h-[calc(100vh-10rem)] xl:overflow-y-auto xl:pr-1">
         {universities.map((university) => (
           <div key={university._id} className="panel p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

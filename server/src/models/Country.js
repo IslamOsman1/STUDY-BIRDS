@@ -18,6 +18,23 @@ const countrySchema = new mongoose.Schema(
       uppercase: true,
     },
     description: String,
+    articleTitle: String,
+    articleHeadings: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (value) => !value || value.length <= 7,
+        message: "Country article headings cannot exceed 7 items",
+      },
+    },
+    articleBodies: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (value) => !value || value.length <= 7,
+        message: "Country article bodies cannot exceed 7 items",
+      },
+    },
     visaNotes: String,
     heroImage: String,
     featured: {

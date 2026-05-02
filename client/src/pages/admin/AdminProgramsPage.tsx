@@ -1,11 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { BookOpenText, PencilLine, Plus, Trash2 } from "lucide-react";
+import { ArticleContentFields } from "../../components/admin/ArticleContentFields";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 import { adminService } from "../../services/adminService";
 import { programService } from "../../services/programService";
 import { universityService } from "../../services/universityService";
 import type { Program, StudyField, University } from "../../types";
+import { createEmptyArticleBodies, createEmptyArticleHeadings, normalizeArticleBodies, normalizeArticleHeadings } from "../../constants/articleContent";
 import {
   PROGRAM_DEGREE_LEVELS,
   PROGRAM_INTAKES,
@@ -27,6 +29,9 @@ const emptyProgramForm = {
   popularity: "",
   summary: "",
   requirements: "",
+  articleTitle: "",
+  articleHeadings: createEmptyArticleHeadings(),
+  articleBodies: createEmptyArticleBodies(),
   featured: false,
   coverImage: "",
 };
@@ -76,6 +81,9 @@ export const AdminProgramsPage = () => {
       popularity: typeof program.popularity === "number" ? String(program.popularity) : "",
       summary: program.summary || "",
       requirements: program.requirements?.join("\n") || "",
+      articleTitle: program.articleTitle || "",
+      articleHeadings: normalizeArticleHeadings(program.articleHeadings),
+      articleBodies: normalizeArticleBodies(program.articleBodies),
       featured: Boolean(program.featured),
       coverImage: program.coverImage || "",
     });
@@ -111,6 +119,9 @@ export const AdminProgramsPage = () => {
       applicationDeadline: form.applicationDeadline || undefined,
       popularity: form.popularity ? Number(form.popularity) : undefined,
       summary: form.summary || undefined,
+      articleTitle: form.articleTitle.trim() || undefined,
+      articleHeadings: form.articleHeadings.map((item) => item.trim()).filter(Boolean),
+      articleBodies: form.articleBodies.map((item) => item.trim()).filter(Boolean),
       requirements: form.requirements.split("\n").map((item) => item.trim()).filter(Boolean),
       featured: form.featured,
       coverImage: form.coverImage || undefined,
@@ -148,8 +159,8 @@ export const AdminProgramsPage = () => {
       : studyFields;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-      <section className="panel p-6">
+    <div className="grid gap-6 xl:grid-cols-[1.3fr_0.8fr] 2xl:grid-cols-[1.45fr_0.75fr]">
+      <section className="panel p-7">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
             <BookOpenText className="h-5 w-5" />
@@ -160,7 +171,7 @@ export const AdminProgramsPage = () => {
           </div>
         </div>
         {formError ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{formError}</div> : null}
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "programTitle")}</span>
@@ -267,6 +278,26 @@ export const AdminProgramsPage = () => {
             <textarea value={form.summary} onChange={(event) => setForm((current) => ({ ...current, summary: event.target.value }))} rows={4} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
           </label>
 
+          <ArticleContentFields
+            articleTitle={form.articleTitle}
+            articleHeadings={form.articleHeadings}
+            articleBodies={form.articleBodies}
+            onArticleTitleChange={(value) => setForm((current) => ({ ...current, articleTitle: value }))}
+            onArticleHeadingChange={(index, value) =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: current.articleHeadings.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            onArticleBodyChange={(index, value) =>
+              setForm((current) => ({
+                ...current,
+                articleBodies: current.articleBodies.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            language={language}
+          />
+
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "requirements")}</span>
             <textarea value={form.requirements} onChange={(event) => setForm((current) => ({ ...current, requirements: event.target.value }))} rows={4} placeholder={dt(language, "oneRequirementPerLine")} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
@@ -289,7 +320,7 @@ export const AdminProgramsPage = () => {
         </form>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-4 xl:max-h-[calc(100vh-10rem)] xl:overflow-y-auto xl:pr-1">
         {programs.map((program) => (
           <div key={program._id} className="panel p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

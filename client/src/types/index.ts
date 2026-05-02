@@ -1,5 +1,11 @@
 export type Role = "student" | "admin" | "partner";
 
+export interface ArticleContent {
+  articleTitle?: string;
+  articleHeadings?: string[];
+  articleBodies?: string[];
+}
+
 export interface User {
   _id: string;
   name: string;
@@ -13,7 +19,7 @@ export interface User {
   lastLoginAt?: string;
 }
 
-export interface Country {
+export interface Country extends ArticleContent {
   _id: string;
   name: string;
   slug: string;
@@ -47,7 +53,7 @@ export interface StudyField {
   createdAt?: string;
 }
 
-export interface University {
+export interface University extends ArticleContent {
   _id: string;
   name: string;
   slug: string;
@@ -66,7 +72,7 @@ export interface University {
   createdAt?: string;
 }
 
-export interface Program {
+export interface Program extends ArticleContent {
   _id: string;
   title: string;
   slug: string;
