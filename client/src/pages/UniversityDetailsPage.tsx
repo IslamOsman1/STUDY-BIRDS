@@ -116,8 +116,6 @@ export const UniversityDetailsPage = () => {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{tv(university.country?.name)}</p>
             <h1 className="mt-3 text-4xl font-semibold text-slate-900">{university.name}</h1>
-            <p className="mt-4 text-slate-600">{university.overview}</p>
-
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               <div className="rounded-3xl bg-slate-50 p-5">
                 <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{t("city")}</div>
@@ -149,6 +147,14 @@ export const UniversityDetailsPage = () => {
           </div>
         </div>
       </section>
+
+      {university.overview ? (
+        <section className="panel p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("overview")}</p>
+          <h2 className="mt-3 text-2xl font-semibold text-slate-900">{university.name}</h2>
+          <p className="mt-4 max-w-4xl text-base leading-8 text-slate-600">{university.overview}</p>
+        </section>
+      ) : null}
 
       {university.campusImages?.length ? (
         <section className="panel p-8">

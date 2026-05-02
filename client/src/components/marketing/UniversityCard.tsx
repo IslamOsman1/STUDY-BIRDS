@@ -41,7 +41,6 @@ export const UniversityCard = ({ university }: { university: University }) => {
               </div>
             ) : null}
             <h3 className="mt-2 text-2xl font-semibold">{university.name}</h3>
-            {university.overview ? <p className="mt-2 max-w-xs text-sm leading-6 text-white/85">{university.overview}</p> : null}
             <div className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-brand-100">
               <CircleDollarSign className="h-4 w-4" />
               <span>

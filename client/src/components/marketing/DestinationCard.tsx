@@ -10,35 +10,34 @@ export const DestinationCard = ({ country }: { country: Country }) => {
   return (
     <Link
       to={`/universities?country=${country._id}`}
-      className="group relative block overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-[0_24px_80px_rgba(15,23,42,0.16)]"
+      className="group block overflow-hidden rounded-[2rem] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.12)] transition hover:-translate-y-1"
     >
-      <div className="relative h-72">
+      <div className="relative h-64 overflow-hidden bg-slate-950">
         <img
           src={getDestinationImage(country.name, country.heroImage)}
           alt={tv(country.name)}
           loading="lazy"
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-slate-950/5" />
-        <div className="absolute inset-x-0 bottom-0 p-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/14 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" />
-            {country.code}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/10 to-transparent" />
+        <div className="absolute start-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">
+          <Sparkles className="h-3.5 w-3.5" />
+          {country.code}
+        </div>
+      </div>
+      <div className="p-6 text-slate-900">
+        <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+          <MapPinned className="h-4 w-4 text-brand-700" />
+          <span>{t("destinationBadge")}</span>
+        </div>
+        <div className="mt-4 flex items-end justify-between gap-4">
+          <div>
+            <h3 className="text-2xl font-semibold">{tv(country.name)}</h3>
+            <p className="mt-3 text-sm font-medium text-brand-700">{t("destinationCta")}</p>
           </div>
-          <div className="mt-4 flex items-end justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 text-sm text-white/85">
-                <MapPinned className="h-4 w-4" />
-                <span>{t("destinationBadge")}</span>
-              </div>
-              <h3 className="mt-2 text-2xl font-semibold">{tv(country.name)}</h3>
-              {country.description ? <p className="mt-2 max-w-xs text-sm leading-6 text-white/85">{country.description}</p> : null}
-              <p className="mt-3 text-sm font-medium text-brand-100">{t("destinationCta")}</p>
-            </div>
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition group-hover:-translate-y-1">
-              <ArrowUpLeft className="h-5 w-5" />
-            </span>
-          </div>
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-900 transition group-hover:-translate-y-1 group-hover:border-brand-200 group-hover:bg-brand-50">
+            <ArrowUpLeft className="h-5 w-5" />
+          </span>
         </div>
       </div>
     </Link>
