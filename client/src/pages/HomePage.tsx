@@ -143,7 +143,7 @@ export const HomePage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.25 }}
         transition={sectionTransition}
-        className="grid grid-cols-2 gap-4 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-2.5 xl:grid-cols-4"
       >
         {[
           { label: t("studentsHelped"), value: "50,000+", icon: <UsersRound size={20} /> },
@@ -239,7 +239,7 @@ export const HomePage = () => {
           </div>
         </div>
 
-        <div className="relative z-10 mt-8 grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <div className="relative z-10 mt-5 grid grid-cols-2 gap-2.5 xl:mt-8 xl:grid-cols-4">
           {journeySteps.map(({ label, icon: Icon }, index) => (
             <motion.div
               key={label}
@@ -247,20 +247,20 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.35, delay: index * 0.08 }}
-              className="relative overflow-hidden rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(26,58,122,0.88)_0%,rgba(10,25,49,0.96)_100%)] p-6 shadow-[0_10px_26px_rgba(15,23,42,0.18)]"
+              className="relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(26,58,122,0.88)_0%,rgba(10,25,49,0.96)_100%)] p-3.5 shadow-[0_10px_26px_rgba(15,23,42,0.18)] xl:rounded-3xl xl:p-6"
             >
               <AccentWave
                 className="right-0 top-0 h-14 w-24 rounded-bl-[1.8rem] rounded-tl-[2.4rem] rounded-br-[0.35rem] opacity-70"
                 shadowClassName="-left-[2%] -top-[56%] h-[78%] w-[108%]"
                 glowClassName="bottom-[-34%] h-[42%] opacity-60"
               />
-              <div className="flex items-center justify-between gap-4">
-                <div className="relative z-10 text-sm font-semibold text-accent-300">0{index + 1}</div>
-                <span className="relative z-10 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-accent-300 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center justify-between gap-2.5">
+                <div className="relative z-10 text-[11px] font-semibold text-accent-300 xl:text-sm">0{index + 1}</div>
+                <span className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-accent-300 shadow-sm backdrop-blur-sm xl:h-12 xl:w-12">
                   <Icon size={21} />
                 </span>
               </div>
-              <p className="relative z-10 mt-5 text-lg font-medium text-white">{label}</p>
+              <p className="relative z-10 mt-3 text-sm font-medium leading-6 text-white xl:mt-5 xl:text-lg xl:leading-7">{label}</p>
             </motion.div>
           ))}
         </div>
@@ -403,7 +403,7 @@ export const HomePage = () => {
             </motion.div>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {studyFields.map((studyField) => (
               <motion.div
                 key={studyField._id}
