@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Award, BookOpenCheck, Building2, ChevronDown, Globe2, ListChecks, SearchCheck, Send, UserRoundPlus, UsersRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Award, BookOpenCheck, Building2, ChevronDown, Globe2, ListChecks, SearchCheck, Send, UserRoundPlus, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HeroSection } from "../components/marketing/HeroSection";
 import { Seo } from "../components/seo/Seo";
@@ -31,6 +31,7 @@ export const HomePage = () => {
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [selectedUniversityCountry, setSelectedUniversityCountry] = useState("all");
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+  const universitiesScrollerRef = useRef<HTMLDivElement | null>(null);
 
   const primaryHref =
     !user
@@ -109,6 +110,13 @@ export const HomePage = () => {
     { label: t("submitYourApplication"), icon: Send },
     { label: t("trackAdmission"), icon: ListChecks },
   ];
+
+  const scrollUniversities = (direction: "left" | "right") => {
+    universitiesScrollerRef.current?.scrollBy({
+      left: direction === "right" ? 360 : -360,
+      behavior: "smooth",
+    });
+  };
 
   const sectionTransition = { duration: 0.55, ease: "easeOut" } as const;
 
@@ -467,11 +475,33 @@ export const HomePage = () => {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent-300">{t("universities")}</p>
             <h2 className="mt-3 text-3xl font-semibold text-white">{t("featuredUniversities")}</h2>
           </div>
-          <img
-            src={journeyShowcaseImages[1]?.src}
-            alt="Featured universities"
-            className="hidden h-24 w-36 rounded-[1.4rem] object-cover shadow-soft lg:block"
-          />
+          <div className="flex items-center gap-3">
+            {visibleUniversities.length > 3 ? (
+              <div className="hidden items-center gap-2 md:flex">
+                <button
+                  type="button"
+                  onClick={() => scrollUniversities(language === "ar" ? "right" : "left")}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
+                  aria-label={language === "ar" ? "تمرير الجامعات لليمين" : "Scroll universities right"}
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollUniversities(language === "ar" ? "left" : "right")}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
+                  aria-label={language === "ar" ? "تمرير الجامعات لليسار" : "Scroll universities left"}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+              </div>
+            ) : null}
+            <img
+              src={journeyShowcaseImages[1]?.src}
+              alt="Featured universities"
+              className="hidden h-24 w-36 rounded-[1.4rem] object-cover shadow-soft lg:block"
+            />
+          </div>
         </div>
 
         <div className="relative z-10 mt-6 -mx-2 overflow-hidden sm:mx-0">
@@ -509,7 +539,7 @@ export const HomePage = () => {
         <div className="relative mt-8 -mx-2 overflow-hidden sm:mx-0">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:w-10" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:w-10" />
-          <div className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0">
+          <div ref={universitiesScrollerRef} className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0">
           {visibleUniversities.map((university) => (
             <motion.div
               key={university._id}
