@@ -54,7 +54,7 @@ export const HomePage = () => {
       contentService.getOurServices(),
       contentService.getFaqs(),
     ]).then(([countriesData, studyFieldsData, universitiesData, testimonialsData, recognitionsData, servicesData, faqsData]) => {
-      setCountries(countriesData);
+      setCountries(countriesData.slice(0, 7));
       setStudyFields(studyFieldsData.slice(0, 6));
       setUniversities(universitiesData);
       setTestimonials(testimonialsData.slice(0, 3));
@@ -73,8 +73,7 @@ export const HomePage = () => {
   }, []);
 
   const visibleUniversities = universities
-    .filter((university) => selectedUniversityCountry === "all" || university.country?._id === selectedUniversityCountry)
-    .slice(0, 3);
+    .filter((university) => selectedUniversityCountry === "all" || university.country?._id === selectedUniversityCountry);
 
   const homeDescription = seoText(
     language,
@@ -436,23 +435,18 @@ export const HomePage = () => {
           />
         </div>
 
-        <div className="relative z-10 mt-8 -mx-2 overflow-hidden sm:mx-0">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:w-10" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:w-10" />
-          <div className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0">
-            {countries.map((country) => (
-              <motion.div
-                key={country._id}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.4 }}
-                className="w-[285px] min-w-[285px] sm:w-[340px] sm:min-w-[340px]"
-              >
-                <DestinationCard country={country} />
-              </motion.div>
-            ))}
-          </div>
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {countries.map((country) => (
+            <motion.div
+              key={country._id}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.4 }}
+            >
+              <DestinationCard country={country} />
+            </motion.div>
+          ))}
         </div>
       </motion.section>
 
@@ -512,7 +506,10 @@ export const HomePage = () => {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+        <div className="relative mt-8 -mx-2 overflow-hidden sm:mx-0">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:w-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:w-10" />
+          <div className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0">
           {visibleUniversities.map((university) => (
             <motion.div
               key={university._id}
@@ -520,10 +517,12 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.4 }}
+              className="w-[285px] min-w-[285px] sm:w-[340px] sm:min-w-[340px]"
             >
               <UniversityCard university={university} />
             </motion.div>
           ))}
+          </div>
         </div>
       </motion.section>
 
