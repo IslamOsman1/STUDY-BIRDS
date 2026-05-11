@@ -6,14 +6,14 @@ export const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) =
   const rating = testimonial.rating || 5;
 
   return (
-    <div className="panel bg-white p-6">
+    <div className="panel bg-white p-4 sm:p-5 lg:p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <img
             src={getStudentPhoto(testimonial.studentName)}
             alt={testimonial.studentName}
             loading="lazy"
-            className="h-16 w-16 rounded-2xl object-cover"
+            className="h-12 w-12 rounded-2xl object-cover sm:h-14 sm:w-14 lg:h-16 lg:w-16"
           />
           <div>
             <p className="font-semibold text-slate-900">{testimonial.studentName}</p>
@@ -36,7 +36,7 @@ export const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) =
         ))}
       </div>
 
-      <p className="mt-4 text-lg leading-8 text-slate-700">"{testimonial.quote}"</p>
+      <p className="mt-3 text-sm leading-7 text-slate-700 sm:mt-4 sm:text-base lg:text-lg lg:leading-8">"{testimonial.quote}"</p>
     </div>
   );
 };

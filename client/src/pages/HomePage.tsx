@@ -143,7 +143,7 @@ export const HomePage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.25 }}
         transition={sectionTransition}
-        className="grid gap-5 md:grid-cols-2 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-4 xl:grid-cols-4"
       >
         {[
           { label: t("studentsHelped"), value: "50,000+", icon: <UsersRound size={20} /> },
@@ -210,7 +210,7 @@ export const HomePage = () => {
               transition={{ duration: 0.45 }}
               className="overflow-hidden rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(26,58,122,0.92)_0%,rgba(10,25,49,0.96)_100%)] shadow-[0_14px_36px_rgba(15,23,42,0.18)]"
             >
-              <img src={advisorDeskImage} alt="Student planning session" className="h-48 w-full object-cover" />
+              <img src={advisorDeskImage} alt="Student planning session" className="h-36 w-full object-cover sm:h-48" />
               <div className="p-4">
                 <div className="mb-3 h-2 w-20 overflow-hidden rounded-full bg-[#4d2108]">
                   <div className="h-full w-full rounded-full bg-gradient-to-r from-[#f07a1f] via-[#d25500] to-[#8f3200]" />
@@ -227,7 +227,7 @@ export const HomePage = () => {
               transition={{ duration: 0.45, delay: 0.1 }}
               className="overflow-hidden rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(26,58,122,0.92)_0%,rgba(10,25,49,0.96)_100%)] shadow-[0_14px_36px_rgba(15,23,42,0.18)]"
             >
-              <img src={documentPrepImage} alt="Study documents preparation" className="h-48 w-full object-cover" />
+              <img src={documentPrepImage} alt="Study documents preparation" className="h-36 w-full object-cover sm:h-48" />
               <div className="p-4">
                 <div className="mb-3 h-2 w-20 overflow-hidden rounded-full bg-[#4d2108]">
                   <div className="h-full w-full rounded-full bg-gradient-to-r from-[#f07a1f] via-[#d25500] to-[#8f3200]" />
@@ -239,7 +239,7 @@ export const HomePage = () => {
           </div>
         </div>
 
-        <div className="relative z-10 mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="relative z-10 mt-8 grid grid-cols-2 gap-4 xl:grid-cols-4">
           {journeySteps.map(({ label, icon: Icon }, index) => (
             <motion.div
               key={label}
@@ -277,7 +277,7 @@ export const HomePage = () => {
           {recognitions.length ? t("recognitionsTitle") : t("homeExperienceTitle")}
         </h2>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
             {(recognitions.length
               ? recognitions.map((recognition) => ({
                   key: recognition._id,
@@ -302,11 +302,11 @@ export const HomePage = () => {
                 {item.link ? (
                   <a href={item.link} target="_blank" rel="noreferrer" className="block">
                     {item.src ? (
-                      <div className="flex h-48 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3">
+                      <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
                         <img src={item.src} alt={item.title} className="h-full w-full rounded-[1rem] object-contain" />
                       </div>
                     ) : (
-                      <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
+                      <div className="flex h-32 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-4 sm:h-40 sm:p-5 lg:h-48">
                         <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
                           <Award size={22} />
                         </span>
@@ -319,11 +319,11 @@ export const HomePage = () => {
                     </div>
                   </a>
                 ) : item.src ? (
-                  <div className="flex h-48 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3">
+                  <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
                     <img src={item.src} alt={item.title} className="h-full w-full rounded-[1rem] object-contain" />
                   </div>
                 ) : (
-                  <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
+                  <div className="flex h-32 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-4 sm:h-40 sm:p-5 lg:h-48">
                     <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
                       <Award size={22} />
                     </span>
@@ -346,7 +346,7 @@ export const HomePage = () => {
           <h2 className="text-3xl font-semibold">{t("servicesTitle")}</h2>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-brand-100/85">{t("servicesBody")}</p>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
             {services.map((service, index) => (
               <motion.div
                 key={service._id}
@@ -357,11 +357,11 @@ export const HomePage = () => {
                 className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
               >
                 {service.image ? (
-                  <div className="flex h-48 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3">
+                  <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
                     <img src={service.image} alt={service.title} className="h-full w-full rounded-[1rem] object-contain" />
                   </div>
                 ) : (
-                  <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
+                  <div className="flex h-32 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-4 sm:h-40 sm:p-5 lg:h-48">
                     <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
                       <Award size={22} />
                     </span>
@@ -403,7 +403,7 @@ export const HomePage = () => {
             </motion.div>
           </div>
 
-          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
             {studyFields.map((studyField) => (
               <motion.div
                 key={studyField._id}
@@ -443,7 +443,7 @@ export const HomePage = () => {
           />
         </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
           {countries.map((country) => (
             <motion.div
               key={country._id}
@@ -547,7 +547,7 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.4 }}
-              className="w-[285px] min-w-[285px] sm:w-[340px] sm:min-w-[340px]"
+              className="w-[calc(50%-0.625rem)] min-w-[calc(50%-0.625rem)] sm:w-[340px] sm:min-w-[340px]"
             >
               <UniversityCard university={university} />
             </motion.div>
@@ -605,7 +605,7 @@ export const HomePage = () => {
           <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("testimonialsTitle")}</h2>
         </div>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
           {testimonials.map((testimonial) => (
             <motion.div
               key={testimonial._id}
