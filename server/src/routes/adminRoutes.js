@@ -14,13 +14,27 @@ const {
   getSiteSettingsAdmin,
   updateSiteSettings,
   getTestimonialsAdmin,
+  getRecognitionsAdmin,
+  getOurServicesAdmin,
+  getFaqsAdmin,
   getExhibitionArticlesAdmin,
   createTestimonial,
+  createRecognition,
+  createOurService,
+  createFaq,
   createExhibitionArticle,
   updateTestimonial,
+  updateRecognition,
+  updateOurService,
+  updateFaq,
   updateExhibitionArticle,
   deleteTestimonial,
+  deleteRecognition,
+  deleteOurService,
+  deleteFaq,
   deleteExhibitionArticle,
+  uploadRecognitionImage,
+  uploadOurServiceImage,
 } = require("../controllers/adminController");
 const {
   getStudyFields,
@@ -57,6 +71,20 @@ router.get("/testimonials", getTestimonialsAdmin);
 router.post("/testimonials", createTestimonial);
 router.put("/testimonials/:id", updateTestimonial);
 router.delete("/testimonials/:id", deleteTestimonial);
+router.get("/recognitions", getRecognitionsAdmin);
+router.post("/recognitions/upload-image", upload.single("file"), uploadRecognitionImage);
+router.post("/recognitions", createRecognition);
+router.put("/recognitions/:id", updateRecognition);
+router.delete("/recognitions/:id", deleteRecognition);
+router.get("/our-services", getOurServicesAdmin);
+router.post("/our-services/upload-image", upload.single("file"), uploadOurServiceImage);
+router.post("/our-services", createOurService);
+router.put("/our-services/:id", updateOurService);
+router.delete("/our-services/:id", deleteOurService);
+router.get("/faqs", getFaqsAdmin);
+router.post("/faqs", createFaq);
+router.put("/faqs/:id", updateFaq);
+router.delete("/faqs/:id", deleteFaq);
 router.get("/exhibitions", getExhibitionArticlesAdmin);
 router.post("/exhibitions", createExhibitionArticle);
 router.put("/exhibitions/:id", updateExhibitionArticle);

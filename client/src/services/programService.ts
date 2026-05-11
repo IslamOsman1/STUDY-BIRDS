@@ -6,6 +6,8 @@ type ProgramPayload = {
   title?: string;
   degreeLevel?: string;
   fieldOfStudy?: string;
+  fieldsOfStudy?: string[];
+  language?: string;
   duration?: string;
   tuition?: number;
   partnerTuition?: number;
@@ -14,6 +16,9 @@ type ProgramPayload = {
   requirements?: string[];
   summary?: string;
   articleTitle?: string;
+  articleTitleColor?: string;
+  articleHeadingColor?: string;
+  articleBodyColor?: string;
   articleHeadings?: string[];
   articleBodies?: string[];
   featured?: boolean;

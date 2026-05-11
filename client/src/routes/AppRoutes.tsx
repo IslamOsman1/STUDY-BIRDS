@@ -28,6 +28,9 @@ const AdminUniversitiesPage = lazy(() => import("../pages/admin/AdminUniversitie
 const AdminProgramsPage = lazy(() => import("../pages/admin/AdminProgramsPage").then((module) => ({ default: module.AdminProgramsPage })));
 const AdminApplicationsPage = lazy(() => import("../pages/admin/AdminApplicationsPage").then((module) => ({ default: module.AdminApplicationsPage })));
 const AdminContentPage = lazy(() => import("../pages/admin/AdminContentPage").then((module) => ({ default: module.AdminContentPage })));
+const AdminRecognitionsPage = lazy(() => import("../pages/admin/AdminRecognitionsPage").then((module) => ({ default: module.AdminRecognitionsPage })));
+const AdminServicesPage = lazy(() => import("../pages/admin/AdminServicesPage").then((module) => ({ default: module.AdminServicesPage })));
+const AdminFaqsPage = lazy(() => import("../pages/admin/AdminFaqsPage").then((module) => ({ default: module.AdminFaqsPage })));
 const AdminExhibitionsPage = lazy(() => import("../pages/admin/AdminExhibitionsPage").then((module) => ({ default: module.AdminExhibitionsPage })));
 
 const RouteFallback = () => {
@@ -80,6 +83,9 @@ export const AppRoutes = () => (
           <Route path="/admin/programs" element={<AdminProgramsPage />} />
           <Route path="/admin/applications" element={<AdminApplicationsPage />} />
           <Route path="/admin/content" element={<AdminContentPage />} />
+          <Route path="/admin/recognitions" element={<AdminRecognitionsPage />} />
+          <Route path="/admin/services" element={<AdminServicesPage />} />
+          <Route path="/admin/faqs" element={<AdminFaqsPage />} />
           <Route path="/admin/exhibitions" element={<AdminExhibitionsPage />} />
         </Route>
       </Route>

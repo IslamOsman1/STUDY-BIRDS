@@ -6,11 +6,56 @@ const Country = require("../models/Country");
 const ExhibitionArticle = require("../models/ExhibitionArticle");
 const SiteSettings = require("../models/SiteSettings");
 const Testimonial = require("../models/Testimonial");
+const Recognition = require("../models/Recognition");
+const OurService = require("../models/OurService");
+const Faq = require("../models/Faq");
 const asyncHandler = require("../utils/asyncHandler");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
+
+const buildExhibitionSections = (body) => {
+  if (!Array.isArray(body.sections) || body.sections.length === 0) {
+    return [
+      {
+        title: body.title,
+        summary: body.summary || "",
+        body: body.body,
+        titleColor: body.titleColor || "#0f172a",
+        youtubeUrl: body.youtubeUrl,
+      },
+    ];
+  }
+
+  return body.sections
+    .map((section) => ({
+      title: section.title,
+      summary: section.summary || "",
+      body: section.body,
+      titleColor: section.titleColor || "#0f172a",
+      youtubeUrl: section.youtubeUrl || "",
+    }))
+    .filter((section) => section.title && section.body);
+};
+
+const buildExhibitionPayload = (body) => {
+  const sections = buildExhibitionSections(body);
+  const firstSection = sections[0] || {};
+
+  return {
+    title: body.title || firstSection.title,
+    summary: body.summary || firstSection.summary || "",
+    body: body.body || firstSection.body,
+    titleColor: body.titleColor || firstSection.titleColor || "#0f172a",
+    ctaText: body.ctaText || "",
+    ctaUrl: body.ctaUrl || "",
+    youtubeUrl: body.youtubeUrl || firstSection.youtubeUrl,
+    sections,
+    featured: typeof body.featured === "boolean" ? body.featured : true,
+    published: typeof body.published === "boolean" ? body.published : true,
+  };
+};
 
 const getStats = asyncHandler(async (req, res) => {
   const [students, universities, programs, applications] = await Promise.all([
@@ -152,8 +197,26 @@ const getCountriesAdmin = asyncHandler(async (req, res) => {
   res.json(countries);
 });
 
+const buildCountryPayload = (body) => ({
+  name: body.name,
+  code: body.code,
+  description: body.description || "",
+  visaNotes: body.visaNotes || "",
+  heroImage: body.heroImage || "",
+  universityCount: Number.isFinite(Number(body.universityCount)) ? Number(body.universityCount) : 0,
+  specialtyCount: Number.isFinite(Number(body.specialtyCount)) ? Number(body.specialtyCount) : 0,
+  averageTuition: Number.isFinite(Number(body.averageTuition)) ? Number(body.averageTuition) : 0,
+  articleTitle: body.articleTitle || "",
+  articleTitleColor: body.articleTitleColor || "#0f172a",
+  articleHeadingColor: body.articleHeadingColor || "#0f172a",
+  articleBodyColor: body.articleBodyColor || "#475569",
+  articleHeadings: Array.isArray(body.articleHeadings) ? body.articleHeadings : [],
+  articleBodies: Array.isArray(body.articleBodies) ? body.articleBodies : [],
+  featured: Boolean(body.featured),
+});
+
 const createCountry = asyncHandler(async (req, res) => {
-  const country = await Country.create(req.body);
+  const country = await Country.create(buildCountryPayload(req.body));
   res.status(201).json(country);
 });
 
@@ -168,7 +231,7 @@ const uploadCountryHeroImage = asyncHandler(async (req, res) => {
 });
 
 const updateCountry = asyncHandler(async (req, res) => {
-  const country = await Country.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const country = await Country.findByIdAndUpdate(req.params.id, buildCountryPayload(req.body), { new: true, runValidators: true });
 
   if (!country) {
     res.status(404);
@@ -231,6 +294,21 @@ const getTestimonialsAdmin = asyncHandler(async (req, res) => {
   res.json(testimonials);
 });
 
+const getRecognitionsAdmin = asyncHandler(async (req, res) => {
+  const recognitions = await Recognition.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  res.json(recognitions);
+});
+
+const getFaqsAdmin = asyncHandler(async (req, res) => {
+  const faqs = await Faq.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  res.json(faqs);
+});
+
+const getOurServicesAdmin = asyncHandler(async (req, res) => {
+  const services = await OurService.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  res.json(services);
+});
+
 const getExhibitionArticlesAdmin = asyncHandler(async (req, res) => {
   const articles = await ExhibitionArticle.find().sort({ featured: -1, createdAt: -1 });
   res.json(articles);
@@ -241,8 +319,42 @@ const createTestimonial = asyncHandler(async (req, res) => {
   res.status(201).json(testimonial);
 });
 
+const createRecognition = asyncHandler(async (req, res) => {
+  const recognition = await Recognition.create({
+    title: req.body.title,
+    image: req.body.image || "",
+    link: req.body.link || "",
+    featured: typeof req.body.featured === "boolean" ? req.body.featured : true,
+    sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+  });
+
+  res.status(201).json(recognition);
+});
+
+const createFaq = asyncHandler(async (req, res) => {
+  const faq = await Faq.create({
+    question: req.body.question,
+    answer: req.body.answer,
+    featured: typeof req.body.featured === "boolean" ? req.body.featured : true,
+    sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+  });
+
+  res.status(201).json(faq);
+});
+
+const createOurService = asyncHandler(async (req, res) => {
+  const service = await OurService.create({
+    title: req.body.title,
+    image: req.body.image || "",
+    featured: typeof req.body.featured === "boolean" ? req.body.featured : true,
+    sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+  });
+
+  res.status(201).json(service);
+});
+
 const createExhibitionArticle = asyncHandler(async (req, res) => {
-  const article = await ExhibitionArticle.create(req.body);
+  const article = await ExhibitionArticle.create(buildExhibitionPayload(req.body));
   res.status(201).json(article);
 });
 
@@ -257,8 +369,69 @@ const updateTestimonial = asyncHandler(async (req, res) => {
   res.json(testimonial);
 });
 
+const updateRecognition = asyncHandler(async (req, res) => {
+  const recognition = await Recognition.findByIdAndUpdate(
+    req.params.id,
+    {
+      title: req.body.title,
+      image: req.body.image || "",
+      link: req.body.link || "",
+      featured: Boolean(req.body.featured),
+      sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+    },
+    { new: true, runValidators: true }
+  );
+
+  if (!recognition) {
+    res.status(404);
+    throw new Error("Recognition not found");
+  }
+
+  res.json(recognition);
+});
+
+const updateFaq = asyncHandler(async (req, res) => {
+  const faq = await Faq.findByIdAndUpdate(
+    req.params.id,
+    {
+      question: req.body.question,
+      answer: req.body.answer,
+      featured: Boolean(req.body.featured),
+      sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+    },
+    { new: true, runValidators: true }
+  );
+
+  if (!faq) {
+    res.status(404);
+    throw new Error("FAQ not found");
+  }
+
+  res.json(faq);
+});
+
+const updateOurService = asyncHandler(async (req, res) => {
+  const service = await OurService.findByIdAndUpdate(
+    req.params.id,
+    {
+      title: req.body.title,
+      image: req.body.image || "",
+      featured: Boolean(req.body.featured),
+      sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+    },
+    { new: true, runValidators: true }
+  );
+
+  if (!service) {
+    res.status(404);
+    throw new Error("Service not found");
+  }
+
+  res.json(service);
+});
+
 const updateExhibitionArticle = asyncHandler(async (req, res) => {
-  const article = await ExhibitionArticle.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const article = await ExhibitionArticle.findByIdAndUpdate(req.params.id, buildExhibitionPayload(req.body), { new: true, runValidators: true });
 
   if (!article) {
     res.status(404);
@@ -277,6 +450,59 @@ const deleteTestimonial = asyncHandler(async (req, res) => {
   }
 
   res.json({ message: "Testimonial deleted" });
+});
+
+const deleteRecognition = asyncHandler(async (req, res) => {
+  const recognition = await Recognition.findByIdAndDelete(req.params.id);
+
+  if (!recognition) {
+    res.status(404);
+    throw new Error("Recognition not found");
+  }
+
+  res.json({ message: "Recognition deleted" });
+});
+
+const deleteFaq = asyncHandler(async (req, res) => {
+  const faq = await Faq.findByIdAndDelete(req.params.id);
+
+  if (!faq) {
+    res.status(404);
+    throw new Error("FAQ not found");
+  }
+
+  res.json({ message: "FAQ deleted" });
+});
+
+const deleteOurService = asyncHandler(async (req, res) => {
+  const service = await OurService.findByIdAndDelete(req.params.id);
+
+  if (!service) {
+    res.status(404);
+    throw new Error("Service not found");
+  }
+
+  res.json({ message: "Service deleted" });
+});
+
+const uploadRecognitionImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Recognition image is required");
+  }
+
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/recognitions");
+  res.status(201).json({ url: uploadResult.url });
+});
+
+const uploadOurServiceImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Service image is required");
+  }
+
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/services");
+  res.status(201).json({ url: uploadResult.url });
 });
 
 const deleteExhibitionArticle = asyncHandler(async (req, res) => {
@@ -305,11 +531,25 @@ module.exports = {
   getSiteSettingsAdmin,
   updateSiteSettings,
   getTestimonialsAdmin,
+  getRecognitionsAdmin,
+  getOurServicesAdmin,
+  getFaqsAdmin,
   getExhibitionArticlesAdmin,
   createTestimonial,
+  createRecognition,
+  createOurService,
+  createFaq,
   createExhibitionArticle,
   updateTestimonial,
+  updateRecognition,
+  updateOurService,
+  updateFaq,
   updateExhibitionArticle,
   deleteTestimonial,
+  deleteRecognition,
+  deleteOurService,
+  deleteFaq,
   deleteExhibitionArticle,
+  uploadRecognitionImage,
+  uploadOurServiceImage,
 };

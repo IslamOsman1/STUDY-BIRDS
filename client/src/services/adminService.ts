@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { AdminOverview, Application, Country, ExhibitionArticle, SiteSettings, StudyField, Testimonial, User } from "../types";
+import type { AdminOverview, Application, Country, ExhibitionArticle, Faq, OurService, Recognition, SiteSettings, StudyField, Testimonial, User } from "../types";
 
 export const adminService = {
   getOverview: async () => {
@@ -86,12 +86,36 @@ export const adminService = {
     const { data } = await api.get<Testimonial[]>("/admin/testimonials");
     return data;
   },
+  getRecognitions: async () => {
+    const { data } = await api.get<Recognition[]>("/admin/recognitions");
+    return data;
+  },
+  getOurServices: async () => {
+    const { data } = await api.get<OurService[]>("/admin/our-services");
+    return data;
+  },
+  getFaqs: async () => {
+    const { data } = await api.get<Faq[]>("/admin/faqs");
+    return data;
+  },
   getExhibitions: async () => {
     const { data } = await api.get<ExhibitionArticle[]>("/admin/exhibitions");
     return data;
   },
   createTestimonial: async (payload: Partial<Testimonial>) => {
     const { data } = await api.post<Testimonial>("/admin/testimonials", payload);
+    return data;
+  },
+  createRecognition: async (payload: Partial<Recognition>) => {
+    const { data } = await api.post<Recognition>("/admin/recognitions", payload);
+    return data;
+  },
+  createOurService: async (payload: Partial<OurService>) => {
+    const { data } = await api.post<OurService>("/admin/our-services", payload);
+    return data;
+  },
+  createFaq: async (payload: Partial<Faq>) => {
+    const { data } = await api.post<Faq>("/admin/faqs", payload);
     return data;
   },
   createExhibition: async (payload: Partial<ExhibitionArticle>) => {
@@ -102,12 +126,52 @@ export const adminService = {
     const { data } = await api.put<Testimonial>(`/admin/testimonials/${id}`, payload);
     return data;
   },
+  uploadRecognitionImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/recognitions/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
+  },
+  updateRecognition: async (id: string, payload: Partial<Recognition>) => {
+    const { data } = await api.put<Recognition>(`/admin/recognitions/${id}`, payload);
+    return data;
+  },
+  uploadOurServiceImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/our-services/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
+  },
+  updateOurService: async (id: string, payload: Partial<OurService>) => {
+    const { data } = await api.put<OurService>(`/admin/our-services/${id}`, payload);
+    return data;
+  },
+  updateFaq: async (id: string, payload: Partial<Faq>) => {
+    const { data } = await api.put<Faq>(`/admin/faqs/${id}`, payload);
+    return data;
+  },
   updateExhibition: async (id: string, payload: Partial<ExhibitionArticle>) => {
     const { data } = await api.put<ExhibitionArticle>(`/admin/exhibitions/${id}`, payload);
     return data;
   },
   removeTestimonial: async (id: string) => {
     const { data } = await api.delete(`/admin/testimonials/${id}`);
+    return data;
+  },
+  removeRecognition: async (id: string) => {
+    const { data } = await api.delete(`/admin/recognitions/${id}`);
+    return data;
+  },
+  removeOurService: async (id: string) => {
+    const { data } = await api.delete(`/admin/our-services/${id}`);
+    return data;
+  },
+  removeFaq: async (id: string) => {
+    const { data } = await api.delete(`/admin/faqs/${id}`);
     return data;
   },
   removeExhibition: async (id: string) => {

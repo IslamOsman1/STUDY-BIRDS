@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { BookOpenCheck, Building2, Globe2, ListChecks, SearchCheck, Send, UserRoundPlus, UsersRound } from "lucide-react";
+import { Award, BookOpenCheck, Building2, ChevronDown, Globe2, ListChecks, SearchCheck, Send, UserRoundPlus, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HeroSection } from "../components/marketing/HeroSection";
 import { Seo } from "../components/seo/Seo";
@@ -13,19 +13,24 @@ import { TestimonialCard } from "../components/marketing/TestimonialCard";
 import { useAuth } from "../hooks/useAuth";
 import { contentService } from "../services/contentService";
 import { universityService } from "../services/universityService";
-import type { Country, StudyField, Testimonial, University } from "../types";
+import type { Country, Faq, OurService, Recognition, StudyField, Testimonial, University } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { SITE_NAME, getSiteUrl, seoText } from "../seo/site";
 import { dt } from "../utils/dashboardTranslations";
 import { advisorDeskImage, documentPrepImage, journeyShowcaseImages, studentPortraits } from "../utils/marketingVisuals";
 
 export const HomePage = () => {
-  const { t, language } = useLanguage();
+  const { t, tv, language } = useLanguage();
   const { user } = useAuth();
   const [countries, setCountries] = useState<Country[]>([]);
   const [studyFields, setStudyFields] = useState<StudyField[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [recognitions, setRecognitions] = useState<Recognition[]>([]);
+  const [services, setServices] = useState<OurService[]>([]);
+  const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [selectedUniversityCountry, setSelectedUniversityCountry] = useState("all");
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
 
   const primaryHref =
     !user
@@ -45,13 +50,31 @@ export const HomePage = () => {
       contentService.getStudyFields(),
       universityService.getAll(),
       contentService.getTestimonials(),
-    ]).then(([countriesData, studyFieldsData, universitiesData, testimonialsData]) => {
+      contentService.getRecognitions(),
+      contentService.getOurServices(),
+      contentService.getFaqs(),
+    ]).then(([countriesData, studyFieldsData, universitiesData, testimonialsData, recognitionsData, servicesData, faqsData]) => {
       setCountries(countriesData.slice(0, 7));
       setStudyFields(studyFieldsData.slice(0, 6));
-      setUniversities(universitiesData.slice(0, 3));
+      setUniversities(universitiesData);
       setTestimonials(testimonialsData.slice(0, 3));
+      setRecognitions(recognitionsData.filter((recognition) => recognition.featured !== false).slice(0, 6));
+      setServices(servicesData.filter((service) => service.featured !== false).slice(0, 6));
+      setFaqs(faqsData.filter((faq) => faq.featured !== false).slice(0, 6));
     });
   }, []);
+
+  const universityCountries = universities.reduce<Country[]>((list, university) => {
+    if (!university.country?._id || list.some((country) => country._id === university.country?._id)) {
+      return list;
+    }
+
+    return [...list, university.country];
+  }, []);
+
+  const visibleUniversities = universities
+    .filter((university) => selectedUniversityCountry === "all" || university.country?._id === selectedUniversityCountry)
+    .slice(0, 3);
 
   const homeDescription = seoText(
     language,
@@ -150,7 +173,7 @@ export const HomePage = () => {
           shadowClassName="-left-[8%] -top-[58%] h-[78%] w-[118%]"
           glowClassName="bottom-[-24%] h-[44%] opacity-70"
         />
-        <div className="pointer-events-none absolute -left-8 top-0 h-24 w-56 rounded-[999px] bg-brand-300/20 blur-3xl" />
+        <div className="pointer-events-none absolute -left-6 top-4 h-20 w-48 rounded-[2rem] border border-white/6 bg-[linear-gradient(135deg,rgba(148,163,184,0.14)_0%,rgba(255,255,255,0.03)_100%)] shadow-[0_18px_40px_rgba(15,23,42,0.12)]" />
         <div className="relative z-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent-300">{t("howItWorks")}</p>
@@ -243,29 +266,103 @@ export const HomePage = () => {
         transition={sectionTransition}
         className="overflow-hidden rounded-[2.5rem] bg-fusion px-8 py-10 text-white sm:px-10"
       >
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-100">{t("homeExperienceEyebrow")}</p>
-            <h2 className="mt-3 text-3xl font-semibold">{t("homeExperienceTitle")}</h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">{t("homeExperienceBody")}</p>
-          </div>
+        <h2 className="text-3xl font-semibold">
+          {recognitions.length ? t("recognitionsTitle") : t("homeExperienceTitle")}
+        </h2>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            {journeyShowcaseImages.map((image, index) => (
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {(recognitions.length
+              ? recognitions.map((recognition) => ({
+                  key: recognition._id,
+                  title: recognition.title,
+                  src: recognition.image || "",
+                  link: recognition.link || "",
+                }))
+              : journeyShowcaseImages.map((image) => ({
+                  key: image.title,
+                  title: image.title,
+                  src: image.src,
+                  link: "",
+                }))).map((item, index) => (
               <motion.div
-                key={image.title}
+                key={item.key}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.42, delay: index * 0.1 }}
                 className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
               >
-                <img src={image.src} alt={image.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+                {item.link ? (
+                  <a href={item.link} target="_blank" rel="noreferrer" className="block">
+                    {item.src ? (
+                      <img src={item.src} alt={item.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+                    ) : (
+                      <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
+                          <Award size={22} />
+                        </span>
+                        <p className="text-lg font-semibold text-white">{item.title}</p>
+                      </div>
+                    )}
+                    <div className="px-1 pb-1 pt-3">
+                      <p className="text-sm font-semibold text-white">{item.title}</p>
+                      <p className="mt-2 text-xs font-medium text-brand-100">{t("viewRecognition")}</p>
+                    </div>
+                  </a>
+                ) : item.src ? (
+                  <img src={item.src} alt={item.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+                ) : (
+                  <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
+                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
+                      <Award size={22} />
+                    </span>
+                    <p className="text-lg font-semibold text-white">{item.title}</p>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+        </div>
+      </motion.section>
+
+      {services.length ? (
+        <motion.section
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={sectionTransition}
+          className="overflow-hidden rounded-[2.5rem] bg-fusion px-8 py-10 text-white sm:px-10"
+        >
+          <h2 className="text-3xl font-semibold">{t("servicesTitle")}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-brand-100/85">{t("servicesBody")}</p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {services.map((service, index) => (
+              <motion.div
+                key={service._id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.42, delay: index * 0.1 }}
+                className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
+              >
+                {service.image ? (
+                  <img src={service.image} alt={service.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+                ) : (
+                  <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
+                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
+                      <Award size={22} />
+                    </span>
+                    <p className="text-lg font-semibold text-white">{service.title}</p>
+                  </div>
+                )}
+                <div className="px-1 pb-1 pt-3">
+                  <p className="text-sm font-semibold text-white">{service.title}</p>
+                </div>
               </motion.div>
             ))}
           </div>
-        </div>
-      </motion.section>
+        </motion.section>
+      ) : null}
 
       {studyFields.length ? (
         <motion.section
@@ -372,8 +469,40 @@ export const HomePage = () => {
           />
         </div>
 
+        <div className="relative z-10 mt-6 -mx-2 overflow-hidden sm:mx-0">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:hidden" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:hidden" />
+          <div className="flex snap-x gap-3 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+          <button
+            type="button"
+            onClick={() => setSelectedUniversityCountry("all")}
+            className={`shrink-0 snap-start whitespace-nowrap rounded-full px-5 py-2 text-sm font-semibold transition ${
+              selectedUniversityCountry === "all"
+                ? "bg-white text-brand-900 shadow-soft"
+                : "border border-white/15 bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            {t("allCountries")}
+          </button>
+          {universityCountries.map((country) => (
+            <button
+              key={country._id}
+              type="button"
+              onClick={() => setSelectedUniversityCountry(country._id)}
+              className={`shrink-0 snap-start whitespace-nowrap rounded-full px-5 py-2 text-sm font-semibold transition ${
+                selectedUniversityCountry === country._id
+                  ? "bg-white text-brand-900 shadow-soft"
+                  : "border border-white/15 bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              {tv(country.name)}
+            </button>
+          ))}
+          </div>
+        </div>
+
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {universities.map((university) => (
+          {visibleUniversities.map((university) => (
             <motion.div
               key={university._id}
               initial={{ opacity: 0, y: 18 }}
@@ -386,6 +515,44 @@ export const HomePage = () => {
           ))}
         </div>
       </motion.section>
+
+      {faqs.length ? (
+        <motion.section
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={sectionTransition}
+          className="panel overflow-hidden bg-white p-8 sm:p-10"
+        >
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("faqEyebrow")}</p>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("faqTitle")}</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">{t("faqBody")}</p>
+          </div>
+
+          <div className="mt-8 space-y-4">
+            {faqs.map((faq) => {
+              const isOpen = openFaqId === faq._id;
+
+              return (
+                <div key={faq._id} className="overflow-hidden rounded-[1.8rem] border border-slate-200 bg-slate-50/80">
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqId((current) => (current === faq._id ? null : faq._id))}
+                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-start"
+                  >
+                    <span className="text-base font-semibold text-slate-900 sm:text-lg">{faq.question}</span>
+                    <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-700 transition ${isOpen ? "rotate-180" : ""}`}>
+                      <ChevronDown className="h-5 w-5" />
+                    </span>
+                  </button>
+                  {isOpen ? <div className="border-t border-slate-200 px-6 py-5 text-sm leading-7 text-slate-600">{faq.answer}</div> : null}
+                </div>
+              );
+            })}
+          </div>
+        </motion.section>
+      ) : null}
 
       <motion.section
         initial={{ opacity: 0, y: 28 }}

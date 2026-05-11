@@ -18,7 +18,10 @@ const getPrograms = asyncHandler(async (req, res) => {
   }
 
   if (req.query.fieldOfStudy) {
-    query.fieldOfStudy = req.query.fieldOfStudy;
+    query.$or = [
+      { fieldOfStudy: req.query.fieldOfStudy },
+      { fieldsOfStudy: req.query.fieldOfStudy },
+    ];
   }
 
   if (req.query.intake) {

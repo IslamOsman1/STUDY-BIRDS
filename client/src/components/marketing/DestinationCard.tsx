@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import type { Country } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getDestinationImage } from "../../utils/marketingVisuals";
+import { formatCurrency } from "../../utils/format";
 
 export const DestinationCard = ({ country }: { country: Country }) => {
-  const { t, tv } = useLanguage();
+  const { t, tv, language } = useLanguage();
 
   return (
     <Link
@@ -33,6 +34,11 @@ export const DestinationCard = ({ country }: { country: Country }) => {
         <div className="mt-4 flex items-end justify-between gap-4">
           <div>
             <h3 className="text-2xl font-semibold">{tv(country.name)}</h3>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+              <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `الجامعات ${country.universityCount || 0}` : `${country.universityCount || 0} Universities`}</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `التخصصات ${country.specialtyCount || 0}` : `${country.specialtyCount || 0} Specialties`}</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `متوسط الرسوم ${formatCurrency(country.averageTuition)}` : `Avg ${formatCurrency(country.averageTuition)}`}</span>
+            </div>
             <p className="mt-3 text-sm font-medium text-brand-700">{t("destinationCta")}</p>
           </div>
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-900 transition group-hover:-translate-y-1 group-hover:border-brand-200 group-hover:bg-brand-50">

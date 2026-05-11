@@ -7,7 +7,7 @@ import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 
 export const ProgramCard = ({ program }: { program: Program }) => {
-  const { t, tv } = useLanguage();
+  const { t, tv, language } = useLanguage();
   const { user } = useAuth();
   const isPartnerUser = user?.role === "partner";
   const coverImage = program.coverImage || program.university?.campusImages?.[0] || program.university?.logo;
@@ -27,6 +27,11 @@ export const ProgramCard = ({ program }: { program: Program }) => {
           <School size={14} />
           {tv(program.fieldOfStudy)}
         </span>
+        {program.language ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+            {language === "ar" ? `لغة البرنامج ${program.language}` : `Program language ${program.language}`}
+          </span>
+        ) : null}
       </div>
       <h3 className="mt-4 text-xl font-semibold text-slate-900">{program.title}</h3>
       <p className="mt-2 inline-flex items-center gap-2 text-sm text-slate-600">
@@ -36,6 +41,12 @@ export const ProgramCard = ({ program }: { program: Program }) => {
         {tv(program.university?.country?.name)}
       </p>
       <div className="mt-5 grid gap-3 text-sm text-slate-600">
+        {program.fieldsOfStudy?.length ? (
+          <p className="flex flex-wrap items-center gap-2">
+            <School size={16} className="text-accent" />
+            {language === "ar" ? `المجالات: ${program.fieldsOfStudy.join("، ")}` : `Fields: ${program.fieldsOfStudy.join(", ")}`}
+          </p>
+        ) : null}
         <p className="flex items-center gap-2">
           <CircleDollarSign size={16} className="text-accent" />
           {tuitionLabel}: {formatCurrency(visibleTuition)}

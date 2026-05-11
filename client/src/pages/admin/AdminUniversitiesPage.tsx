@@ -15,11 +15,17 @@ const emptyUniversityForm = {
   name: "",
   country: "",
   city: "",
+  language: "",
+  studentCount: "",
+  specialtyCount: "",
   ranking: "",
   tuitionMin: "",
   tuitionMax: "",
   overview: "",
   articleTitle: "",
+  articleTitleColor: "#0f172a",
+  articleHeadingColor: "#0f172a",
+  articleBodyColor: "#475569",
   articleHeadings: createEmptyArticleHeadings(),
   articleBodies: createEmptyArticleBodies(),
   featured: false,
@@ -27,6 +33,9 @@ const emptyUniversityForm = {
   logo: "",
   campusImages: [] as string[],
 };
+
+const appendArticleItem = (items: string[]) => [...items, ""];
+const removeArticleItem = (items: string[], index: number) => (items.length > 1 ? items.filter((_, itemIndex) => itemIndex !== index) : items);
 
 export const AdminUniversitiesPage = () => {
   const { language, t, tv } = useLanguage();
@@ -54,18 +63,25 @@ export const AdminUniversitiesPage = () => {
   };
 
   const startEdit = (university: University) => {
+    const articleItemCount = Math.max(1, university.articleHeadings?.length || 0, university.articleBodies?.length || 0);
     setEditingId(university._id);
     setForm({
       name: university.name || "",
       country: university.country?._id || "",
       city: university.city || "",
+      language: university.language || "",
+      studentCount: university.studentCount ? String(university.studentCount) : "",
+      specialtyCount: university.specialtyCount ? String(university.specialtyCount) : "",
       ranking: university.ranking ? String(university.ranking) : "",
       tuitionMin: university.tuitionRange?.min ? String(university.tuitionRange.min) : "",
       tuitionMax: university.tuitionRange?.max ? String(university.tuitionRange.max) : "",
       overview: university.overview || "",
       articleTitle: university.articleTitle || "",
-      articleHeadings: normalizeArticleHeadings(university.articleHeadings),
-      articleBodies: normalizeArticleBodies(university.articleBodies),
+      articleTitleColor: university.articleTitleColor || "#0f172a",
+      articleHeadingColor: university.articleHeadingColor || "#0f172a",
+      articleBodyColor: university.articleBodyColor || "#475569",
+      articleHeadings: normalizeArticleHeadings(university.articleHeadings, articleItemCount),
+      articleBodies: normalizeArticleBodies(university.articleBodies, articleItemCount),
       featured: Boolean(university.featured),
       isPartnerInstitution: Boolean(university.isPartnerInstitution),
       logo: university.logo || "",
@@ -109,9 +125,15 @@ export const AdminUniversitiesPage = () => {
       name: form.name,
       country: form.country,
       city: form.city || undefined,
+      language: form.language || undefined,
+      studentCount: form.studentCount ? Number(form.studentCount) : 0,
+      specialtyCount: form.specialtyCount ? Number(form.specialtyCount) : 0,
       ranking: form.ranking ? Number(form.ranking) : undefined,
       overview: form.overview || undefined,
       articleTitle: form.articleTitle.trim() || undefined,
+      articleTitleColor: form.articleTitleColor || "#0f172a",
+      articleHeadingColor: form.articleHeadingColor || "#0f172a",
+      articleBodyColor: form.articleBodyColor || "#475569",
       articleHeadings: form.articleHeadings.map((item) => item.trim()).filter(Boolean),
       articleBodies: form.articleBodies.map((item) => item.trim()).filter(Boolean),
       featured: form.featured,
@@ -182,15 +204,30 @@ export const AdminUniversitiesPage = () => {
             </label>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-5">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{t("city")}</span>
               <input value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
             </label>
             <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "اللغة" : "Language"}</span>
+              <input value={form.language} onChange={(event) => setForm((current) => ({ ...current, language: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "عدد الطلاب" : "Students count"}</span>
+              <input type="number" min="0" value={form.studentCount} onChange={(event) => setForm((current) => ({ ...current, studentCount: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "عدد التخصصات" : "Specialties count"}</span>
+              <input type="number" min="0" value={form.specialtyCount} onChange={(event) => setForm((current) => ({ ...current, specialtyCount: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+            </label>
+            <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{t("ranking")}</span>
               <input type="number" value={form.ranking} onChange={(event) => setForm((current) => ({ ...current, ranking: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
             </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-1">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "partnerInstitution")}</span>
               <select value={form.isPartnerInstitution ? "yes" : "no"} onChange={(event) => setForm((current) => ({ ...current, isPartnerInstitution: event.target.value === "yes" }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring">
@@ -218,9 +255,15 @@ export const AdminUniversitiesPage = () => {
 
           <ArticleContentFields
             articleTitle={form.articleTitle}
+            articleTitleColor={form.articleTitleColor}
+            articleHeadingColor={form.articleHeadingColor}
+            articleBodyColor={form.articleBodyColor}
             articleHeadings={form.articleHeadings}
             articleBodies={form.articleBodies}
             onArticleTitleChange={(value) => setForm((current) => ({ ...current, articleTitle: value }))}
+            onArticleTitleColorChange={(value) => setForm((current) => ({ ...current, articleTitleColor: value }))}
+            onArticleHeadingColorChange={(value) => setForm((current) => ({ ...current, articleHeadingColor: value }))}
+            onArticleBodyColorChange={(value) => setForm((current) => ({ ...current, articleBodyColor: value }))}
             onArticleHeadingChange={(index, value) =>
               setForm((current) => ({
                 ...current,
@@ -231,6 +274,20 @@ export const AdminUniversitiesPage = () => {
               setForm((current) => ({
                 ...current,
                 articleBodies: current.articleBodies.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            onAddArticleItem={() =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: appendArticleItem(current.articleHeadings),
+                articleBodies: appendArticleItem(current.articleBodies),
+              }))
+            }
+            onRemoveArticleItem={(index) =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: removeArticleItem(current.articleHeadings, index),
+                articleBodies: removeArticleItem(current.articleBodies, index),
               }))
             }
             language={language}
@@ -307,6 +364,9 @@ export const AdminUniversitiesPage = () => {
                   {university.city ? ` - ${university.city}` : ""}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
+                  {university.language ? <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `اللغة: ${university.language}` : `Language: ${university.language}`}</span> : null}
+                  <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `الطلاب: ${university.studentCount || 0}` : `Students: ${university.studentCount || 0}`}</span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `التخصصات: ${university.specialtyCount || 0}` : `Specialties: ${university.specialtyCount || 0}`}</span>
                   <span className="rounded-full bg-slate-100 px-3 py-1">{dt(language, "rankingLabel")}: {university.ranking || dt(language, "notAvailable")}</span>
                   <span className="rounded-full bg-slate-100 px-3 py-1">
                     {dt(language, "tuitionLabel")}: {formatCurrency(university.tuitionRange?.min)} - {formatCurrency(university.tuitionRange?.max)}

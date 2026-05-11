@@ -8,10 +8,7 @@ import { programService } from "../../services/programService";
 import { universityService } from "../../services/universityService";
 import type { Program, StudyField, University } from "../../types";
 import { createEmptyArticleBodies, createEmptyArticleHeadings, normalizeArticleBodies, normalizeArticleHeadings } from "../../constants/articleContent";
-import {
-  PROGRAM_DEGREE_LEVELS,
-  PROGRAM_INTAKES,
-} from "../../constants/programOptions";
+import { PROGRAM_DEGREE_LEVELS, PROGRAM_INTAKES } from "../../constants/programOptions";
 import { getErrorMessage } from "../../utils/errors";
 import { formatCurrency, formatDate } from "../../utils/format";
 import { dt } from "../../utils/dashboardTranslations";
@@ -21,6 +18,8 @@ const emptyProgramForm = {
   university: "",
   degreeLevel: "",
   fieldOfStudy: "",
+  fieldsOfStudy: [] as string[],
+  language: "",
   duration: "",
   tuition: "",
   partnerTuition: "",
@@ -30,11 +29,17 @@ const emptyProgramForm = {
   summary: "",
   requirements: "",
   articleTitle: "",
+  articleTitleColor: "#0f172a",
+  articleHeadingColor: "#0f172a",
+  articleBodyColor: "#475569",
   articleHeadings: createEmptyArticleHeadings(),
   articleBodies: createEmptyArticleBodies(),
   featured: false,
   coverImage: "",
 };
+
+const appendArticleItem = (items: string[]) => [...items, ""];
+const removeArticleItem = (items: string[], index: number) => (items.length > 1 ? items.filter((_, itemIndex) => itemIndex !== index) : items);
 
 export const AdminProgramsPage = () => {
   const { language, t } = useLanguage();
@@ -67,12 +72,15 @@ export const AdminProgramsPage = () => {
   };
 
   const startEdit = (program: Program) => {
+    const articleItemCount = Math.max(1, program.articleHeadings?.length || 0, program.articleBodies?.length || 0);
     setEditingId(program._id);
     setForm({
       title: program.title || "",
       university: program.university?._id || "",
       degreeLevel: program.degreeLevel || "",
       fieldOfStudy: program.fieldOfStudy || "",
+      fieldsOfStudy: program.fieldsOfStudy?.length ? program.fieldsOfStudy : program.fieldOfStudy ? [program.fieldOfStudy] : [],
+      language: program.language || "",
       duration: program.duration || "",
       tuition: typeof program.tuition === "number" ? String(program.tuition) : "",
       partnerTuition: typeof program.partnerTuition === "number" ? String(program.partnerTuition) : "",
@@ -82,8 +90,11 @@ export const AdminProgramsPage = () => {
       summary: program.summary || "",
       requirements: program.requirements?.join("\n") || "",
       articleTitle: program.articleTitle || "",
-      articleHeadings: normalizeArticleHeadings(program.articleHeadings),
-      articleBodies: normalizeArticleBodies(program.articleBodies),
+      articleTitleColor: program.articleTitleColor || "#0f172a",
+      articleHeadingColor: program.articleHeadingColor || "#0f172a",
+      articleBodyColor: program.articleBodyColor || "#475569",
+      articleHeadings: normalizeArticleHeadings(program.articleHeadings, articleItemCount),
+      articleBodies: normalizeArticleBodies(program.articleBodies, articleItemCount),
       featured: Boolean(program.featured),
       coverImage: program.coverImage || "",
     });
@@ -111,7 +122,9 @@ export const AdminProgramsPage = () => {
       title: form.title,
       university: form.university,
       degreeLevel: form.degreeLevel,
-      fieldOfStudy: form.fieldOfStudy,
+      fieldOfStudy: form.fieldOfStudy || form.fieldsOfStudy[0] || "",
+      fieldsOfStudy: form.fieldsOfStudy.length ? form.fieldsOfStudy : form.fieldOfStudy ? [form.fieldOfStudy] : [],
+      language: form.language || undefined,
       duration: form.duration || undefined,
       tuition: form.tuition ? Number(form.tuition) : undefined,
       partnerTuition: form.partnerTuition ? Number(form.partnerTuition) : undefined,
@@ -120,6 +133,9 @@ export const AdminProgramsPage = () => {
       popularity: form.popularity ? Number(form.popularity) : undefined,
       summary: form.summary || undefined,
       articleTitle: form.articleTitle.trim() || undefined,
+      articleTitleColor: form.articleTitleColor || "#0f172a",
+      articleHeadingColor: form.articleHeadingColor || "#0f172a",
+      articleBodyColor: form.articleBodyColor || "#475569",
       articleHeadings: form.articleHeadings.map((item) => item.trim()).filter(Boolean),
       articleBodies: form.articleBodies.map((item) => item.trim()).filter(Boolean),
       requirements: form.requirements.split("\n").map((item) => item.trim()).filter(Boolean),
@@ -190,7 +206,7 @@ export const AdminProgramsPage = () => {
             </label>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "degreeLevel")}</span>
               <select value={form.degreeLevel} onChange={(event) => setForm((current) => ({ ...current, degreeLevel: event.target.value }))} required className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring">
@@ -213,6 +229,48 @@ export const AdminProgramsPage = () => {
                 ))}
               </select>
             </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "لغة البرنامج" : "Program language"}</span>
+              <input value={form.language} onChange={(event) => setForm((current) => ({ ...current, language: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+            </label>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <p className="text-sm font-medium text-slate-700">{language === "ar" ? "مجالات الدراسة" : "Study fields"}</p>
+            <p className="mt-1 text-xs text-slate-500">
+              {language === "ar"
+                ? "اختر مجالًا أساسيًا بالأعلى، ويمكنك هنا إضافة مجالات أخرى مرتبطة بنفس البرنامج."
+                : "Choose a primary field above, and add any other related study fields here."}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {studyFieldOptions.map((studyField) => {
+                const isSelected = form.fieldsOfStudy.includes(studyField.name);
+                return (
+                  <button
+                    key={studyField._id}
+                    type="button"
+                    onClick={() =>
+                      setForm((current) => {
+                        const nextFields = current.fieldsOfStudy.includes(studyField.name)
+                          ? current.fieldsOfStudy.filter((item) => item !== studyField.name)
+                          : [...current.fieldsOfStudy, studyField.name];
+
+                        return {
+                          ...current,
+                          fieldsOfStudy: nextFields,
+                          fieldOfStudy: current.fieldOfStudy || studyField.name,
+                        };
+                      })
+                    }
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                      isSelected ? "bg-slate-950 text-white" : "border border-slate-200 text-slate-700"
+                    }`}
+                  >
+                    {studyField.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -263,11 +321,7 @@ export const AdminProgramsPage = () => {
           {form.coverImage ? (
             <div className="rounded-2xl border border-slate-200 p-4">
               <img src={getApiAssetUrl(form.coverImage)} alt="Program cover" className="h-44 w-full rounded-2xl object-cover" />
-              <button
-                type="button"
-                onClick={() => setForm((current) => ({ ...current, coverImage: "" }))}
-                className="mt-3 rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700"
-              >
+              <button type="button" onClick={() => setForm((current) => ({ ...current, coverImage: "" }))} className="mt-3 rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700">
                 {dt(language, "removeImage")}
               </button>
             </div>
@@ -280,9 +334,15 @@ export const AdminProgramsPage = () => {
 
           <ArticleContentFields
             articleTitle={form.articleTitle}
+            articleTitleColor={form.articleTitleColor}
+            articleHeadingColor={form.articleHeadingColor}
+            articleBodyColor={form.articleBodyColor}
             articleHeadings={form.articleHeadings}
             articleBodies={form.articleBodies}
             onArticleTitleChange={(value) => setForm((current) => ({ ...current, articleTitle: value }))}
+            onArticleTitleColorChange={(value) => setForm((current) => ({ ...current, articleTitleColor: value }))}
+            onArticleHeadingColorChange={(value) => setForm((current) => ({ ...current, articleHeadingColor: value }))}
+            onArticleBodyColorChange={(value) => setForm((current) => ({ ...current, articleBodyColor: value }))}
             onArticleHeadingChange={(index, value) =>
               setForm((current) => ({
                 ...current,
@@ -293,6 +353,20 @@ export const AdminProgramsPage = () => {
               setForm((current) => ({
                 ...current,
                 articleBodies: current.articleBodies.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            onAddArticleItem={() =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: appendArticleItem(current.articleHeadings),
+                articleBodies: appendArticleItem(current.articleBodies),
+              }))
+            }
+            onRemoveArticleItem={(index) =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: removeArticleItem(current.articleHeadings, index),
+                articleBodies: removeArticleItem(current.articleBodies, index),
               }))
             }
             language={language}
@@ -325,9 +399,7 @@ export const AdminProgramsPage = () => {
           <div key={program._id} className="panel p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                {program.coverImage ? (
-                  <img src={getApiAssetUrl(program.coverImage)} alt={program.title} className="mb-4 h-40 w-full rounded-3xl object-cover" />
-                ) : null}
+                {program.coverImage ? <img src={getApiAssetUrl(program.coverImage)} alt={program.title} className="mb-4 h-40 w-full rounded-3xl object-cover" /> : null}
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-xl font-semibold text-slate-900">{program.title}</p>
                   {program.featured ? <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">{dt(language, "featured")}</span> : null}
@@ -336,10 +408,14 @@ export const AdminProgramsPage = () => {
                   {program.university?.name || dt(language, "unknownUniversity")} - {program.degreeLevel} - {program.fieldOfStudy}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
-                  <span className="rounded-full bg-slate-100 px-3 py-1">{dt(language, "tuitionLabel")}: {formatCurrency(program.tuition)}</span>
-                  {typeof program.partnerTuition === "number" ? (
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">{dt(language, "partnerTuition")}: {formatCurrency(program.partnerTuition)}</span>
+                  {program.language ? <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `لغة البرنامج: ${program.language}` : `Program language: ${program.language}`}</span> : null}
+                  {program.fieldsOfStudy?.length ? (
+                    <span className="rounded-full bg-slate-100 px-3 py-1">
+                      {language === "ar" ? `المجالات: ${program.fieldsOfStudy.join("، ")}` : `Fields: ${program.fieldsOfStudy.join(", ")}`}
+                    </span>
                   ) : null}
+                  <span className="rounded-full bg-slate-100 px-3 py-1">{dt(language, "tuitionLabel")}: {formatCurrency(program.tuition)}</span>
+                  {typeof program.partnerTuition === "number" ? <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">{dt(language, "partnerTuition")}: {formatCurrency(program.partnerTuition)}</span> : null}
                   <span className="rounded-full bg-slate-100 px-3 py-1">{dt(language, "deadline")}: {formatDate(program.applicationDeadline)}</span>
                   <span className="rounded-full bg-slate-100 px-3 py-1">{dt(language, "programIntake")}: {program.intake || dt(language, "flexible")}</span>
                 </div>

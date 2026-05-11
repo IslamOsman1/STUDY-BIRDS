@@ -2,6 +2,31 @@ const University = require("../models/University");
 const asyncHandler = require("../utils/asyncHandler");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 
+const buildUniversityPayload = (body) => ({
+  name: body.name,
+  country: body.country,
+  city: body.city || "",
+  language: body.language || "",
+  studentCount: Number.isFinite(Number(body.studentCount)) ? Number(body.studentCount) : 0,
+  specialtyCount: Number.isFinite(Number(body.specialtyCount)) ? Number(body.specialtyCount) : 0,
+  ranking: Number.isFinite(Number(body.ranking)) ? Number(body.ranking) : undefined,
+  overview: body.overview || "",
+  articleTitle: body.articleTitle || "",
+  articleTitleColor: body.articleTitleColor || "#0f172a",
+  articleHeadingColor: body.articleHeadingColor || "#0f172a",
+  articleBodyColor: body.articleBodyColor || "#475569",
+  articleHeadings: Array.isArray(body.articleHeadings) ? body.articleHeadings : [],
+  articleBodies: Array.isArray(body.articleBodies) ? body.articleBodies : [],
+  featured: Boolean(body.featured),
+  isPartnerInstitution: Boolean(body.isPartnerInstitution),
+  logo: body.logo || "",
+  campusImages: Array.isArray(body.campusImages) ? body.campusImages : [],
+  tuitionRange: {
+    min: Number.isFinite(Number(body.tuitionRange?.min)) ? Number(body.tuitionRange.min) : undefined,
+    max: Number.isFinite(Number(body.tuitionRange?.max)) ? Number(body.tuitionRange.max) : undefined,
+  },
+});
+
 const getUniversities = asyncHandler(async (req, res) => {
   const query = {};
 
@@ -32,12 +57,12 @@ const getUniversityById = asyncHandler(async (req, res) => {
 });
 
 const createUniversity = asyncHandler(async (req, res) => {
-  const university = await University.create(req.body);
+  const university = await University.create(buildUniversityPayload(req.body));
   res.status(201).json(university);
 });
 
 const updateUniversity = asyncHandler(async (req, res) => {
-  const university = await University.findByIdAndUpdate(req.params.id, req.body, {
+  const university = await University.findByIdAndUpdate(req.params.id, buildUniversityPayload(req.body), {
     new: true,
   });
 

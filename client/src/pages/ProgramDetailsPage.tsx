@@ -303,6 +303,16 @@ export const ProgramDetailsPage = () => {
               <p className="mt-2 font-semibold text-slate-900">{tv(program.university?.country?.name)}</p>
             </div>
             <div className="rounded-3xl bg-slate-50 p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{language === "ar" ? "لغة البرنامج" : "Program language"}</div>
+              <p className="mt-2 font-semibold text-slate-900">{program.language || dt(language, "notAvailable")}</p>
+            </div>
+            <div className="rounded-3xl bg-slate-50 p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{language === "ar" ? "مجالات الدراسة" : "Study fields"}</div>
+              <p className="mt-2 font-semibold text-slate-900">
+                {program.fieldsOfStudy?.length ? program.fieldsOfStudy.join(language === "ar" ? "، " : ", ") : program.fieldOfStudy}
+              </p>
+            </div>
+            <div className="rounded-3xl bg-slate-50 p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{isPartnerUser ? t("partnerPrice") : t("tuition")}</div>
               <p className="mt-2 font-semibold text-slate-900">{formatCurrency(visibleTuition)}</p>
               {isPartnerUser && typeof program.partnerTuition === "number" && typeof program.tuition === "number" ? (

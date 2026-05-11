@@ -4,6 +4,9 @@ const Testimonial = require("../models/Testimonial");
 const Notification = require("../models/Notification");
 const SiteSettings = require("../models/SiteSettings");
 const StudyField = require("../models/StudyField");
+const Recognition = require("../models/Recognition");
+const OurService = require("../models/OurService");
+const Faq = require("../models/Faq");
 const asyncHandler = require("../utils/asyncHandler");
 
 const getCountries = asyncHandler(async (req, res) => {
@@ -14,6 +17,21 @@ const getCountries = asyncHandler(async (req, res) => {
 const getTestimonials = asyncHandler(async (req, res) => {
   const testimonials = await Testimonial.find().sort({ featured: -1, createdAt: -1 });
   res.json(testimonials);
+});
+
+const getRecognitions = asyncHandler(async (req, res) => {
+  const recognitions = await Recognition.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  res.json(recognitions);
+});
+
+const getFaqs = asyncHandler(async (req, res) => {
+  const faqs = await Faq.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  res.json(faqs);
+});
+
+const getOurServices = asyncHandler(async (req, res) => {
+  const services = await OurService.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  res.json(services);
 });
 
 const getExhibitionArticles = asyncHandler(async (req, res) => {
@@ -54,6 +72,9 @@ const getStudyFields = asyncHandler(async (req, res) => {
 module.exports = {
   getCountries,
   getTestimonials,
+  getRecognitions,
+  getOurServices,
+  getFaqs,
   getExhibitionArticles,
   getNotifications,
   getSiteSettings,

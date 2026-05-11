@@ -140,6 +140,16 @@ type TranslationKey =
   | "homeExperienceEyebrow"
   | "homeExperienceTitle"
   | "homeExperienceBody"
+  | "recognitionsEyebrow"
+  | "recognitionsTitle"
+  | "recognitionsBody"
+  | "viewRecognition"
+  | "servicesEyebrow"
+  | "servicesTitle"
+  | "servicesBody"
+  | "faqEyebrow"
+  | "faqTitle"
+  | "faqBody"
   | "studyFieldsEyebrow"
   | "studyFieldsTitle"
   | "studyFieldsBody"
@@ -312,6 +322,16 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     homeExperienceTitle: "A clearer visual journey for every student",
     homeExperienceBody:
       "The homepage now highlights discovery, document preparation, and application follow-up with imagery that reflects the real student journey.",
+    recognitionsEyebrow: "Credentials",
+    recognitionsTitle: "Certificates and recognitions",
+    recognitionsBody: "Highlight trusted certificates, official recognitions, and success badges with direct links for visitors to review.",
+    viewRecognition: "View recognition",
+    servicesEyebrow: "Our services",
+    servicesTitle: "Services we deliver for students",
+    servicesBody: "Show the most important services in visual cards that explain how Study Birds supports students through each step.",
+    faqEyebrow: "FAQ",
+    faqTitle: "Frequently asked questions",
+    faqBody: "Answers to the most common questions students ask before choosing a destination and starting an application.",
     studyFieldsEyebrow: "Study fields",
     studyFieldsTitle: "Discover the study paths students ask about most",
     studyFieldsBody: "Showcase your most important study fields with images and direct links to the matching programs.",
@@ -483,6 +503,16 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     homeExperienceTitle: "رحلة أوضح للطالب داخل المنصة",
     homeExperienceBody:
       "تعرض الواجهة الآن مراحل الاستكشاف وتجهيز الملف ومتابعة التقديم بصور أقرب لتجربة الطالب الحقيقية.",
+    recognitionsEyebrow: "الاعتمادات",
+    recognitionsTitle: "الشهادات والاعترافات",
+    recognitionsBody: "اعرض الشهادات والاعترافات والاعتمادات المهمة مع روابط مباشرة ليتمكن الزائر من الاطلاع عليها بسهولة.",
+    viewRecognition: "عرض الشهادة",
+    servicesEyebrow: "خدماتنا",
+    servicesTitle: "الخدمات التي نقدمها للطلاب",
+    servicesBody: "اعرض أهم الخدمات في بطاقات مرئية توضح كيف تساعد Study Birds الطالب في كل مرحلة من رحلته.",
+    faqEyebrow: "الأسئلة الشائعة",
+    faqTitle: "الأسئلة الشائعة",
+    faqBody: "إجابات واضحة على أكثر الأسئلة التي يطرحها الطلاب قبل اختيار الدولة وبدء التقديم.",
     studyFieldsEyebrow: "التخصصات",
     studyFieldsTitle: "اكتشف المسارات الدراسية الأكثر طلبًا",
     studyFieldsBody: "اعرض أهم مجالات الدراسة بالصور مع رابط مباشر للبرامج المرتبطة بكل تخصص.",

@@ -19,24 +19,43 @@ const countrySchema = new mongoose.Schema(
     },
     description: String,
     articleTitle: String,
+    articleTitleColor: {
+      type: String,
+      default: "#0f172a",
+    },
+    articleHeadingColor: {
+      type: String,
+      default: "#0f172a",
+    },
+    articleBodyColor: {
+      type: String,
+      default: "#475569",
+    },
     articleHeadings: {
       type: [String],
       default: [],
-      validate: {
-        validator: (value) => !value || value.length <= 7,
-        message: "Country article headings cannot exceed 7 items",
-      },
     },
     articleBodies: {
       type: [String],
       default: [],
-      validate: {
-        validator: (value) => !value || value.length <= 7,
-        message: "Country article bodies cannot exceed 7 items",
-      },
     },
     visaNotes: String,
     heroImage: String,
+    universityCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    specialtyCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    averageTuition: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     featured: {
       type: Boolean,
       default: false,

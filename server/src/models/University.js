@@ -18,23 +18,38 @@ const universitySchema = new mongoose.Schema(
       required: true,
     },
     city: String,
+    language: String,
+    studentCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    specialtyCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     overview: String,
     articleTitle: String,
+    articleTitleColor: {
+      type: String,
+      default: "#0f172a",
+    },
+    articleHeadingColor: {
+      type: String,
+      default: "#0f172a",
+    },
+    articleBodyColor: {
+      type: String,
+      default: "#475569",
+    },
     articleHeadings: {
       type: [String],
       default: [],
-      validate: {
-        validator: (value) => !value || value.length <= 7,
-        message: "University article headings cannot exceed 7 items",
-      },
     },
     articleBodies: {
       type: [String],
       default: [],
-      validate: {
-        validator: (value) => !value || value.length <= 7,
-        message: "University article bodies cannot exceed 7 items",
-      },
     },
     ranking: Number,
     tuitionRange: {

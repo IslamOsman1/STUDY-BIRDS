@@ -24,6 +24,11 @@ const programSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    fieldsOfStudy: {
+      type: [String],
+      default: [],
+    },
+    language: String,
     duration: String,
     tuition: Number,
     partnerTuition: Number,
@@ -32,21 +37,25 @@ const programSchema = new mongoose.Schema(
     requirements: [String],
     summary: String,
     articleTitle: String,
+    articleTitleColor: {
+      type: String,
+      default: "#0f172a",
+    },
+    articleHeadingColor: {
+      type: String,
+      default: "#0f172a",
+    },
+    articleBodyColor: {
+      type: String,
+      default: "#475569",
+    },
     articleHeadings: {
       type: [String],
       default: [],
-      validate: {
-        validator: (value) => !value || value.length <= 7,
-        message: "Program article headings cannot exceed 7 items",
-      },
     },
     articleBodies: {
       type: [String],
       default: [],
-      validate: {
-        validator: (value) => !value || value.length <= 7,
-        message: "Program article bodies cannot exceed 7 items",
-      },
     },
     coverImage: String,
     featured: {

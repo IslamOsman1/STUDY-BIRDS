@@ -35,6 +35,10 @@ export const ProgramsPage = () => {
     () => studyFields.find((studyField) => studyField.name === filters.fieldOfStudy),
     [filters.fieldOfStudy, studyFields]
   );
+  const selectedUniversityName = useMemo(
+    () => universities.find((university) => university._id === filters.university)?.name || "",
+    [filters.university, universities]
+  );
 
   useEffect(() => {
     Promise.all([
@@ -54,6 +58,17 @@ export const ProgramsPage = () => {
     const params = { keyword, ...filters };
     programService.getAll(params).then(setPrograms);
   }, [keyword, filters]);
+
+  useEffect(() => {
+    if (!filters.university) {
+      return;
+    }
+
+    const selectedUniversity = universities.find((university) => university._id === filters.university);
+    if (filters.country && selectedUniversity?.country?._id !== filters.country) {
+      setFilters((current) => ({ ...current, university: "" }));
+    }
+  }, [filters.country, filters.university, universities]);
 
   return (
     <div className="space-y-8">
@@ -124,8 +139,10 @@ export const ProgramsPage = () => {
         countries={countries}
         universities={universities}
         studyFields={studyFields}
+        selectedUniversityName={selectedUniversityName}
         onKeywordChange={setKeyword}
         onFilterChange={(key, value) => setFilters((current) => ({ ...current, [key]: value }))}
+        onUniversitySelect={(universityId) => setFilters((current) => ({ ...current, university: universityId }))}
       />
       {programs.length ? (
         <div className="grid gap-5 lg:grid-cols-3">

@@ -1,9 +1,11 @@
 import {
+  Award,
   Building2,
   FileText,
   GraduationCap,
   LayoutDashboard,
   Layers3,
+  MessageSquare,
   Settings2,
   Users,
   Video,
@@ -39,6 +41,9 @@ export const DashboardLayout = () => {
     { label: t("programs"), href: "/admin/programs", icon: GraduationCap, description: dt(language, "programsDesc") },
     { label: t("applications"), href: "/admin/applications", icon: FileText, description: dt(language, "applicationsDesc") },
     { label: dt(language, "content"), href: "/admin/content", icon: Layers3, description: dt(language, "contentDesc") },
+    { label: dt(language, "recognitionsNav"), href: "/admin/recognitions", icon: Award, description: dt(language, "recognitionsNavDesc") },
+    { label: dt(language, "servicesNav"), href: "/admin/services", icon: Award, description: dt(language, "servicesNavDesc") },
+    { label: dt(language, "faqsNav"), href: "/admin/faqs", icon: MessageSquare, description: dt(language, "faqsNavDesc") },
     {
       label: language === "ar" ? "محطة المعارض" : "Exhibitions Station",
       href: "/admin/exhibitions",

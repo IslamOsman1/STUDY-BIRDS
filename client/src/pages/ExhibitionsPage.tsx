@@ -7,7 +7,10 @@ import { contentService } from "../services/contentService";
 import type { ExhibitionArticle } from "../types";
 import { getErrorMessage } from "../utils/errors";
 import { formatDate } from "../utils/format";
+import { renderRichTextLines } from "../utils/richText";
 import { getYoutubeEmbedUrl } from "../utils/youtube";
+
+type ExhibitionSection = NonNullable<ExhibitionArticle["sections"]>[number];
 
 export const ExhibitionsPage = () => {
   const { language } = useLanguage();
@@ -15,6 +18,27 @@ export const ExhibitionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const exhibitionsText = language === "ar" ? "محطة المعارض" : "Exhibitions Station";
+
+  const isMirroredMainSection = (article: ExhibitionArticle, section: ExhibitionSection) =>
+    section.title === article.title &&
+    (section.summary || "") === (article.summary || "") &&
+    section.body === article.body &&
+    (section.titleColor || "#0f172a") === (article.titleColor || "#0f172a") &&
+    (section.youtubeUrl || "") === (article.youtubeUrl || "");
+
+  const getSections = (article: ExhibitionArticle) => {
+    if (!article.sections?.length) {
+      return [];
+    }
+
+    return article.sections.filter((section, index) => {
+      if (article.sections && article.sections.length === 1) {
+        return !isMirroredMainSection(article, section);
+      }
+
+      return index !== 0 || !isMirroredMainSection(article, section);
+    });
+  };
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -72,12 +96,12 @@ export const ExhibitionsPage = () => {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
-              <p className="text-sm text-brand-100">{language === "ar" ? "مقالات المعارض التعليمية" : "Educational fair articles"}</p>
+              <p className="text-sm text-brand-100">{language === "ar" ? "منشورات المعارض التعليمية" : "Educational fair posts"}</p>
               <p className="mt-3 text-4xl font-semibold">{articles.length}</p>
             </div>
             <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
-              <p className="text-sm text-brand-100">{language === "ar" ? "محتوى مرئي داعم" : "Supporting video content"}</p>
-              <p className="mt-3 text-lg font-semibold">{language === "ar" ? "شرح مباشر داخل الصفحة" : "Watch guidance without leaving the page"}</p>
+              <p className="text-sm text-brand-100">{language === "ar" ? "مقالات داخلية وفيديوهات" : "Nested articles and videos"}</p>
+              <p className="mt-3 text-lg font-semibold">{language === "ar" ? "منشور واحد يمكنه احتواء أكثر من مقال" : "Each post can contain multiple articles"}</p>
             </div>
           </div>
         </div>
@@ -91,67 +115,95 @@ export const ExhibitionsPage = () => {
           <h2 className="text-2xl font-semibold text-slate-900">{language === "ar" ? "لا توجد تغطية منشورة للمعارض حالياً" : "No fair coverage has been published yet"}</h2>
           <p className="mt-3 text-slate-600">
             {language === "ar"
-              ? "بمجرد إضافة مقالات عن معارض الدراسة بالخارج أو فعاليات الجامعات من لوحة التحكم، ستظهر هنا تلقائياً."
-              : "As soon as study abroad fair or university event articles are added from the dashboard, they will appear here automatically."}
+              ? "بمجرد إضافة منشورات عن معارض الدراسة بالخارج أو فعاليات الجامعات من لوحة التحكم، ستظهر هنا تلقائياً."
+              : "As soon as study abroad fair or university event posts are added from the dashboard, they will appear here automatically."}
           </p>
         </div>
       ) : null}
 
       <div className="space-y-6">
         {articles.map((article) => {
-          const embedUrl = getYoutubeEmbedUrl(article.youtubeUrl);
+          const sections = getSections(article);
+          const mainEmbedUrl = getYoutubeEmbedUrl(article.youtubeUrl);
 
           return (
             <article key={article._id} className="panel overflow-hidden p-0">
-              <div className="grid gap-0 lg:grid-cols-[1.08fr_0.92fr]">
-                <div className="p-8">
-                  <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
-                    <span className="rounded-full bg-brand-50 px-3 py-1">{article.featured ? (language === "ar" ? "تغطية مميزة" : "Featured coverage") : exhibitionsText}</span>
-                    {article.createdAt ? (
-                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
-                        <CalendarDays className="h-4 w-4" />
-                        {formatDate(article.createdAt)}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <h2 className="mt-5 text-3xl font-semibold text-slate-900">{article.title}</h2>
-                  <p className="mt-4 text-lg leading-8 text-slate-600">{article.summary}</p>
-                  <div className="mt-6 whitespace-pre-line text-sm leading-7 text-slate-600">{article.body}</div>
+              <div className="p-8">
+                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
+                  <span className="rounded-full bg-brand-50 px-3 py-1">{article.featured ? (language === "ar" ? "تغطية مميزة" : "Featured coverage") : exhibitionsText}</span>
+                  {article.createdAt ? (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                      <CalendarDays className="h-4 w-4" />
+                      {formatDate(article.createdAt)}
+                    </span>
+                  ) : null}
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">{language === "ar" ? `عدد المقالات ${sections.length}` : `${sections.length} articles`}</span>
                 </div>
 
-                <div className="border-t border-slate-200 bg-slate-950 p-6 lg:border-l lg:border-t-0">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                    <PlayCircle className="h-5 w-5 text-orange-400" />
-                    {language === "ar" ? "شاهد شرح المعرض أو الفعالية" : "Watch the fair or event video"}
-                  </div>
+                <h2 className="mt-5 text-3xl font-semibold" style={{ color: article.titleColor || "#0f172a" }}>{article.title}</h2>
+                <p className="mt-4 text-lg leading-8 text-slate-600">{article.summary}</p>
+                <div className="mt-6 space-y-3 text-sm leading-7 text-slate-600">{renderRichTextLines(article.body)}</div>
 
-                  <div className="mt-4 overflow-hidden rounded-[1.5rem] bg-black shadow-2xl">
-                    {embedUrl ? (
-                      <iframe
-                        src={embedUrl}
-                        title={article.title}
-                        className="aspect-video w-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
-                      />
-                    ) : (
-                      <div className="flex aspect-video items-center justify-center p-6 text-center text-sm text-slate-300">
-                        {language === "ar" ? "رابط يوتيوب غير صالح للعرض المضمن." : "This YouTube link cannot be embedded."}
-                      </div>
-                    )}
+                {mainEmbedUrl ? (
+                  <div className="mt-8 overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-2xl">
+                    <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 text-sm font-semibold text-white">
+                      <PlayCircle className="h-5 w-5 text-orange-400" />
+                      {language === "ar" ? "فيديو المنشور الرئيسي" : "Main post video"}
+                    </div>
+                    <iframe
+                      src={mainEmbedUrl}
+                      title={article.title}
+                      className="aspect-video w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                    />
                   </div>
+                ) : null}
 
-                  <a
-                    href={article.youtubeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                  >
-                    {language === "ar" ? "فتح الفيديو الكامل على يوتيوب" : "Open the full video on YouTube"}
-                  </a>
-                </div>
+                {sections.length ? (
+                  <div className="mt-10 space-y-10 border-t border-slate-200 pt-8">
+                    {sections.map((section, sectionIndex) => {
+                      const embedUrl = getYoutubeEmbedUrl(section.youtubeUrl);
+                      const hasVideo = Boolean(section.youtubeUrl);
+
+                      return (
+                        <section key={`${article._id}-${sectionIndex}`} className="space-y-4">
+                          <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+                            {language === "ar" ? `عنوان فرعي ${sectionIndex + 1}` : `Sub article ${sectionIndex + 1}`}
+                          </div>
+
+                          <h3 className="text-2xl font-semibold" style={{ color: section.titleColor || "#0f172a" }}>{section.title}</h3>
+                          {section.summary ? <p className="text-lg leading-8 text-slate-600">{section.summary}</p> : null}
+                          <div className="space-y-3 text-sm leading-7 text-slate-600">{renderRichTextLines(section.body)}</div>
+
+                          {hasVideo ? (
+                            <div className="overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-2xl">
+                              <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 text-sm font-semibold text-white">
+                                <PlayCircle className="h-5 w-5 text-orange-400" />
+                                {language === "ar" ? "فيديو هذا العنوان" : "Video for this section"}
+                              </div>
+                              {embedUrl ? (
+                                <iframe
+                                  src={embedUrl}
+                                  title={section.title}
+                                  className="aspect-video w-full"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                  referrerPolicy="strict-origin-when-cross-origin"
+                                  allowFullScreen
+                                />
+                              ) : (
+                                <div className="flex aspect-video items-center justify-center p-6 text-center text-sm text-slate-300">
+                                  {language === "ar" ? "رابط يوتيوب غير صالح للعرض المضمن." : "This YouTube link cannot be embedded."}
+                                </div>
+                              )}
+                            </div>
+                          ) : null}
+                        </section>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
             </article>
           );

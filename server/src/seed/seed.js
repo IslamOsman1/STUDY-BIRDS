@@ -9,15 +9,17 @@ const Application = require("../models/Application");
 const Document = require("../models/Document");
 const Testimonial = require("../models/Testimonial");
 const Notification = require("../models/Notification");
+const Recognition = require("../models/Recognition");
+const Faq = require("../models/Faq");
 
 const countriesData = [
-  { name: "Canada", code: "CA", featured: true, description: "A welcoming destination with strong post-study pathways." },
-  { name: "United States", code: "US", featured: true, description: "Top-ranked institutions and broad program variety." },
-  { name: "United Kingdom", code: "GB", featured: true, description: "Fast-track master's programs and global recognition." },
-  { name: "Germany", code: "DE", featured: true, description: "High-quality education with strong engineering options." },
-  { name: "Australia", code: "AU", featured: true, description: "Career-focused programs in vibrant international cities." },
-  { name: "Ireland", code: "IE", featured: true, description: "Fast-growing tech ecosystem and student-friendly culture." },
-  { name: "Turkey", code: "TR", featured: true, description: "Affordable tuition with a rich cultural experience." },
+  { name: "Canada", code: "CA", featured: true, description: "A welcoming destination with strong post-study pathways.", universityCount: 24, specialtyCount: 180, averageTuition: 18000 },
+  { name: "United States", code: "US", featured: true, description: "Top-ranked institutions and broad program variety.", universityCount: 40, specialtyCount: 260, averageTuition: 24000 },
+  { name: "United Kingdom", code: "GB", featured: true, description: "Fast-track master's programs and global recognition.", universityCount: 28, specialtyCount: 190, averageTuition: 21000 },
+  { name: "Germany", code: "DE", featured: true, description: "High-quality education with strong engineering options.", universityCount: 18, specialtyCount: 140, averageTuition: 12000 },
+  { name: "Australia", code: "AU", featured: true, description: "Career-focused programs in vibrant international cities.", universityCount: 20, specialtyCount: 150, averageTuition: 22000 },
+  { name: "Ireland", code: "IE", featured: true, description: "Fast-growing tech ecosystem and student-friendly culture.", universityCount: 14, specialtyCount: 95, averageTuition: 17000 },
+  { name: "Turkey", code: "TR", featured: true, description: "Affordable tuition with a rich cultural experience.", universityCount: 30, specialtyCount: 210, averageTuition: 9000 },
 ];
 
 const universitiesData = [
@@ -50,6 +52,33 @@ const testimonialData = [
   { studentName: "Maya Salem", destination: "Australia", quote: "The platform felt modern, supportive, and built around real student needs." },
 ];
 
+const recognitionData = [
+  { title: "ICEF Agency Status", link: "https://studybirds.com", featured: true, sortOrder: 1 },
+  { title: "Student Success Recognition", link: "https://studybirds.com", featured: true, sortOrder: 2 },
+  { title: "Trusted Recruitment Partner", link: "https://studybirds.com", featured: true, sortOrder: 3 },
+];
+
+const faqData = [
+  {
+    question: "How do I choose the right country to study in?",
+    answer: "Compare tuition, available programs, language, visa requirements, and future career opportunities before applying.",
+    featured: true,
+    sortOrder: 1,
+  },
+  {
+    question: "What documents are usually required to apply?",
+    answer: "Most universities ask for your passport, academic transcripts or certificates, and proof of language level if required.",
+    featured: true,
+    sortOrder: 2,
+  },
+  {
+    question: "Can Study Birds help me track my application after submission?",
+    answer: "Yes. Students can organize documents, submit applications, and follow status updates from one place.",
+    featured: true,
+    sortOrder: 3,
+  },
+];
+
 const buildArticleHeadings = (prefix, items) => items.map((item) => `${prefix} ${item}`);
 const buildArticleBodies = (subject, items) => items.map((item) => `${subject} ${item}.`);
 
@@ -66,6 +95,8 @@ const seed = async () => {
     StudentProfile.deleteMany({}),
     User.deleteMany({}),
     Testimonial.deleteMany({}),
+    Recognition.deleteMany({}),
+    Faq.deleteMany({}),
   ]);
 
   const admin = await User.create({
@@ -205,6 +236,8 @@ const seed = async () => {
 
   const createdPrograms = await Program.insertMany(programs.slice(0, 30));
   await Testimonial.insertMany(testimonialData);
+  await Recognition.insertMany(recognitionData);
+  await Faq.insertMany(faqData);
 
   await Application.create({
     student: students[0]._id,

@@ -2,6 +2,9 @@ export type Role = "student" | "admin" | "partner";
 
 export interface ArticleContent {
   articleTitle?: string;
+  articleTitleColor?: string;
+  articleHeadingColor?: string;
+  articleBodyColor?: string;
   articleHeadings?: string[];
   articleBodies?: string[];
 }
@@ -27,6 +30,9 @@ export interface Country extends ArticleContent {
   description?: string;
   visaNotes?: string;
   heroImage?: string;
+  universityCount?: number;
+  specialtyCount?: number;
+  averageTuition?: number;
   featured?: boolean;
   createdAt?: string;
 }
@@ -46,6 +52,7 @@ export interface StudyField {
   _id: string;
   name: string;
   slug?: string;
+  titleColor?: string;
   description?: string;
   image?: string;
   featured?: boolean;
@@ -58,6 +65,9 @@ export interface University extends ArticleContent {
   name: string;
   slug: string;
   city?: string;
+  language?: string;
+  studentCount?: number;
+  specialtyCount?: number;
   overview?: string;
   ranking?: number;
   featured?: boolean;
@@ -78,6 +88,8 @@ export interface Program extends ArticleContent {
   slug: string;
   degreeLevel: string;
   fieldOfStudy: string;
+  fieldsOfStudy?: string[];
+  language?: string;
   duration?: string;
   tuition?: number;
   partnerTuition?: number;
@@ -164,15 +176,53 @@ export interface Testimonial {
   createdAt?: string;
 }
 
+export interface Recognition {
+  _id: string;
+  title: string;
+  image?: string;
+  link?: string;
+  featured?: boolean;
+  sortOrder?: number;
+  createdAt?: string;
+}
+
+export interface OurService {
+  _id: string;
+  title: string;
+  image?: string;
+  featured?: boolean;
+  sortOrder?: number;
+  createdAt?: string;
+}
+
+export interface Faq {
+  _id: string;
+  question: string;
+  answer: string;
+  featured?: boolean;
+  sortOrder?: number;
+  createdAt?: string;
+}
+
 export interface ExhibitionArticle {
   _id: string;
   title: string;
   slug: string;
   summary: string;
   body: string;
+  titleColor?: string;
+  ctaText?: string;
+  ctaUrl?: string;
   youtubeUrl: string;
   featured?: boolean;
   published?: boolean;
+  sections?: Array<{
+    title: string;
+    summary?: string;
+    body: string;
+    titleColor?: string;
+    youtubeUrl: string;
+  }>;
   createdAt?: string;
   updatedAt?: string;
 }
