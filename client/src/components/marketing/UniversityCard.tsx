@@ -18,7 +18,9 @@ export const UniversityCard = ({ university }: { university: University }) => {
       className="group block overflow-hidden rounded-[2rem] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.12)] transition hover:-translate-y-1"
     >
       <div className="relative h-64 overflow-hidden bg-slate-950">
-        <img src={coverImageUrl} alt={university.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_55%),linear-gradient(180deg,rgba(15,23,42,0.92)_0%,rgba(15,23,42,0.74)_100%)] p-4">
+          <img src={coverImageUrl} alt={university.name} loading="lazy" className="h-full w-full object-contain transition duration-500 group-hover:scale-105" />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/10 to-transparent" />
         <div className="absolute start-5 top-5 flex items-center gap-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">

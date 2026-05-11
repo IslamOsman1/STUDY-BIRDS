@@ -295,7 +295,9 @@ export const HomePage = () => {
                 {item.link ? (
                   <a href={item.link} target="_blank" rel="noreferrer" className="block">
                     {item.src ? (
-                      <img src={item.src} alt={item.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+                      <div className="flex h-48 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3">
+                        <img src={item.src} alt={item.title} className="h-full w-full rounded-[1rem] object-contain" />
+                      </div>
                     ) : (
                       <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
                         <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
@@ -310,7 +312,9 @@ export const HomePage = () => {
                     </div>
                   </a>
                 ) : item.src ? (
-                  <img src={item.src} alt={item.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+                  <div className="flex h-48 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3">
+                    <img src={item.src} alt={item.title} className="h-full w-full rounded-[1rem] object-contain" />
+                  </div>
                 ) : (
                   <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
                     <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
@@ -346,7 +350,9 @@ export const HomePage = () => {
                 className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
               >
                 {service.image ? (
-                  <img src={service.image} alt={service.title} className="h-48 w-full rounded-[1.2rem] object-cover" />
+                  <div className="flex h-48 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3">
+                    <img src={service.image} alt={service.title} className="h-full w-full rounded-[1rem] object-contain" />
+                  </div>
                 ) : (
                   <div className="flex h-48 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-5">
                     <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
