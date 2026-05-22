@@ -13,15 +13,21 @@ const contentRoutes = require("./routes/contentRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
+
+const normalizeOrigin = (value) => value.trim().replace(/\/+$/, "");
+
 const parseAllowedOrigins = () => {
   const configuredOrigins = [process.env.CLIENT_URL, process.env.CLIENT_URLS]
     .filter(Boolean)
     .flatMap((value) => value.split(","))
-    .map((value) => value.trim())
+    .map(normalizeOrigin)
     .filter(Boolean);
 
   return new Set([
     ...configuredOrigins,
+    "https://studybirds.com",
+    "https://www.studybirds.com",
+    "https://study-birds-web.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
   ]);
@@ -32,7 +38,7 @@ const allowedOrigins = parseAllowedOrigins();
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
         callback(null, true);
         return;
       }

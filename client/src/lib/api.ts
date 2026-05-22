@@ -1,6 +1,24 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const resolveApiUrl = () => {
+  const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (configuredApiUrl) {
+    return configuredApiUrl;
+  }
+
+  if (typeof window !== "undefined") {
+    const { hostname } = window.location;
+
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:5000/api";
+    }
+  }
+
+  return "https://study-birds-api.onrender.com/api";
+};
+
+export const API_URL = resolveApiUrl();
 const API_ORIGIN = API_URL.replace(/\/api\/?$/, "");
 
 export const api = axios.create({
