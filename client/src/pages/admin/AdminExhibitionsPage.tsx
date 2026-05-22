@@ -1,60 +1,71 @@
 import { CalendarDays, PencilLine, Plus, Trash2, Video } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { ArticleContentFields } from "../../components/admin/ArticleContentFields";
+import { createEmptyArticleBodies, createEmptyArticleHeadings, normalizeArticleBodies, normalizeArticleHeadings } from "../../constants/articleContent";
 import { useLanguage } from "../../hooks/useLanguage";
+import { getApiAssetUrl } from "../../lib/api";
 import { adminService } from "../../services/adminService";
 import type { ExhibitionArticle } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
 import { formatDate } from "../../utils/format";
 import { getYoutubeEmbedUrl } from "../../utils/youtube";
 
-type ExhibitionSection = NonNullable<ExhibitionArticle["sections"]>[number];
-
 type ExhibitionForm = {
   title: string;
   summary: string;
   body: string;
+  image: string;
   titleColor: string;
+  articleTitle: string;
+  articleTitleColor: string;
+  articleHeadingColor: string;
+  articleBodyColor: string;
+  articleHeadings: string[];
+  articleBodies: string[];
   youtubeUrl: string;
-  sections: ExhibitionSection[];
   featured: boolean;
   published: boolean;
 };
 
-const createEmptySection = (): ExhibitionSection => ({
-  title: "",
-  summary: "",
-  body: "",
-  titleColor: "#0f172a",
-  youtubeUrl: "",
-});
+const appendArticleItem = (items: string[]) => [...items, ""];
+const removeArticleItem = (items: string[], index: number) => (items.length > 1 ? items.filter((_, itemIndex) => itemIndex !== index) : items);
+
+const mapSectionsToArticleContent = (article: ExhibitionArticle) => {
+  const headings = article.articleHeadings?.length
+    ? article.articleHeadings
+    : (article.sections || []).map((section) => section.title || "").filter((item) => item.trim());
+  const bodies = article.articleBodies?.length
+    ? article.articleBodies
+    : (article.sections || []).map((section) => section.body || "");
+  const articleItemCount = Math.max(1, headings.length || 0, bodies.length || 0);
+
+  return {
+    articleTitle: article.articleTitle || "",
+    articleTitleColor: article.articleTitleColor || "#0f172a",
+    articleHeadingColor: article.articleHeadingColor || "#0f172a",
+    articleBodyColor: article.articleBodyColor || "#475569",
+    articleHeadings: normalizeArticleHeadings(headings, articleItemCount),
+    articleBodies: normalizeArticleBodies(bodies, articleItemCount),
+  };
+};
 
 const emptyForm: ExhibitionForm = {
   title: "",
   summary: "",
   body: "",
+  image: "",
   titleColor: "#0f172a",
+  articleTitle: "",
+  articleTitleColor: "#0f172a",
+  articleHeadingColor: "#0f172a",
+  articleBodyColor: "#475569",
+  articleHeadings: createEmptyArticleHeadings(),
+  articleBodies: createEmptyArticleBodies(),
   youtubeUrl: "",
-  sections: [],
   featured: true,
   published: true,
 };
-
-const isMirroredMainSection = (
-  article: ExhibitionArticle,
-  section: {
-    title: string;
-    summary?: string;
-    body: string;
-    titleColor?: string;
-    youtubeUrl?: string;
-  }
-) =>
-  section.title === article.title &&
-  (section.summary || "") === (article.summary || "") &&
-  section.body === article.body &&
-  (section.titleColor || "#0f172a") === (article.titleColor || "#0f172a") &&
-  (section.youtubeUrl || "") === (article.youtubeUrl || "");
 
 export const AdminExhibitionsPage = () => {
   const { language } = useLanguage();
@@ -62,6 +73,7 @@ export const AdminExhibitionsPage = () => {
   const [form, setForm] = useState<ExhibitionForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const labels = {
     title: language === "ar" ? "محطة المعارض" : "Exhibitions Station",
@@ -74,13 +86,6 @@ export const AdminExhibitionsPage = () => {
     titleColor: language === "ar" ? "لون العنوان" : "Title color",
     body: language === "ar" ? "نص المنشور" : "Post body",
     youtubeUrl: language === "ar" ? "رابط يوتيوب الرئيسي" : "Main YouTube URL",
-    sections: language === "ar" ? "مقالات المنشور" : "Post articles",
-    addSection: language === "ar" ? "إضافة مقال داخل المنشور" : "Add article inside post",
-    sectionTitle: language === "ar" ? "عنوان المقال الداخلي" : "Inner article title",
-    sectionSummary: language === "ar" ? "ملخص المقال الداخلي" : "Inner article summary",
-    sectionBody: language === "ar" ? "نص المقال الداخلي" : "Inner article body",
-    sectionYoutube: language === "ar" ? "رابط يوتيوب للمقال الداخلي" : "Inner article YouTube URL",
-    deleteSection: language === "ar" ? "حذف المقال" : "Delete article",
     featured: language === "ar" ? "إظهار كمنشور مميز" : "Show as featured post",
     published: language === "ar" ? "نشر المنشور في الصفحة العامة" : "Publish on the public page",
     create: language === "ar" ? "إضافة المنشور" : "Create post",
@@ -94,20 +99,6 @@ export const AdminExhibitionsPage = () => {
       language === "ar"
         ? "لإضافة زر داخل النص اكتب بهذه الصيغة: [button:نص الزر|https://example.com]"
         : "To place a button inside the text, use: [button:Button text|https://example.com]",
-  };
-
-  const getArticleSections = (article: ExhibitionArticle): ExhibitionSection[] => {
-    if (!article.sections?.length) {
-      return [];
-    }
-
-    return article.sections.filter((section, index) => {
-      if (article.sections && article.sections.length === 1) {
-        return !isMirroredMainSection(article, section);
-      }
-
-      return index !== 0 || !isMirroredMainSection(article, section);
-    });
   };
 
   const loadArticles = async () => {
@@ -130,19 +121,29 @@ export const AdminExhibitionsPage = () => {
     setForm(emptyForm);
   };
 
+  const handleImageUpload = async (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    setFormError("");
+    setUploadingImage(true);
+    try {
+      const image = await adminService.uploadExhibitionImage(fileList[0]);
+      setForm((current) => ({ ...current, image }));
+    } catch (error) {
+      setFormError(getErrorMessage(error, language === "ar" ? "تعذر رفع صورة المنشور." : "Unable to upload the post image."));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setFormError("");
 
     const payload = {
       ...form,
-      sections: form.sections.map((section) => ({
-        title: section.title.trim(),
-        summary: (section.summary || "").trim(),
-        body: section.body.trim(),
-        titleColor: section.titleColor || "#0f172a",
-        youtubeUrl: section.youtubeUrl.trim(),
-      })),
+      articleTitle: form.articleTitle.trim(),
+      articleHeadings: form.articleHeadings.map((item) => item.trim()),
+      articleBodies: form.articleBodies.map((item) => item.trim()),
     };
 
     try {
@@ -204,6 +205,23 @@ export const AdminExhibitionsPage = () => {
           </label>
 
           <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "صورة أعلى المنشور" : "Post top image"}</span>
+            <input type="file" accept="image/*" onChange={(event) => handleImageUpload(event.target.files)} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring" />
+            <p className="mt-2 text-xs text-slate-500">
+              {uploadingImage ? (language === "ar" ? "جاري رفع الصورة..." : "Uploading image...") : language === "ar" ? "يمكنك إضافة صورة تظهر أعلى المنشور في الصفحة العامة." : "You can add an image displayed above the post on the public page."}
+            </p>
+          </label>
+
+          {form.image ? (
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <img src={getApiAssetUrl(form.image)} alt="Exhibition post" className="h-48 w-full rounded-2xl object-cover" />
+              <button type="button" onClick={() => setForm((current) => ({ ...current, image: "" }))} className="mt-3 rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700">
+                {language === "ar" ? "حذف الصورة" : "Remove image"}
+              </button>
+            </div>
+          ) : null}
+
+          <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">{labels.body}</span>
             <textarea value={form.body} onChange={(event) => setForm((current) => ({ ...current, body: event.target.value }))} rows={5} required className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
             <p className="mt-2 text-xs text-slate-500">{labels.embeddedButtonHelp}</p>
@@ -211,132 +229,49 @@ export const AdminExhibitionsPage = () => {
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">{labels.youtubeUrl}</span>
-            <input value={form.youtubeUrl} onChange={(event) => setForm((current) => ({ ...current, youtubeUrl: event.target.value }))} required placeholder="https://www.youtube.com/watch?v=..." className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+            <input value={form.youtubeUrl} onChange={(event) => setForm((current) => ({ ...current, youtubeUrl: event.target.value }))} placeholder="https://www.youtube.com/watch?v=..." className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
           </label>
 
-          <div className="rounded-[1.75rem] border border-slate-200 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-base font-semibold text-slate-900">{labels.sections}</h3>
-              <button
-                type="button"
-                onClick={() => setForm((current) => ({ ...current, sections: [...current.sections, createEmptySection()] }))}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
-              >
-                <Plus className="h-4 w-4" />
-                {labels.addSection}
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-4">
-              {form.sections.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">
-                  {language === "ar"
-                    ? "لا توجد مقالات داخلية بعد. اضغط على زر إضافة مقال داخل المنشور."
-                    : "No inner articles yet. Use the add article button to create one."}
-                </div>
-              ) : null}
-
-              {form.sections.map((section, index) => (
-                <div key={index} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-slate-900">{language === "ar" ? `المقال ${index + 1}` : `Article ${index + 1}`}</p>
-                    {form.sections.length > 1 ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setForm((current) => ({
-                            ...current,
-                            sections: current.sections.filter((_, itemIndex) => itemIndex !== index),
-                          }))
-                        }
-                        className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700"
-                      >
-                        {labels.deleteSection}
-                      </button>
-                    ) : null}
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-[1fr_180px]">
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-slate-700">{labels.sectionTitle}</span>
-                      <input
-                        value={section.title}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            sections: current.sections.map((item, itemIndex) => (itemIndex === index ? { ...item, title: event.target.value } : item)),
-                          }))
-                        }
-                        required
-                        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-slate-700">{labels.titleColor}</span>
-                      <input
-                        type="color"
-                        value={section.titleColor}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            sections: current.sections.map((item, itemIndex) => (itemIndex === index ? { ...item, titleColor: event.target.value } : item)),
-                          }))
-                        }
-                        className="h-[52px] w-full rounded-2xl border border-slate-200 bg-white px-2 py-2 outline-none focus:ring"
-                      />
-                    </label>
-                  </div>
-
-                  <label className="mt-4 block">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">{labels.sectionSummary}</span>
-                    <textarea
-                      value={section.summary}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          sections: current.sections.map((item, itemIndex) => (itemIndex === index ? { ...item, summary: event.target.value } : item)),
-                        }))
-                      }
-                      rows={2}
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
-                    />
-                  </label>
-
-                  <label className="mt-4 block">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">{labels.sectionBody}</span>
-                    <textarea
-                      value={section.body}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          sections: current.sections.map((item, itemIndex) => (itemIndex === index ? { ...item, body: event.target.value } : item)),
-                        }))
-                      }
-                      rows={5}
-                      required
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
-                    />
-                  </label>
-
-                  <label className="mt-4 block">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">{labels.sectionYoutube}</span>
-                    <input
-                      value={section.youtubeUrl}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          sections: current.sections.map((item, itemIndex) => (itemIndex === index ? { ...item, youtubeUrl: event.target.value } : item)),
-                        }))
-                      }
-                      placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
-                    />
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ArticleContentFields
+            articleTitle={form.articleTitle}
+            articleTitleColor={form.articleTitleColor}
+            articleHeadingColor={form.articleHeadingColor}
+            articleBodyColor={form.articleBodyColor}
+            articleHeadings={form.articleHeadings}
+            articleBodies={form.articleBodies}
+            onArticleTitleChange={(value) => setForm((current) => ({ ...current, articleTitle: value }))}
+            onArticleTitleColorChange={(value) => setForm((current) => ({ ...current, articleTitleColor: value }))}
+            onArticleHeadingColorChange={(value) => setForm((current) => ({ ...current, articleHeadingColor: value }))}
+            onArticleBodyColorChange={(value) => setForm((current) => ({ ...current, articleBodyColor: value }))}
+            onArticleHeadingChange={(index, value) =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: current.articleHeadings.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            onArticleBodyChange={(index, value) =>
+              setForm((current) => ({
+                ...current,
+                articleBodies: current.articleBodies.map((item, itemIndex) => (itemIndex === index ? value : item)),
+              }))
+            }
+            onAddArticleItem={() =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: appendArticleItem(current.articleHeadings),
+                articleBodies: appendArticleItem(current.articleBodies),
+              }))
+            }
+            onRemoveArticleItem={(index) =>
+              setForm((current) => ({
+                ...current,
+                articleHeadings: removeArticleItem(current.articleHeadings, index),
+                articleBodies: removeArticleItem(current.articleBodies, index),
+              }))
+            }
+            language={language}
+            titleLabel={language === "ar" ? "عنوان المقال الداخلي" : "Inner article title"}
+          />
 
           <div className="grid gap-3 md:grid-cols-2">
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3">
@@ -366,8 +301,9 @@ export const AdminExhibitionsPage = () => {
         {articles.length === 0 ? <div className="panel p-6 text-sm text-slate-500">{labels.empty}</div> : null}
 
         {articles.map((article) => {
-          const sections = getArticleSections(article);
-          const embedUrl = getYoutubeEmbedUrl(sections[0]?.youtubeUrl || article.youtubeUrl);
+          const articleContent = mapSectionsToArticleContent(article);
+          const articleCount = articleContent.articleHeadings.filter(Boolean).length;
+          const embedUrl = getYoutubeEmbedUrl(article.youtubeUrl);
 
           return (
             <div key={article._id} className="panel overflow-hidden p-0">
@@ -379,21 +315,21 @@ export const AdminExhibitionsPage = () => {
                     {article.published ? <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">{language === "ar" ? "منشور" : "Published"}</span> : <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{language === "ar" ? "مسودة" : "Draft"}</span>}
                   </div>
 
+                  {article.image ? <img src={getApiAssetUrl(article.image)} alt={article.title} className="mt-4 h-44 w-full rounded-3xl object-cover" /> : null}
                   <p className="mt-3 text-sm leading-7 text-slate-600">{article.summary}</p>
 
                   <div className="mt-4 space-y-4">
-                    {sections.map((section, sectionIndex) => (
+                    {articleContent.articleHeadings.filter(Boolean).map((heading, sectionIndex) => (
                       <div key={`${article._id}-${sectionIndex}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                        <h3 className="text-lg font-semibold" style={{ color: section.titleColor || "#0f172a" }}>{section.title}</h3>
-                        {section.summary ? <p className="mt-2 text-sm leading-7 text-slate-600">{section.summary}</p> : null}
-                        <div className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">{section.body}</div>
+                        <h3 className="text-lg font-semibold" style={{ color: articleContent.articleHeadingColor || "#0f172a" }}>{heading}</h3>
+                        {articleContent.articleBodies[sectionIndex] ? <div className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">{articleContent.articleBodies[sectionIndex]}</div> : null}
                       </div>
                     ))}
                   </div>
 
                   <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                     {article.createdAt ? <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4" />{formatDate(article.createdAt)}</span> : null}
-                    <span>{language === "ar" ? `عدد المقالات: ${sections.length}` : `Articles: ${sections.length}`}</span>
+                    <span>{language === "ar" ? `عدد المقالات: ${articleCount}` : `Articles: ${articleCount}`}</span>
                   </div>
 
                   <div className="mt-5 flex flex-wrap gap-2">
@@ -404,15 +340,10 @@ export const AdminExhibitionsPage = () => {
                           title: article.title,
                           summary: article.summary,
                           body: article.body,
+                          image: article.image || "",
                           titleColor: article.titleColor || "#0f172a",
+                          ...mapSectionsToArticleContent(article),
                           youtubeUrl: article.youtubeUrl,
-                          sections: sections.map((section) => ({
-                            title: section.title,
-                            summary: section.summary || "",
-                            body: section.body,
-                            titleColor: section.titleColor || "#0f172a",
-                            youtubeUrl: section.youtubeUrl,
-                          })),
                           featured: Boolean(article.featured),
                           published: Boolean(article.published),
                         });

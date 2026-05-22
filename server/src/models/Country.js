@@ -71,4 +71,6 @@ countrySchema.pre("validate", function setSlug(next) {
   next();
 });
 
+countrySchema.index({ featured: -1, name: 1 });
+
 module.exports = mongoose.model("Country", countrySchema);

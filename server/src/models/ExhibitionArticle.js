@@ -48,10 +48,43 @@ const exhibitionArticleSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    image: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     body: {
       type: String,
       required: true,
       trim: true,
+    },
+    articleTitle: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    articleTitleColor: {
+      type: String,
+      trim: true,
+      default: "#0f172a",
+    },
+    articleHeadingColor: {
+      type: String,
+      trim: true,
+      default: "#0f172a",
+    },
+    articleBodyColor: {
+      type: String,
+      trim: true,
+      default: "#475569",
+    },
+    articleHeadings: {
+      type: [String],
+      default: [],
+    },
+    articleBodies: {
+      type: [String],
+      default: [],
     },
     titleColor: {
       type: String,
@@ -70,7 +103,7 @@ const exhibitionArticleSchema = new mongoose.Schema(
     },
     youtubeUrl: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
     },
     sections: {
@@ -95,5 +128,7 @@ exhibitionArticleSchema.pre("validate", function setSlug(next) {
   }
   next();
 });
+
+exhibitionArticleSchema.index({ published: 1, featured: -1, createdAt: -1 });
 
 module.exports = mongoose.model("ExhibitionArticle", exhibitionArticleSchema);

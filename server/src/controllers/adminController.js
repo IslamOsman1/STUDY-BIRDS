@@ -15,7 +15,28 @@ const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
 
+const normalizeArticlePairs = (headings = [], bodies = []) => {
+  const maxLength = Math.max(headings.length, bodies.length);
+
+  return Array.from({ length: maxLength }, (_, index) => ({
+    heading: String(headings[index] || "").trim(),
+    body: String(bodies[index] || "").trim(),
+  })).filter((item) => item.heading || item.body);
+};
+
 const buildExhibitionSections = (body) => {
+  const articleItems = normalizeArticlePairs(body.articleHeadings, body.articleBodies);
+
+  if (articleItems.length) {
+    return articleItems.map((item) => ({
+      title: item.heading,
+      summary: "",
+      body: item.body,
+      titleColor: body.articleHeadingColor || "#0f172a",
+      youtubeUrl: "",
+    }));
+  }
+
   if (!Array.isArray(body.sections) || body.sections.length === 0) {
     return [
       {
@@ -42,11 +63,26 @@ const buildExhibitionSections = (body) => {
 const buildExhibitionPayload = (body) => {
   const sections = buildExhibitionSections(body);
   const firstSection = sections[0] || {};
+  const normalizedArticleItems = normalizeArticlePairs(body.articleHeadings, body.articleBodies);
+  const fallbackArticleItems = sections
+    .map((section) => ({
+      heading: String(section.title || "").trim(),
+      body: String(section.body || "").trim(),
+    }))
+    .filter((item) => item.heading || item.body);
+  const articleItems = normalizedArticleItems.length ? normalizedArticleItems : fallbackArticleItems;
 
   return {
     title: body.title || firstSection.title,
     summary: body.summary || firstSection.summary || "",
+    image: body.image || "",
     body: body.body || firstSection.body,
+    articleTitle: body.articleTitle || body.title || firstSection.title || "",
+    articleTitleColor: body.articleTitleColor || body.titleColor || "#0f172a",
+    articleHeadingColor: body.articleHeadingColor || "#0f172a",
+    articleBodyColor: body.articleBodyColor || "#475569",
+    articleHeadings: articleItems.map((item) => item.heading),
+    articleBodies: articleItems.map((item) => item.body),
     titleColor: body.titleColor || firstSection.titleColor || "#0f172a",
     ctaText: body.ctaText || "",
     ctaUrl: body.ctaUrl || "",
@@ -505,6 +541,16 @@ const uploadOurServiceImage = asyncHandler(async (req, res) => {
   res.status(201).json({ url: uploadResult.url });
 });
 
+const uploadExhibitionImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Exhibition image is required");
+  }
+
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/exhibitions");
+  res.status(201).json({ url: uploadResult.url });
+});
+
 const deleteExhibitionArticle = asyncHandler(async (req, res) => {
   const article = await ExhibitionArticle.findByIdAndDelete(req.params.id);
 
@@ -552,4 +598,5 @@ module.exports = {
   deleteExhibitionArticle,
   uploadRecognitionImage,
   uploadOurServiceImage,
+  uploadExhibitionImage,
 };

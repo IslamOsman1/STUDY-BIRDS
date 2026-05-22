@@ -122,6 +122,14 @@ export const adminService = {
     const { data } = await api.post<ExhibitionArticle>("/admin/exhibitions", payload);
     return data;
   },
+  uploadExhibitionImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/exhibitions/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
+  },
   updateTestimonial: async (id: string, payload: Partial<Testimonial>) => {
     const { data } = await api.put<Testimonial>(`/admin/testimonials/${id}`, payload);
     return data;

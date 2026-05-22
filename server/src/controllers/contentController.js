@@ -10,42 +10,42 @@ const Faq = require("../models/Faq");
 const asyncHandler = require("../utils/asyncHandler");
 
 const getCountries = asyncHandler(async (req, res) => {
-  const countries = await Country.find().sort({ featured: -1, name: 1 });
+  const countries = await Country.find().sort({ featured: -1, name: 1 }).lean();
   res.json(countries);
 });
 
 const getTestimonials = asyncHandler(async (req, res) => {
-  const testimonials = await Testimonial.find().sort({ featured: -1, createdAt: -1 });
+  const testimonials = await Testimonial.find().sort({ featured: -1, createdAt: -1 }).lean();
   res.json(testimonials);
 });
 
 const getRecognitions = asyncHandler(async (req, res) => {
-  const recognitions = await Recognition.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  const recognitions = await Recognition.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 }).lean();
   res.json(recognitions);
 });
 
 const getFaqs = asyncHandler(async (req, res) => {
-  const faqs = await Faq.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  const faqs = await Faq.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 }).lean();
   res.json(faqs);
 });
 
 const getOurServices = asyncHandler(async (req, res) => {
-  const services = await OurService.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  const services = await OurService.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 }).lean();
   res.json(services);
 });
 
 const getExhibitionArticles = asyncHandler(async (req, res) => {
-  const articles = await ExhibitionArticle.find({ published: true }).sort({ featured: -1, createdAt: -1 });
+  const articles = await ExhibitionArticle.find({ published: true }).sort({ featured: -1, createdAt: -1 }).lean();
   res.json(articles);
 });
 
 const getNotifications = asyncHandler(async (req, res) => {
-  const notifications = await Notification.find({ user: req.user._id }).sort({ createdAt: -1 });
+  const notifications = await Notification.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
   res.json(notifications);
 });
 
 const getSiteSettings = asyncHandler(async (req, res) => {
-  const settings = await SiteSettings.findOne().sort({ createdAt: -1 });
+  const settings = await SiteSettings.findOne().sort({ createdAt: -1 }).lean();
   res.json(
     settings || {
       contactEmail: "",
@@ -65,7 +65,7 @@ const getStudyFields = asyncHandler(async (req, res) => {
     sortOrder: 1,
     createdAt: -1,
     name: 1,
-  });
+  }).lean();
   res.json(studyFields);
 });
 

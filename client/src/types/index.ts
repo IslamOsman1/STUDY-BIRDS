@@ -204,10 +204,11 @@ export interface Faq {
   createdAt?: string;
 }
 
-export interface ExhibitionArticle {
+export interface ExhibitionArticle extends ArticleContent {
   _id: string;
   title: string;
   slug: string;
+  image?: string;
   summary: string;
   body: string;
   titleColor?: string;

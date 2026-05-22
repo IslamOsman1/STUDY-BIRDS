@@ -35,6 +35,7 @@ const {
   deleteExhibitionArticle,
   uploadRecognitionImage,
   uploadOurServiceImage,
+  uploadExhibitionImage,
 } = require("../controllers/adminController");
 const {
   getStudyFields,
@@ -86,6 +87,7 @@ router.post("/faqs", createFaq);
 router.put("/faqs/:id", updateFaq);
 router.delete("/faqs/:id", deleteFaq);
 router.get("/exhibitions", getExhibitionArticlesAdmin);
+router.post("/exhibitions/upload-image", upload.single("file"), uploadExhibitionImage);
 router.post("/exhibitions", createExhibitionArticle);
 router.put("/exhibitions/:id", updateExhibitionArticle);
 router.delete("/exhibitions/:id", deleteExhibitionArticle);

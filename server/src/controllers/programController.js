@@ -1,4 +1,5 @@
 const Program = require("../models/Program");
+const University = require("../models/University");
 const asyncHandler = require("../utils/asyncHandler");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 
@@ -7,6 +8,11 @@ const getPrograms = asyncHandler(async (req, res) => {
 
   if (req.query.keyword) {
     query.title = { $regex: req.query.keyword, $options: "i" };
+  }
+
+  if (req.query.country) {
+    const matchingUniversities = await University.find({ country: req.query.country }).select("_id").lean();
+    query.university = { $in: matchingUniversities.map((item) => item._id) };
   }
 
   if (req.query.university) {
@@ -45,28 +51,23 @@ const getPrograms = asyncHandler(async (req, res) => {
   };
 
   const programs = await Program.find(query)
+    .select("title slug degreeLevel fieldOfStudy fieldsOfStudy language duration tuition partnerTuition applicationDeadline intake requirements summary popularity coverImage university featured createdAt")
     .populate({
       path: "university",
+      select: "name slug city language ranking logo campusImages tuitionRange country featured isPartnerInstitution",
       populate: { path: "country" },
     })
-    .sort(sortMap[req.query.sortBy] || { featured: -1, createdAt: -1 });
+    .sort(sortMap[req.query.sortBy] || { featured: -1, createdAt: -1 })
+    .lean();
 
-  const filteredPrograms = req.query.country
-    ? programs.filter(
-        (program) =>
-          program.university &&
-          String(program.university.country?._id) === String(req.query.country)
-      )
-    : programs;
-
-  res.json(filteredPrograms);
+  res.json(programs);
 });
 
 const getProgramById = asyncHandler(async (req, res) => {
   const program = await Program.findById(req.params.id).populate({
     path: "university",
     populate: { path: "country" },
-  });
+  }).lean();
 
   if (!program) {
     res.status(404);

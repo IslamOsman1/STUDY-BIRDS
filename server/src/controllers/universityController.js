@@ -39,14 +39,16 @@ const getUniversities = asyncHandler(async (req, res) => {
   }
 
   const universities = await University.find(query)
-    .populate("country")
-    .sort({ featured: -1, name: 1 });
+    .select("name slug city language studentCount specialtyCount overview ranking tuitionRange logo campusImages featured isPartnerInstitution country createdAt")
+    .populate("country", "name slug code heroImage featured")
+    .sort({ featured: -1, name: 1 })
+    .lean();
 
   res.json(universities);
 });
 
 const getUniversityById = asyncHandler(async (req, res) => {
-  const university = await University.findById(req.params.id).populate("country");
+  const university = await University.findById(req.params.id).populate("country").lean();
 
   if (!university) {
     res.status(404);

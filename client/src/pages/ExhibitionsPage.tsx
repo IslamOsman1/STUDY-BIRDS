@@ -1,7 +1,9 @@
 import { CalendarDays, Newspaper, PlayCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { Seo } from "../components/seo/Seo";
 import { useLanguage } from "../hooks/useLanguage";
+import { getApiAssetUrl } from "../lib/api";
 import { SITE_NAME, seoText } from "../seo/site";
 import { contentService } from "../services/contentService";
 import type { ExhibitionArticle } from "../types";
@@ -10,8 +12,6 @@ import { formatDate } from "../utils/format";
 import { renderRichTextLines } from "../utils/richText";
 import { getYoutubeEmbedUrl } from "../utils/youtube";
 
-type ExhibitionSection = NonNullable<ExhibitionArticle["sections"]>[number];
-
 export const ExhibitionsPage = () => {
   const { language } = useLanguage();
   const [articles, setArticles] = useState<ExhibitionArticle[]>([]);
@@ -19,26 +19,19 @@ export const ExhibitionsPage = () => {
   const [error, setError] = useState("");
   const exhibitionsText = language === "ar" ? "محطة المعارض" : "Exhibitions Station";
 
-  const isMirroredMainSection = (article: ExhibitionArticle, section: ExhibitionSection) =>
-    section.title === article.title &&
-    (section.summary || "") === (article.summary || "") &&
-    section.body === article.body &&
-    (section.titleColor || "#0f172a") === (article.titleColor || "#0f172a") &&
-    (section.youtubeUrl || "") === (article.youtubeUrl || "");
-
-  const getSections = (article: ExhibitionArticle) => {
-    if (!article.sections?.length) {
-      return [];
-    }
-
-    return article.sections.filter((section, index) => {
-      if (article.sections && article.sections.length === 1) {
-        return !isMirroredMainSection(article, section);
-      }
-
-      return index !== 0 || !isMirroredMainSection(article, section);
-    });
-  };
+  const getArticleContent = (article: ExhibitionArticle): ExhibitionArticle => ({
+    ...article,
+    articleTitle: article.articleTitle || "",
+    articleTitleColor: article.articleTitleColor || "#0f172a",
+    articleHeadingColor: article.articleHeadingColor || "#0f172a",
+    articleBodyColor: article.articleBodyColor || "#475569",
+    articleHeadings:
+      article.articleHeadings?.length
+        ? article.articleHeadings
+        : (article.sections || []).map((section) => section.title || "").filter((item) => item.trim()),
+    articleBodies:
+      article.articleBodies?.length ? article.articleBodies : (article.sections || []).map((section) => section.body || ""),
+  });
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -100,8 +93,8 @@ export const ExhibitionsPage = () => {
               <p className="mt-3 text-4xl font-semibold">{articles.length}</p>
             </div>
             <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
-              <p className="text-sm text-brand-100">{language === "ar" ? "مقالات داخلية وفيديوهات" : "Nested articles and videos"}</p>
-              <p className="mt-3 text-lg font-semibold">{language === "ar" ? "منشور واحد يمكنه احتواء أكثر من مقال" : "Each post can contain multiple articles"}</p>
+              <p className="text-sm text-brand-100">{language === "ar" ? "مقالات داخلية" : "Internal articles"}</p>
+              <p className="mt-3 text-lg font-semibold">{language === "ar" ? "محتوى منسق بنفس أسلوب الجامعات" : "Structured content using the same university article style"}</p>
             </div>
           </div>
         </div>
@@ -123,7 +116,8 @@ export const ExhibitionsPage = () => {
 
       <div className="space-y-6">
         {articles.map((article) => {
-          const sections = getSections(article);
+          const articleContent = getArticleContent(article);
+          const articleCount = articleContent.articleHeadings?.filter(Boolean).length || 0;
           const mainEmbedUrl = getYoutubeEmbedUrl(article.youtubeUrl);
 
           return (
@@ -137,8 +131,14 @@ export const ExhibitionsPage = () => {
                       {formatDate(article.createdAt)}
                     </span>
                   ) : null}
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">{language === "ar" ? `عدد المقالات ${sections.length}` : `${sections.length} articles`}</span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">{language === "ar" ? `عدد المقالات ${articleCount}` : `${articleCount} articles`}</span>
                 </div>
+
+                {article.image ? (
+                  <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-100">
+                    <img src={getApiAssetUrl(article.image)} alt={article.title} className="h-72 w-full object-cover" />
+                  </div>
+                ) : null}
 
                 <h2 className="mt-5 text-3xl font-semibold" style={{ color: article.titleColor || "#0f172a" }}>{article.title}</h2>
                 <p className="mt-4 text-lg leading-8 text-slate-600">{article.summary}</p>
@@ -161,49 +161,9 @@ export const ExhibitionsPage = () => {
                   </div>
                 ) : null}
 
-                {sections.length ? (
-                  <div className="mt-10 space-y-10 border-t border-slate-200 pt-8">
-                    {sections.map((section, sectionIndex) => {
-                      const embedUrl = getYoutubeEmbedUrl(section.youtubeUrl);
-                      const hasVideo = Boolean(section.youtubeUrl);
-
-                      return (
-                        <section key={`${article._id}-${sectionIndex}`} className="space-y-4">
-                          <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
-                            {language === "ar" ? `عنوان فرعي ${sectionIndex + 1}` : `Sub article ${sectionIndex + 1}`}
-                          </div>
-
-                          <h3 className="text-2xl font-semibold" style={{ color: section.titleColor || "#0f172a" }}>{section.title}</h3>
-                          {section.summary ? <p className="text-lg leading-8 text-slate-600">{section.summary}</p> : null}
-                          <div className="space-y-3 text-sm leading-7 text-slate-600">{renderRichTextLines(section.body)}</div>
-
-                          {hasVideo ? (
-                            <div className="overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-2xl">
-                              <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 text-sm font-semibold text-white">
-                                <PlayCircle className="h-5 w-5 text-orange-400" />
-                                {language === "ar" ? "فيديو هذا العنوان" : "Video for this section"}
-                              </div>
-                              {embedUrl ? (
-                                <iframe
-                                  src={embedUrl}
-                                  title={section.title}
-                                  className="aspect-video w-full"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                  referrerPolicy="strict-origin-when-cross-origin"
-                                  allowFullScreen
-                                />
-                              ) : (
-                                <div className="flex aspect-video items-center justify-center p-6 text-center text-sm text-slate-300">
-                                  {language === "ar" ? "رابط يوتيوب غير صالح للعرض المضمن." : "This YouTube link cannot be embedded."}
-                                </div>
-                              )}
-                            </div>
-                          ) : null}
-                        </section>
-                      );
-                    })}
-                  </div>
-                ) : null}
+                <div className="mt-10 border-t border-slate-200 pt-8">
+                  <ArticleContentSection article={articleContent} language={language} />
+                </div>
               </div>
             </article>
           );
