@@ -15,6 +15,7 @@ const navItems = [
   ["programs", "/programs"],
   ["universities", "/universities"],
   ["destinations", "/destinations"],
+  ["servicesEyebrow", "/services"],
   ["about", "/about"],
   ["contact", "/contact"],
 ] as const;
