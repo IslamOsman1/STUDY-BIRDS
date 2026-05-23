@@ -1,5 +1,21 @@
 import { api } from "../lib/api";
-import type { AdminOverview, Application, Country, ExhibitionArticle, Faq, OurService, Recognition, SiteSettings, StudyField, Testimonial, User } from "../types";
+import type {
+  AdminOverview,
+  Application,
+  Country,
+  EventRegistration,
+  ExhibitionArticle,
+  Faq,
+  OurService,
+  OurStory,
+  PastEvent,
+  Recognition,
+  SiteSettings,
+  StudyField,
+  Testimonial,
+  UpcomingEvent,
+  User,
+} from "../types";
 
 export const adminService = {
   getOverview: async () => {
@@ -94,12 +110,60 @@ export const adminService = {
     const { data } = await api.get<OurService[]>("/admin/our-services");
     return data;
   },
+  getOurStory: async () => {
+    const { data } = await api.get<OurStory>("/admin/our-story");
+    return data;
+  },
   getFaqs: async () => {
     const { data } = await api.get<Faq[]>("/admin/faqs");
     return data;
   },
   getExhibitions: async () => {
     const { data } = await api.get<ExhibitionArticle[]>("/admin/exhibitions");
+    return data;
+  },
+  getUpcomingEvent: async () => {
+    const { data } = await api.get<UpcomingEvent>("/admin/upcoming-event");
+    return data;
+  },
+  updateUpcomingEvent: async (payload: Partial<UpcomingEvent>) => {
+    const { data } = await api.put<UpcomingEvent>("/admin/upcoming-event", payload);
+    return data;
+  },
+  uploadUpcomingEventImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/upcoming-event/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
+  },
+  getPastEvents: async () => {
+    const { data } = await api.get<PastEvent[]>("/admin/past-events");
+    return data;
+  },
+  createPastEvent: async (payload: Partial<PastEvent>) => {
+    const { data } = await api.post<PastEvent>("/admin/past-events", payload);
+    return data;
+  },
+  updatePastEvent: async (id: string, payload: Partial<PastEvent>) => {
+    const { data } = await api.put<PastEvent>(`/admin/past-events/${id}`, payload);
+    return data;
+  },
+  removePastEvent: async (id: string) => {
+    const { data } = await api.delete(`/admin/past-events/${id}`);
+    return data;
+  },
+  uploadPastEventMedia: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string; type: "image" | "video" }>("/admin/past-events/upload-media", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+  getEventRegistrations: async () => {
+    const { data } = await api.get<EventRegistration[]>("/admin/event-registrations");
     return data;
   },
   createTestimonial: async (payload: Partial<Testimonial>) => {
@@ -154,8 +218,20 @@ export const adminService = {
     });
     return data.url;
   },
+  uploadOurStoryImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/our-story/upload-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
+  },
   updateOurService: async (id: string, payload: Partial<OurService>) => {
     const { data } = await api.put<OurService>(`/admin/our-services/${id}`, payload);
+    return data;
+  },
+  updateOurStory: async (payload: Partial<OurStory>) => {
+    const { data } = await api.put<OurStory>("/admin/our-story", payload);
     return data;
   },
   updateFaq: async (id: string, payload: Partial<Faq>) => {

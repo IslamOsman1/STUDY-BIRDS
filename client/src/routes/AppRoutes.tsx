@@ -17,6 +17,8 @@ const RecognitionDetailsPage = lazy(() => import("../pages/RecognitionDetailsPag
 const ExhibitionsPage = lazy(() => import("../pages/ExhibitionsPage").then((module) => ({ default: module.ExhibitionsPage })));
 const ExhibitionDetailsPage = lazy(() => import("../pages/ExhibitionDetailsPage").then((module) => ({ default: module.ExhibitionDetailsPage })));
 const AboutPage = lazy(() => import("../pages/AboutPage").then((module) => ({ default: module.AboutPage })));
+const OurEventPage = lazy(() => import("../pages/OurEventPage").then((module) => ({ default: module.OurEventPage })));
+const OurStoryPage = lazy(() => import("../pages/OurStoryPage").then((module) => ({ default: module.OurStoryPage })));
 const ContactPage = lazy(() => import("../pages/ContactPage").then((module) => ({ default: module.ContactPage })));
 const PartnerPage = lazy(() => import("../pages/PartnerPage").then((module) => ({ default: module.PartnerPage })));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
@@ -36,6 +38,8 @@ const AdminRecognitionsPage = lazy(() => import("../pages/admin/AdminRecognition
 const AdminServicesPage = lazy(() => import("../pages/admin/AdminServicesPage").then((module) => ({ default: module.AdminServicesPage })));
 const AdminFaqsPage = lazy(() => import("../pages/admin/AdminFaqsPage").then((module) => ({ default: module.AdminFaqsPage })));
 const AdminExhibitionsPage = lazy(() => import("../pages/admin/AdminExhibitionsPage").then((module) => ({ default: module.AdminExhibitionsPage })));
+const AdminEventsPage = lazy(() => import("../pages/admin/AdminEventsPage").then((module) => ({ default: module.AdminEventsPage })));
+const AdminOurStoryPage = lazy(() => import("../pages/admin/AdminOurStoryPage").then((module) => ({ default: module.AdminOurStoryPage })));
 
 const RouteFallback = () => {
   const { language } = useLanguage();
@@ -61,6 +65,8 @@ export const AppRoutes = () => (
         <Route path="/exhibitions" element={<ExhibitionsPage />} />
         <Route path="/exhibitions/:slug" element={<ExhibitionDetailsPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/our-event" element={<OurEventPage />} />
+        <Route path="/our-story" element={<OurStoryPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/partner" element={<PartnerPage />} />
       </Route>
@@ -95,6 +101,8 @@ export const AppRoutes = () => (
           <Route path="/admin/services" element={<AdminServicesPage />} />
           <Route path="/admin/faqs" element={<AdminFaqsPage />} />
           <Route path="/admin/exhibitions" element={<AdminExhibitionsPage />} />
+          <Route path="/admin/events" element={<AdminEventsPage />} />
+          <Route path="/admin/our-story" element={<AdminOurStoryPage />} />
         </Route>
       </Route>
 

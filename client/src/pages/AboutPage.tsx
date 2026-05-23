@@ -1,4 +1,4 @@
-import { Award } from "lucide-react";
+import { ArrowRight, Award, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Seo } from "../components/seo/Seo";
@@ -27,7 +27,7 @@ export const AboutPage = () => {
         setError(
           getErrorMessage(
             loadError,
-            language === "ar" ? "تعذر تحميل الشهادات حاليًا." : "Unable to load the recognitions right now."
+            language === "ar" ? "تعذر تحميل محتوى صفحة من نحن حاليًا." : "Unable to load the About page content right now."
           )
         );
       } finally {
@@ -38,31 +38,83 @@ export const AboutPage = () => {
     loadRecognitions();
   }, [language]);
 
+  const quickLinks = [
+    {
+      href: "/about",
+      title: language === "ar" ? "من نحن" : "About Us",
+      body:
+        language === "ar"
+          ? "تعرف على رؤية Study Birds وطريقتنا في مرافقة الطالب من أول استشارة حتى بداية الرحلة الجامعية."
+          : "Get to know the Study Birds vision and the way we guide students from first consultation to university arrival.",
+    },
+    {
+      href: "/our-event",
+      title: language === "ar" ? "فعاليتنا" : "Our Event",
+      body:
+        language === "ar"
+          ? "تابع الفعالية القادمة، واحجز مقعدك بسرعة، واستعرض أهم معارضنا وندواتنا السابقة."
+          : "Follow the next event, reserve your seat quickly, and explore our fairs and webinars.",
+    },
+    {
+      href: "/our-story",
+      title: language === "ar" ? "قصتنا" : "Our Story",
+      body:
+        language === "ar"
+          ? "اقرأ كيف بدأت الفكرة، وكيف تطورت خدماتنا وشراكاتنا لخدمة الطلاب العرب في الخارج."
+          : "Read how the idea started and how our services and partnerships evolved to support Arab students abroad.",
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <Seo
         title={seoText(language, `About ${SITE_NAME}`, `عن ${SITE_NAME}`)}
         description={seoText(
           language,
-          `Learn how ${SITE_NAME} helps students compare universities, apply to international programs, and manage study abroad journeys.`,
-          `تعرّف على كيفية مساعدة ${SITE_NAME} للطلاب في مقارنة الجامعات، واختيار البرامج، وتنظيم رحلة الدراسة بالخارج بوضوح.`
+          `Learn how ${SITE_NAME} helps students compare universities, apply to international programs, and stay connected through events and student communities.`,
+          `تعرّف على كيفية مساعدة ${SITE_NAME} للطلاب في مقارنة الجامعات، واختيار البرامج، والبقاء على تواصل من خلال الفعاليات والمجتمع الطلابي.`
         )}
       />
 
-      <section className="panel p-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("about")}</p>
-        <h1 className="mt-3 text-4xl font-semibold text-slate-900">{t("aboutTitle")}</h1>
-        <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">{t("aboutBody")}</p>
+      {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
+
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,#0b1730_0%,#0f3b72_60%,#1d4ed8_100%)] px-8 py-10 text-white sm:px-10 sm:py-12">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.24),transparent_28%)]" />
+        <div className="relative grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-orange-200">
+              <Sparkles className="h-4 w-4" />
+              {language === "ar" ? "من نحن" : "About Us"}
+            </div>
+            <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">{t("aboutTitle")}</h1>
+            <p className="mt-5 max-w-3xl text-base leading-8 text-slate-200 sm:text-lg">{t("aboutBody")}</p>
+          </div>
+
+          <div className="grid gap-4">
+            {quickLinks.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="group rounded-[1.8rem] border border-white/10 bg-white/10 p-5 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-white/15"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-xl font-semibold text-white">{item.title}</h2>
+                  <ArrowRight className="h-5 w-5 text-orange-300 transition group-hover:translate-x-1" />
+                </div>
+                <p className="mt-3 text-sm leading-7 text-slate-200">{item.body}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="overflow-hidden rounded-[2.5rem] bg-fusion px-8 py-10 text-white sm:px-10">
         <h2 className="text-3xl font-semibold">{t("recognitionsTitle")}</h2>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-brand-100/85">{t("recognitionsBody")}</p>
 
-        {loading ? <div className="mt-6 text-sm text-brand-100">{language === "ar" ? "جارٍ تحميل الشهادات..." : "Loading recognitions..."}</div> : null}
-        {error ? <div className="mt-6 rounded-2xl border border-rose-200/40 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</div> : null}
+        {loading ? <div className="mt-6 text-sm text-brand-100/80">{language === "ar" ? "جارٍ تحميل الشهادات..." : "Loading recognitions..."}</div> : null}
 
-        {!loading && !error && recognitions.length ? (
+        {!loading && recognitions.length ? (
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
             {recognitions.map((recognition) => {
               const imageUrl = recognition.image ? getApiAssetUrl(recognition.image) : "";

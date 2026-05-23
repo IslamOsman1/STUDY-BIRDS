@@ -1,6 +1,6 @@
-import { Languages, Menu, UserCircle2 } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
-import { useState } from "react";
+import { ChevronDown, Languages, Menu, UserCircle2 } from "lucide-react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { BRAND_LOGO_PATH, SITE_NAME } from "../seo/site";
@@ -16,15 +16,25 @@ const navItems = [
   ["universities", "/universities"],
   ["destinations", "/destinations"],
   ["servicesEyebrow", "/services"],
-  ["about", "/about"],
   ["contact", "/contact"],
+] as const;
+
+const aboutMenuItems = [
+  { href: "/about", label: { en: "About Us", ar: "من نحن" } },
+  { href: "/our-event", label: { en: "Our Event", ar: "فعاليتنا" } },
+  { href: "/our-story", label: { en: "Our Story", ar: "قصتنا" } },
 ] as const;
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [aboutMobileOpen, setAboutMobileOpen] = useState(false);
+  const aboutMenuRef = useRef<HTMLDivElement | null>(null);
   const { user, logout } = useAuth();
   const { language, t, toggleLanguage } = useLanguage();
+  const location = useLocation();
   const exhibitionsText = exhibitionsLabel[language];
+  const aboutMenuActive = aboutMenuItems.some((item) => location.pathname === item.href);
   const profileHref = user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner/profile" : "/student";
   const profileLabel = user?.role === "partner" ? dt(language, "profileHub") : t("dashboard");
   const initials = user?.name
@@ -33,6 +43,17 @@ export const Navbar = () => {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!aboutMenuRef.current?.contains(event.target as Node)) {
+        setAboutOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur">
@@ -59,6 +80,35 @@ export const Navbar = () => {
               {t(label)}
             </NavLink>
           ))}
+          <div ref={aboutMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setAboutOpen((value) => !value)}
+              className={`inline-flex items-center gap-2 text-sm font-medium ${
+                aboutMenuActive ? "text-brand-700" : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              {language === "ar" ? "من نحن" : "About"}
+              <ChevronDown className={`h-4 w-4 transition ${aboutOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {aboutOpen ? (
+              <div className="absolute left-1/2 top-full mt-3 w-56 -translate-x-1/2 rounded-3xl border border-slate-200 bg-white p-2 shadow-2xl">
+                {aboutMenuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setAboutOpen(false)}
+                    className={`block rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                      location.pathname === item.href ? "bg-brand-50 text-brand-700" : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {item.label[language]}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <NavLink
             to="/exhibitions"
             className={({ isActive }) =>
@@ -126,6 +176,37 @@ export const Navbar = () => {
                 {t(label)}
               </Link>
             ))}
+            <div>
+              <button
+                type="button"
+                onClick={() => setAboutMobileOpen((value) => !value)}
+                className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium ${
+                  aboutMenuActive ? "text-brand-700" : "text-slate-700"
+                }`}
+              >
+                <span>{language === "ar" ? "من نحن" : "About"}</span>
+                <ChevronDown className={`h-4 w-4 transition ${aboutMobileOpen ? "rotate-180" : ""}`} />
+              </button>
+              {aboutMobileOpen ? (
+                <div className="mt-2 flex flex-col gap-1">
+                  {aboutMenuItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={() => {
+                        setOpen(false);
+                        setAboutMobileOpen(false);
+                      }}
+                      className={`rounded-2xl px-3 py-2 text-sm ${
+                        location.pathname === item.href ? "bg-brand-50 font-semibold text-brand-700" : "text-slate-700"
+                      }`}
+                    >
+                      {item.label[language]}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
             <Link to="/exhibitions" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
               {exhibitionsText}
             </Link>

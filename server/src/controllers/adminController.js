@@ -8,7 +8,11 @@ const SiteSettings = require("../models/SiteSettings");
 const Testimonial = require("../models/Testimonial");
 const Recognition = require("../models/Recognition");
 const OurService = require("../models/OurService");
+const OurStory = require("../models/OurStory");
 const Faq = require("../models/Faq");
+const UpcomingEvent = require("../models/UpcomingEvent");
+const PastEvent = require("../models/PastEvent");
+const EventRegistration = require("../models/EventRegistration");
 const slugify = require("slugify");
 const asyncHandler = require("../utils/asyncHandler");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
@@ -178,6 +182,111 @@ const buildOurServicePayload = async (body, currentService = null) => {
     sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
   };
 };
+
+const buildPastEventSlug = async (title, currentId) => {
+  const baseSlug = slugify(String(title || "event"), {
+    lower: true,
+    strict: true,
+  }) || "event";
+
+  let slug = baseSlug;
+  let suffix = 2;
+
+  while (
+    await PastEvent.exists({
+      slug,
+      ...(currentId ? { _id: { $ne: currentId } } : {}),
+    })
+  ) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
+};
+
+const buildPastEventPayload = async (body, currentEvent = null) => {
+  const title = String(body.title || currentEvent?.title || "").trim();
+  const titleChanged = title && title !== currentEvent?.title;
+  const slug =
+    currentEvent?.slug && !titleChanged
+      ? currentEvent.slug
+      : await buildPastEventSlug(title, currentEvent?._id);
+
+  return {
+    title,
+    slug,
+    category: String(body.category || currentEvent?.category || "expos-fairs").trim(),
+    eventDate: body.eventDate || null,
+    countryCode: String(body.countryCode || "").trim().toUpperCase(),
+    summary: String(body.summary || "").trim(),
+    coverImage: body.coverImage || "",
+    mediaItems: Array.isArray(body.mediaItems)
+      ? body.mediaItems
+          .map((item) => ({
+            type: item?.type === "video" ? "video" : "image",
+            url: String(item?.url || "").trim(),
+          }))
+          .filter((item) => item.url)
+      : [],
+    featured: typeof body.featured === "boolean" ? body.featured : true,
+    sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
+  };
+};
+
+const buildOurStoryPayload = (body) => ({
+  heroEyebrow: String(body.heroEyebrow || "").trim(),
+  heroTitle: String(body.heroTitle || "").trim(),
+  heroBody: String(body.heroBody || "").trim(),
+  heroImage: body.heroImage || "",
+  heroCtaText: String(body.heroCtaText || "").trim(),
+  heroCtaLink: String(body.heroCtaLink || "").trim(),
+  storyEyebrow: String(body.storyEyebrow || "").trim(),
+  storyTitle: String(body.storyTitle || "").trim(),
+  storyBody: String(body.storyBody || "").trim(),
+  storyImage: body.storyImage || "",
+  missionTitle: String(body.missionTitle || "").trim(),
+  missionBody: String(body.missionBody || "").trim(),
+  visionTitle: String(body.visionTitle || "").trim(),
+  visionBody: String(body.visionBody || "").trim(),
+  foundersTitle: String(body.foundersTitle || "").trim(),
+  foundersBody: String(body.foundersBody || "").trim(),
+  founders: Array.isArray(body.founders)
+    ? body.founders
+        .map((item) => ({
+          name: String(item?.name || "").trim(),
+          role: String(item?.role || "").trim(),
+          bio: String(item?.bio || "").trim(),
+          image: item?.image || "",
+        }))
+        .filter((item) => item.name || item.role || item.bio || item.image)
+    : [],
+  timelineTitle: String(body.timelineTitle || "").trim(),
+  timelineBody: String(body.timelineBody || "").trim(),
+  timelineItems: Array.isArray(body.timelineItems)
+    ? body.timelineItems
+        .map((item, index) => ({
+          year: String(item?.year || "").trim(),
+          dateLabel: String(item?.dateLabel || "").trim(),
+          title: String(item?.title || "").trim(),
+          body: String(item?.body || "").trim(),
+          image: item?.image || "",
+          sortOrder: Number.isFinite(Number(item?.sortOrder)) ? Number(item.sortOrder) : index,
+        }))
+        .filter((item) => item.year || item.dateLabel || item.title || item.body || item.image)
+    : [],
+  impactTitle: String(body.impactTitle || "").trim(),
+  impactBody: String(body.impactBody || "").trim(),
+  impactStats: Array.isArray(body.impactStats)
+    ? body.impactStats
+        .map((item) => ({
+          value: String(item?.value || "").trim(),
+          label: String(item?.label || "").trim(),
+        }))
+        .filter((item) => item.value || item.label)
+    : [],
+  isPublished: typeof body.isPublished === "boolean" ? body.isPublished : true,
+});
 
 const getStats = asyncHandler(async (req, res) => {
   const [students, universities, programs, applications] = await Promise.all([
@@ -431,9 +540,68 @@ const getOurServicesAdmin = asyncHandler(async (req, res) => {
   res.json(services);
 });
 
+const getOurStoryAdmin = asyncHandler(async (req, res) => {
+  const story = await OurStory.findOne().sort({ updatedAt: -1, createdAt: -1 });
+  res.json(
+    story || {
+      heroEyebrow: "",
+      heroTitle: "",
+      heroBody: "",
+      heroImage: "",
+      heroCtaText: "",
+      heroCtaLink: "",
+      storyEyebrow: "",
+      storyTitle: "",
+      storyBody: "",
+      storyImage: "",
+      missionTitle: "",
+      missionBody: "",
+      visionTitle: "",
+      visionBody: "",
+      foundersTitle: "",
+      foundersBody: "",
+      founders: [],
+      timelineTitle: "",
+      timelineBody: "",
+      timelineItems: [],
+      impactTitle: "",
+      impactBody: "",
+      impactStats: [],
+      isPublished: false,
+    }
+  );
+});
+
 const getExhibitionArticlesAdmin = asyncHandler(async (req, res) => {
   const articles = await ExhibitionArticle.find().sort({ featured: -1, createdAt: -1 });
   res.json(articles);
+});
+
+const getUpcomingEventAdmin = asyncHandler(async (req, res) => {
+  const upcomingEvent = await UpcomingEvent.findOne().sort({ updatedAt: -1, createdAt: -1 });
+  res.json(
+    upcomingEvent || {
+      title: "",
+      subtitle: "",
+      eventType: "",
+      eventDate: null,
+      ctaText: "",
+      backgroundImage: "",
+      isPublished: false,
+    }
+  );
+});
+
+const getPastEventsAdmin = asyncHandler(async (req, res) => {
+  const events = await PastEvent.find().sort({ sortOrder: 1, eventDate: -1, createdAt: -1 });
+  res.json(events);
+});
+
+const getEventRegistrationsAdmin = asyncHandler(async (req, res) => {
+  const registrations = await EventRegistration.find()
+    .populate("upcomingEvent", "title eventDate")
+    .sort({ createdAt: -1 });
+  res.json(registrations);
 });
 
 const createTestimonial = asyncHandler(async (req, res) => {
@@ -464,9 +632,53 @@ const createOurService = asyncHandler(async (req, res) => {
   res.status(201).json(service);
 });
 
+const upsertOurStory = asyncHandler(async (req, res) => {
+  const payload = buildOurStoryPayload(req.body);
+  const existingStory = await OurStory.findOne().sort({ updatedAt: -1, createdAt: -1 });
+
+  if (!existingStory) {
+    const createdStory = await OurStory.create(payload);
+    res.status(201).json(createdStory);
+    return;
+  }
+
+  existingStory.set(payload);
+  await existingStory.save();
+  res.json(existingStory);
+});
+
 const createExhibitionArticle = asyncHandler(async (req, res) => {
   const article = await ExhibitionArticle.create(buildExhibitionPayload(req.body));
   res.status(201).json(article);
+});
+
+const upsertUpcomingEvent = asyncHandler(async (req, res) => {
+  const payload = {
+    title: String(req.body.title || "").trim(),
+    subtitle: String(req.body.subtitle || "").trim(),
+    eventType: String(req.body.eventType || "").trim(),
+    eventDate: req.body.eventDate || null,
+    ctaText: String(req.body.ctaText || "").trim(),
+    backgroundImage: req.body.backgroundImage || "",
+    isPublished: typeof req.body.isPublished === "boolean" ? req.body.isPublished : true,
+  };
+
+  const existingEvent = await UpcomingEvent.findOne().sort({ updatedAt: -1, createdAt: -1 });
+
+  if (!existingEvent) {
+    const createdEvent = await UpcomingEvent.create(payload);
+    res.status(201).json(createdEvent);
+    return;
+  }
+
+  existingEvent.set(payload);
+  await existingEvent.save();
+  res.json(existingEvent);
+});
+
+const createPastEvent = asyncHandler(async (req, res) => {
+  const event = await PastEvent.create(await buildPastEventPayload(req.body));
+  res.status(201).json(event);
 });
 
 const updateTestimonial = asyncHandler(async (req, res) => {
@@ -555,6 +767,23 @@ const updateExhibitionArticle = asyncHandler(async (req, res) => {
   res.json(article);
 });
 
+const updatePastEvent = asyncHandler(async (req, res) => {
+  const currentEvent = await PastEvent.findById(req.params.id);
+
+  if (!currentEvent) {
+    res.status(404);
+    throw new Error("Past event not found");
+  }
+
+  const event = await PastEvent.findByIdAndUpdate(
+    req.params.id,
+    await buildPastEventPayload(req.body, currentEvent),
+    { new: true, runValidators: true }
+  );
+
+  res.json(event);
+});
+
 const deleteTestimonial = asyncHandler(async (req, res) => {
   const testimonial = await Testimonial.findByIdAndDelete(req.params.id);
 
@@ -619,6 +848,16 @@ const uploadOurServiceImage = asyncHandler(async (req, res) => {
   res.status(201).json({ url: uploadResult.url });
 });
 
+const uploadOurStoryImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Story image is required");
+  }
+
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/our-story");
+  res.status(201).json({ url: uploadResult.url });
+});
+
 const uploadExhibitionImage = asyncHandler(async (req, res) => {
   if (!req.file) {
     res.status(400);
@@ -627,6 +866,27 @@ const uploadExhibitionImage = asyncHandler(async (req, res) => {
 
   const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/exhibitions");
   res.status(201).json({ url: uploadResult.url });
+});
+
+const uploadUpcomingEventImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Upcoming event image is required");
+  }
+
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/events/upcoming");
+  res.status(201).json({ url: uploadResult.url });
+});
+
+const uploadPastEventMedia = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Past event media file is required");
+  }
+
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/events/past");
+  const mediaType = req.file.mimetype.startsWith("video/") ? "video" : "image";
+  res.status(201).json({ url: uploadResult.url, type: mediaType });
 });
 
 const deleteExhibitionArticle = asyncHandler(async (req, res) => {
@@ -638,6 +898,17 @@ const deleteExhibitionArticle = asyncHandler(async (req, res) => {
   }
 
   res.json({ message: "Exhibition article deleted" });
+});
+
+const deletePastEvent = asyncHandler(async (req, res) => {
+  const event = await PastEvent.findByIdAndDelete(req.params.id);
+
+  if (!event) {
+    res.status(404);
+    throw new Error("Past event not found");
+  }
+
+  res.json({ message: "Past event deleted" });
 });
 
 module.exports = {
@@ -657,24 +928,36 @@ module.exports = {
   getTestimonialsAdmin,
   getRecognitionsAdmin,
   getOurServicesAdmin,
+  getOurStoryAdmin,
   getFaqsAdmin,
   getExhibitionArticlesAdmin,
+  getUpcomingEventAdmin,
+  getPastEventsAdmin,
+  getEventRegistrationsAdmin,
   createTestimonial,
   createRecognition,
   createOurService,
+  upsertOurStory,
   createFaq,
   createExhibitionArticle,
+  upsertUpcomingEvent,
+  createPastEvent,
   updateTestimonial,
   updateRecognition,
   updateOurService,
   updateFaq,
   updateExhibitionArticle,
+  updatePastEvent,
   deleteTestimonial,
   deleteRecognition,
   deleteOurService,
   deleteFaq,
   deleteExhibitionArticle,
+  deletePastEvent,
   uploadRecognitionImage,
   uploadOurServiceImage,
+  uploadOurStoryImage,
   uploadExhibitionImage,
+  uploadUpcomingEventImage,
+  uploadPastEventMedia,
 };

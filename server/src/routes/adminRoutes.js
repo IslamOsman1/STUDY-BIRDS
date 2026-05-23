@@ -16,26 +16,38 @@ const {
   getTestimonialsAdmin,
   getRecognitionsAdmin,
   getOurServicesAdmin,
+  getOurStoryAdmin,
   getFaqsAdmin,
   getExhibitionArticlesAdmin,
+  getUpcomingEventAdmin,
+  getPastEventsAdmin,
+  getEventRegistrationsAdmin,
   createTestimonial,
   createRecognition,
   createOurService,
+  upsertOurStory,
   createFaq,
   createExhibitionArticle,
+  upsertUpcomingEvent,
+  createPastEvent,
   updateTestimonial,
   updateRecognition,
   updateOurService,
   updateFaq,
   updateExhibitionArticle,
+  updatePastEvent,
   deleteTestimonial,
   deleteRecognition,
   deleteOurService,
   deleteFaq,
   deleteExhibitionArticle,
+  deletePastEvent,
   uploadRecognitionImage,
   uploadOurServiceImage,
+  uploadOurStoryImage,
   uploadExhibitionImage,
+  uploadUpcomingEventImage,
+  uploadPastEventMedia,
 } = require("../controllers/adminController");
 const {
   getStudyFields,
@@ -82,10 +94,22 @@ router.post("/our-services/upload-image", upload.single("file"), uploadOurServic
 router.post("/our-services", createOurService);
 router.put("/our-services/:id", updateOurService);
 router.delete("/our-services/:id", deleteOurService);
+router.get("/our-story", getOurStoryAdmin);
+router.put("/our-story", upsertOurStory);
+router.post("/our-story/upload-image", upload.single("file"), uploadOurStoryImage);
 router.get("/faqs", getFaqsAdmin);
 router.post("/faqs", createFaq);
 router.put("/faqs/:id", updateFaq);
 router.delete("/faqs/:id", deleteFaq);
+router.get("/upcoming-event", getUpcomingEventAdmin);
+router.put("/upcoming-event", upsertUpcomingEvent);
+router.post("/upcoming-event/upload-image", upload.single("file"), uploadUpcomingEventImage);
+router.get("/past-events", getPastEventsAdmin);
+router.post("/past-events/upload-media", upload.single("file"), uploadPastEventMedia);
+router.post("/past-events", createPastEvent);
+router.put("/past-events/:id", updatePastEvent);
+router.delete("/past-events/:id", deletePastEvent);
+router.get("/event-registrations", getEventRegistrationsAdmin);
 router.get("/exhibitions", getExhibitionArticlesAdmin);
 router.post("/exhibitions/upload-image", upload.single("file"), uploadExhibitionImage);
 router.post("/exhibitions", createExhibitionArticle);

@@ -48,6 +48,52 @@ export interface SiteSettings {
   officeLocations?: string;
 }
 
+export interface UpcomingEvent {
+  _id?: string;
+  title?: string;
+  subtitle?: string;
+  eventType?: string;
+  eventDate?: string | null;
+  ctaText?: string;
+  backgroundImage?: string;
+  isPublished?: boolean;
+}
+
+export interface PastEventMediaItem {
+  _id?: string;
+  type: "image" | "video";
+  url: string;
+}
+
+export interface PastEvent {
+  _id: string;
+  title: string;
+  slug?: string;
+  category: "expos-fairs" | "our-community" | "webinars" | "partnerships";
+  eventDate?: string | null;
+  countryCode?: string;
+  summary?: string;
+  coverImage?: string;
+  mediaItems?: PastEventMediaItem[];
+  featured?: boolean;
+  sortOrder?: number;
+  createdAt?: string;
+}
+
+export interface EventRegistration {
+  _id: string;
+  name: string;
+  phone: string;
+  fieldOfInterest: string;
+  currentCountry: string;
+  upcomingEvent?: {
+    _id?: string;
+    title?: string;
+    eventDate?: string | null;
+  } | null;
+  createdAt?: string;
+}
+
 export interface StudyField {
   _id: string;
   name: string;
@@ -201,6 +247,58 @@ export interface OurService {
   featured?: boolean;
   sortOrder?: number;
   createdAt?: string;
+}
+
+export interface OurStoryFounder {
+  _id?: string;
+  name: string;
+  role?: string;
+  bio?: string;
+  image?: string;
+}
+
+export interface OurStoryTimelineItem {
+  _id?: string;
+  year?: string;
+  dateLabel?: string;
+  title?: string;
+  body?: string;
+  image?: string;
+  sortOrder?: number;
+}
+
+export interface OurStoryImpactStat {
+  _id?: string;
+  value?: string;
+  label?: string;
+}
+
+export interface OurStory {
+  _id?: string;
+  heroEyebrow?: string;
+  heroTitle?: string;
+  heroBody?: string;
+  heroImage?: string;
+  heroCtaText?: string;
+  heroCtaLink?: string;
+  storyEyebrow?: string;
+  storyTitle?: string;
+  storyBody?: string;
+  storyImage?: string;
+  missionTitle?: string;
+  missionBody?: string;
+  visionTitle?: string;
+  visionBody?: string;
+  foundersTitle?: string;
+  foundersBody?: string;
+  founders?: OurStoryFounder[];
+  timelineTitle?: string;
+  timelineBody?: string;
+  timelineItems?: OurStoryTimelineItem[];
+  impactTitle?: string;
+  impactBody?: string;
+  impactStats?: OurStoryImpactStat[];
+  isPublished?: boolean;
 }
 
 export interface Faq {

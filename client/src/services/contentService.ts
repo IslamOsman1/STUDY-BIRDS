@@ -1,14 +1,18 @@
 import { api } from "../lib/api";
 import type {
   Country,
+  EventRegistration,
   ExhibitionArticle,
   Faq,
+  PastEvent,
   NotificationItem,
   OurService,
+  OurStory,
   Recognition,
   SiteSettings,
   StudyField,
   Testimonial,
+  UpcomingEvent,
 } from "../types";
 
 export const contentService = {
@@ -34,6 +38,22 @@ export const contentService = {
   },
   getOurServiceBySlug: async (slug: string) => {
     const { data } = await api.get<OurService>(`/content/our-services/${slug}`);
+    return data;
+  },
+  getOurStory: async () => {
+    const { data } = await api.get<OurStory>("/content/our-story");
+    return data;
+  },
+  getUpcomingEvent: async () => {
+    const { data } = await api.get<UpcomingEvent>("/content/upcoming-event");
+    return data;
+  },
+  getPastEvents: async () => {
+    const { data } = await api.get<PastEvent[]>("/content/past-events");
+    return data;
+  },
+  registerForEvent: async (payload: Omit<EventRegistration, "_id" | "createdAt" | "upcomingEvent">) => {
+    const { data } = await api.post<{ message: string; registration: EventRegistration }>("/content/event-registrations", payload);
     return data;
   },
   getFaqs: async () => {

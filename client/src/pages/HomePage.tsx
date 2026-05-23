@@ -31,7 +31,11 @@ export const HomePage = () => {
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [selectedUniversityCountry, setSelectedUniversityCountry] = useState("all");
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+  const countriesScrollerRef = useRef<HTMLDivElement | null>(null);
+  const studyFieldsScrollerRef = useRef<HTMLDivElement | null>(null);
   const universitiesScrollerRef = useRef<HTMLDivElement | null>(null);
+  const recognitionsScrollerRef = useRef<HTMLDivElement | null>(null);
+  const servicesScrollerRef = useRef<HTMLDivElement | null>(null);
 
   const primaryHref =
     !user
@@ -114,6 +118,34 @@ export const HomePage = () => {
   const scrollUniversities = (direction: "left" | "right") => {
     universitiesScrollerRef.current?.scrollBy({
       left: direction === "right" ? 360 : -360,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollRecognitions = (direction: "left" | "right") => {
+    recognitionsScrollerRef.current?.scrollBy({
+      left: direction === "right" ? 320 : -320,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollCountries = (direction: "left" | "right") => {
+    countriesScrollerRef.current?.scrollBy({
+      left: direction === "right" ? 320 : -320,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollStudyFields = (direction: "left" | "right") => {
+    studyFieldsScrollerRef.current?.scrollBy({
+      left: direction === "right" ? 320 : -320,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollServices = (direction: "left" | "right") => {
+    servicesScrollerRef.current?.scrollBy({
+      left: direction === "right" ? 320 : -320,
       behavior: "smooth",
     });
   };
@@ -273,11 +305,37 @@ export const HomePage = () => {
         transition={sectionTransition}
         className="overflow-hidden rounded-[2.5rem] bg-fusion px-8 py-10 text-white sm:px-10"
       >
-        <h2 className="text-3xl font-semibold">
-          {recognitions.length ? t("recognitionsTitle") : t("homeExperienceTitle")}
-        </h2>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-3xl font-semibold">
+            {recognitions.length ? t("recognitionsTitle") : t("homeExperienceTitle")}
+          </h2>
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => scrollRecognitions("left")}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+              aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollRecognitions("right")}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+              aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
+            >
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="relative mt-6 -mx-2 overflow-hidden sm:mx-0">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:w-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:w-10" />
+          <div
+            ref={recognitionsScrollerRef}
+            className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0"
+          >
             {(recognitions.length
               ? recognitions.map((recognition) => ({
                   key: recognition._id,
@@ -297,7 +355,7 @@ export const HomePage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.42, delay: index * 0.1 }}
-                className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
+                className="w-[calc(50%-0.625rem)] min-w-[calc(50%-0.625rem)] overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm sm:w-[320px] sm:min-w-[320px]"
               >
                 {item.href ? (
                   <Link to={item.href} className="block">
@@ -332,6 +390,7 @@ export const HomePage = () => {
                 )}
               </motion.div>
             ))}
+          </div>
         </div>
       </motion.section>
 
@@ -343,10 +402,38 @@ export const HomePage = () => {
           transition={sectionTransition}
           className="overflow-hidden rounded-[2.5rem] bg-fusion px-8 py-10 text-white sm:px-10"
         >
-          <h2 className="text-3xl font-semibold">{t("servicesTitle")}</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-brand-100/85">{t("servicesBody")}</p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-3xl font-semibold">{t("servicesTitle")}</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-brand-100/85">{t("servicesBody")}</p>
+            </div>
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => scrollServices("left")}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+                aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollServices("right")}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+                aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
+              >
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="relative mt-6 -mx-2 overflow-hidden sm:mx-0">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:w-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:w-10" />
+            <div
+              ref={servicesScrollerRef}
+              className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0"
+            >
             {services.map((service, index) => (
               <motion.div
                 key={service._id}
@@ -354,7 +441,7 @@ export const HomePage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.42, delay: index * 0.1 }}
-                className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
+                className="w-[calc(50%-0.625rem)] min-w-[calc(50%-0.625rem)] overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm sm:w-[320px] sm:min-w-[320px]"
               >
                 <Link to={`/services/${service.slug || service._id}`} className="block">
                   {service.image ? (
@@ -378,7 +465,8 @@ export const HomePage = () => {
                 </Link>
               </motion.div>
             ))}
-        </div>
+            </div>
+          </div>
         </motion.section>
       ) : null}
 
@@ -397,18 +485,44 @@ export const HomePage = () => {
               <p className="mt-3 text-sm leading-7 text-brand-100/85">{t("studyFieldsBody")}</p>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45 }}
-              className="hidden overflow-hidden rounded-[1.8rem] border border-white/10 bg-white/5 p-2 shadow-soft backdrop-blur-sm lg:block"
-            >
-              <img src={journeyShowcaseImages[0]?.src} alt="Study fields" className="h-28 w-48 rounded-[1.3rem] object-cover" />
-            </motion.div>
+            <div className="flex items-center gap-3">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45 }}
+                className="hidden overflow-hidden rounded-[1.8rem] border border-white/10 bg-white/5 p-2 shadow-soft backdrop-blur-sm lg:block"
+              >
+                <img src={journeyShowcaseImages[0]?.src} alt="Study fields" className="h-28 w-48 rounded-[1.3rem] object-cover" />
+              </motion.div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => scrollStudyFields("left")}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+                  aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollStudyFields("right")}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+                  aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
+                >
+                  <ArrowRight size={18} />
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="relative mt-8 -mx-2 overflow-hidden sm:mx-0">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:w-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:w-10" />
+            <div
+              ref={studyFieldsScrollerRef}
+              className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0"
+            >
             {studyFields.map((studyField) => (
               <motion.div
                 key={studyField._id}
@@ -416,10 +530,12 @@ export const HomePage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.4 }}
+                className="w-[calc(100%-0.5rem)] min-w-[calc(100%-0.5rem)] sm:w-[320px] sm:min-w-[320px]"
               >
                 <StudyFieldCard studyField={studyField} />
               </motion.div>
             ))}
+            </div>
           </div>
         </motion.section>
       ) : null}
@@ -441,14 +557,42 @@ export const HomePage = () => {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent-300">{t("destinations")}</p>
             <h2 className="mt-3 text-3xl font-semibold text-white">{t("featuredDestinations")}</h2>
           </div>
-          <img
-            src={journeyShowcaseImages[2]?.src}
-            alt="Study destinations"
-            className="hidden h-24 w-36 rounded-[1.4rem] object-cover shadow-soft lg:block"
-          />
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:block">
+              <img
+                src={journeyShowcaseImages[2]?.src}
+                alt="Study destinations"
+                className="h-24 w-36 rounded-[1.4rem] object-cover shadow-soft"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => scrollCountries("left")}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+                aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollCountries("right")}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-brand-900"
+                aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
+              >
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <div className="relative mt-8 -mx-2 overflow-hidden sm:mx-0">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#10264f] to-transparent sm:w-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#10264f] to-transparent sm:w-10" />
+          <div
+            ref={countriesScrollerRef}
+            className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0"
+          >
           {countries.map((country) => (
             <motion.div
               key={country._id}
@@ -456,10 +600,12 @@ export const HomePage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.4 }}
+              className="w-[calc(50%-0.625rem)] min-w-[calc(50%-0.625rem)] sm:w-[320px] sm:min-w-[320px]"
             >
               <DestinationCard country={country} />
             </motion.div>
           ))}
+          </div>
         </div>
       </motion.section>
 

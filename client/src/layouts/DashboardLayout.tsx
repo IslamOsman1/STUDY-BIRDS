@@ -1,12 +1,14 @@
 import {
   Award,
   Building2,
+  CalendarClock,
   FileText,
   GraduationCap,
   LayoutDashboard,
   Layers3,
   MessageSquare,
   Settings2,
+  ScrollText,
   Users,
   Video,
 } from "lucide-react";
@@ -44,6 +46,18 @@ export const DashboardLayout = () => {
     { label: dt(language, "recognitionsNav"), href: "/admin/recognitions", icon: Award, description: dt(language, "recognitionsNavDesc") },
     { label: dt(language, "servicesNav"), href: "/admin/services", icon: Award, description: dt(language, "servicesNavDesc") },
     { label: dt(language, "faqsNav"), href: "/admin/faqs", icon: MessageSquare, description: dt(language, "faqsNavDesc") },
+    {
+      label: language === "ar" ? "فعاليتنا" : "Our Event",
+      href: "/admin/events",
+      icon: CalendarClock,
+      description: language === "ar" ? "إدارة الفعالية القادمة والفعاليات السابقة وتسجيلات الطلاب." : "Manage the upcoming event, past events, and student registrations.",
+    },
+    {
+      label: language === "ar" ? "قصتنا" : "Our Story",
+      href: "/admin/our-story",
+      icon: ScrollText,
+      description: language === "ar" ? "إدارة صفحة قصتنا: الواجهة العلوية، القصة، المؤسسون، والتاريخ." : "Manage the story page hero, founders, timeline, and impact.",
+    },
     {
       label: language === "ar" ? "محطة المعارض" : "Exhibitions Station",
       href: "/admin/exhibitions",
