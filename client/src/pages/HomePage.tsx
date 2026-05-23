@@ -61,7 +61,7 @@ export const HomePage = () => {
       setTestimonials(testimonialsData.slice(0, 3));
       setRecognitions(recognitionsData.filter((recognition) => recognition.featured !== false).slice(0, 6));
       setServices(servicesData.filter((service) => service.featured !== false).slice(0, 6));
-      setFaqs(faqsData.filter((faq) => faq.featured !== false).slice(0, 6));
+      setFaqs(faqsData.filter((faq) => faq.featured !== false));
     });
   }, []);
 
