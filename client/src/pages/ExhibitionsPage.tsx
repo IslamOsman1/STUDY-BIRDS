@@ -66,8 +66,8 @@ export const ExhibitionsPage = () => {
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-brand-100 sm:text-lg">
               {language === "ar"
-                ? "تصفح المنشورات على شكل بطاقات، وافتح كل منشور في صفحة مستقلة لقراءة التفاصيل كاملة بخلفية مستوحاة من صورته."
-                : "Browse posts as cards and open each one in its own detail page with a background inspired by its uploaded image."}
+                ? "تصفح المنشورات على شكل بطاقات أكثر فخامة، وافتح كل منشور في صفحة مستقلة لقراءة التفاصيل كاملة بخلفية مستوحاة من صورته."
+                : "Browse posts as refined editorial cards and open each one in its own detail page with a background inspired by its uploaded image."}
             </p>
           </div>
 
@@ -107,37 +107,44 @@ export const ExhibitionsPage = () => {
             <Link
               key={article._id}
               to={`/exhibitions/${article.slug}`}
-              className="group panel overflow-hidden p-0 transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
+              className="group relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_28px_90px_rgba(15,23,42,0.16)]"
             >
-              <div className="relative h-64 overflow-hidden bg-slate-950">
+              <div className="relative h-72 overflow-hidden bg-slate-950 sm:h-80">
                 {imageUrl ? (
-                  <img src={imageUrl} alt={article.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <img src={imageUrl} alt={article.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
                 ) : (
                   <div className="h-full w-full bg-fusion" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1">{article.featured ? (language === "ar" ? "مميز" : "Featured") : exhibitionsText}</span>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_32%)]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/10" />
+                <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-7">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/85">
+                    <span className="rounded-full border border-white/20 bg-white/12 px-3 py-1.5 backdrop-blur-md">
+                      {article.featured ? (language === "ar" ? "مميز" : "Featured") : exhibitionsText}
+                    </span>
                     {article.createdAt ? (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-1.5 backdrop-blur-md">
                         <CalendarDays className="h-4 w-4" />
                         {formatDate(article.createdAt)}
                       </span>
                     ) : null}
                   </div>
-                  <h2 className="mt-4 text-2xl font-semibold leading-tight">{article.title}</h2>
+                  <h2 className="mt-5 max-w-[18ch] text-2xl font-semibold leading-tight text-white drop-shadow-[0_10px_24px_rgba(15,23,42,0.55)] sm:text-[2rem]">
+                    {article.title}
+                  </h2>
+                  <p className="mt-3 max-w-[32ch] text-sm leading-7 text-white/82 sm:text-[15px]">
+                    {article.summary}
+                  </p>
                 </div>
               </div>
 
-              <div className="p-6">
-                <p className="line-clamp-3 text-sm leading-7 text-slate-600">{article.summary}</p>
-
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              <div className="relative p-6 sm:p-7">
+                <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent sm:inset-x-7" />
+                <div className="flex items-center justify-between gap-3">
+                  <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
                     {language === "ar" ? `عدد المقالات ${articleCount}` : `${articleCount} articles`}
                   </span>
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-brand-700">
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 transition duration-300 group-hover:translate-x-1">
                     {language === "ar" ? "فتح المنشور" : "Open post"}
                     <ArrowRight className="h-4 w-4" />
                   </span>
