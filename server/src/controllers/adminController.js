@@ -137,6 +137,48 @@ const buildRecognitionPayload = async (body, currentRecognition = null) => {
   };
 };
 
+const buildOurServiceSlug = async (title, currentId) => {
+  const baseSlug = slugify(String(title || "service"), {
+    lower: true,
+    strict: true,
+  }) || "service";
+
+  let slug = baseSlug;
+  let suffix = 2;
+
+  while (
+    await OurService.exists({
+      slug,
+      ...(currentId ? { _id: { $ne: currentId } } : {}),
+    })
+  ) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
+};
+
+const buildOurServicePayload = async (body, currentService = null) => {
+  const title = String(body.title || currentService?.title || "").trim();
+  const titleChanged = title && title !== currentService?.title;
+  const slug =
+    currentService?.slug && !titleChanged
+      ? currentService.slug
+      : await buildOurServiceSlug(title, currentService?._id);
+
+  return {
+    title,
+    slug,
+    image: body.image || "",
+    detailTitle: body.detailTitle || title,
+    detailBody: body.detailBody || "",
+    detailImage: body.detailImage || body.image || "",
+    featured: typeof body.featured === "boolean" ? body.featured : true,
+    sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
+  };
+};
+
 const getStats = asyncHandler(async (req, res) => {
   const [students, universities, programs, applications] = await Promise.all([
     User.countDocuments({ role: "student" }),
@@ -417,12 +459,7 @@ const createFaq = asyncHandler(async (req, res) => {
 });
 
 const createOurService = asyncHandler(async (req, res) => {
-  const service = await OurService.create({
-    title: req.body.title,
-    image: req.body.image || "",
-    featured: typeof req.body.featured === "boolean" ? req.body.featured : true,
-    sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
-  });
+  const service = await OurService.create(await buildOurServicePayload(req.body));
 
   res.status(201).json(service);
 });
@@ -486,14 +523,16 @@ const updateFaq = asyncHandler(async (req, res) => {
 });
 
 const updateOurService = asyncHandler(async (req, res) => {
+  const currentService = await OurService.findById(req.params.id);
+
+  if (!currentService) {
+    res.status(404);
+    throw new Error("Service not found");
+  }
+
   const service = await OurService.findByIdAndUpdate(
     req.params.id,
-    {
-      title: req.body.title,
-      image: req.body.image || "",
-      featured: Boolean(req.body.featured),
-      sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
-    },
+    await buildOurServicePayload(req.body, currentService),
     { new: true, runValidators: true }
   );
 

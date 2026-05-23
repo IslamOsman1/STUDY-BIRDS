@@ -356,24 +356,29 @@ export const HomePage = () => {
                 transition={{ duration: 0.42, delay: index * 0.1 }}
                 className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
               >
-                {service.image ? (
-                  <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
-                    <img src={service.image} alt={service.title} className="h-full w-full rounded-[1rem] object-contain" />
+                <Link to={`/services/${service.slug || service._id}`} className="block">
+                  {service.image ? (
+                    <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
+                      <img src={service.image} alt={service.title} className="h-full w-full rounded-[1rem] object-contain" />
+                    </div>
+                  ) : (
+                    <div className="flex h-32 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-4 sm:h-40 sm:p-5 lg:h-48">
+                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
+                        <Award size={22} />
+                      </span>
+                      <p className="text-lg font-semibold text-white">{service.title}</p>
+                    </div>
+                  )}
+                  <div className="px-1 pb-1 pt-3">
+                    <p className="text-sm font-semibold text-white">{service.title}</p>
+                    <p className="mt-2 text-xs font-medium text-brand-100">
+                      {language === "ar" ? "عرض تفاصيل الخدمة" : "View service details"}
+                    </p>
                   </div>
-                ) : (
-                  <div className="flex h-32 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-4 sm:h-40 sm:p-5 lg:h-48">
-                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
-                      <Award size={22} />
-                    </span>
-                    <p className="text-lg font-semibold text-white">{service.title}</p>
-                  </div>
-                )}
-                <div className="px-1 pb-1 pt-3">
-                  <p className="text-sm font-semibold text-white">{service.title}</p>
-                </div>
+                </Link>
               </motion.div>
             ))}
-          </div>
+        </div>
         </motion.section>
       ) : null}
 

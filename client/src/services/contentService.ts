@@ -32,6 +32,10 @@ export const contentService = {
     const { data } = await api.get<OurService[]>("/content/our-services");
     return data;
   },
+  getOurServiceBySlug: async (slug: string) => {
+    const { data } = await api.get<OurService>(`/content/our-services/${slug}`);
+    return data;
+  },
   getFaqs: async () => {
     const { data } = await api.get<Faq[]>("/content/faqs");
     return data;

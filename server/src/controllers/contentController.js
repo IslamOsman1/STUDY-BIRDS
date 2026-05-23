@@ -52,6 +52,23 @@ const getOurServices = asyncHandler(async (req, res) => {
   res.json(services);
 });
 
+const getOurServiceBySlug = asyncHandler(async (req, res) => {
+  const slug = req.params.slug;
+  const service = await OurService.findOne({
+    $or: [
+      { slug },
+      ...(mongoose.Types.ObjectId.isValid(slug) ? [{ _id: slug }] : []),
+    ],
+  }).lean();
+
+  if (!service) {
+    res.status(404);
+    throw new Error("Service not found");
+  }
+
+  res.json(service);
+});
+
 const getExhibitionArticles = asyncHandler(async (req, res) => {
   const articles = await ExhibitionArticle.find({ published: true }).sort({ featured: -1, createdAt: -1 }).lean();
   res.json(articles);
@@ -107,6 +124,7 @@ module.exports = {
   getRecognitions,
   getRecognitionBySlug,
   getOurServices,
+  getOurServiceBySlug,
   getFaqs,
   getExhibitionArticles,
   getExhibitionArticleBySlug,

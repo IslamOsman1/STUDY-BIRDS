@@ -192,8 +192,12 @@ export interface Recognition {
 
 export interface OurService {
   _id: string;
+  slug?: string;
   title: string;
   image?: string;
+  detailTitle?: string;
+  detailBody?: string;
+  detailImage?: string;
   featured?: boolean;
   sortOrder?: number;
   createdAt?: string;

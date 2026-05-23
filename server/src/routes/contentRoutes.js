@@ -7,6 +7,7 @@ const {
   getRecognitions,
   getRecognitionBySlug,
   getOurServices,
+  getOurServiceBySlug,
   getSiteSettings,
   getStudyFields,
   getTestimonials,
@@ -21,6 +22,7 @@ router.get("/testimonials", getTestimonials);
 router.get("/recognitions", getRecognitions);
 router.get("/recognitions/:slug", getRecognitionBySlug);
 router.get("/our-services", getOurServices);
+router.get("/our-services/:slug", getOurServiceBySlug);
 router.get("/faqs", getFaqs);
 router.get("/exhibitions", getExhibitionArticles);
 router.get("/exhibitions/:slug", getExhibitionArticleBySlug);

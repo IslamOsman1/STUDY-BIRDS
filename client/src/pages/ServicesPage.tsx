@@ -103,8 +103,9 @@ export const ServicesPage = () => {
           const imageUrl = service.image ? getApiAssetUrl(service.image) : "";
 
           return (
-            <article
+            <Link
               key={service._id}
+              to={`/services/${service.slug || service._id}`}
               className="panel overflow-hidden border border-slate-200/70 bg-white p-2 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               {imageUrl ? (
@@ -125,8 +126,11 @@ export const ServicesPage = () => {
                   {language === "ar" ? `الخدمة ${index + 1}` : `Service ${index + 1}`}
                 </span>
                 <h2 className="mt-4 text-lg font-semibold text-slate-900">{service.title}</h2>
+                <p className="mt-2 text-sm font-medium text-brand-700">
+                  {language === "ar" ? "عرض تفاصيل الخدمة" : "View service details"}
+                </p>
               </div>
-            </article>
+            </Link>
           );
         })}
       </section>
