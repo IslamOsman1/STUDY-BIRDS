@@ -8,6 +8,7 @@ const Recognition = require("../models/Recognition");
 const OurService = require("../models/OurService");
 const Faq = require("../models/Faq");
 const asyncHandler = require("../utils/asyncHandler");
+const mongoose = require("mongoose");
 
 const getCountries = asyncHandler(async (req, res) => {
   const countries = await Country.find().sort({ featured: -1, name: 1 }).lean();
@@ -22,6 +23,23 @@ const getTestimonials = asyncHandler(async (req, res) => {
 const getRecognitions = asyncHandler(async (req, res) => {
   const recognitions = await Recognition.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 }).lean();
   res.json(recognitions);
+});
+
+const getRecognitionBySlug = asyncHandler(async (req, res) => {
+  const slug = req.params.slug;
+  const recognition = await Recognition.findOne({
+    $or: [
+      { slug },
+      ...(mongoose.Types.ObjectId.isValid(slug) ? [{ _id: slug }] : []),
+    ],
+  }).lean();
+
+  if (!recognition) {
+    res.status(404);
+    throw new Error("Recognition not found");
+  }
+
+  res.json(recognition);
 });
 
 const getFaqs = asyncHandler(async (req, res) => {
@@ -87,6 +105,7 @@ module.exports = {
   getCountries,
   getTestimonials,
   getRecognitions,
+  getRecognitionBySlug,
   getOurServices,
   getFaqs,
   getExhibitionArticles,

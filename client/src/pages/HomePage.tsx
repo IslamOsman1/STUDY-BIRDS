@@ -283,13 +283,13 @@ export const HomePage = () => {
                   key: recognition._id,
                   title: recognition.title,
                   src: recognition.image || "",
-                  link: recognition.link || "",
+                  href: `/recognitions/${recognition.slug || recognition._id}`,
                 }))
               : journeyShowcaseImages.map((image) => ({
                   key: image.title,
                   title: image.title,
                   src: image.src,
-                  link: "",
+                  href: "",
                 }))).map((item, index) => (
               <motion.div
                 key={item.key}
@@ -299,8 +299,8 @@ export const HomePage = () => {
                 transition={{ duration: 0.42, delay: index * 0.1 }}
                 className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-2 backdrop-blur-sm"
               >
-                {item.link ? (
-                  <a href={item.link} target="_blank" rel="noreferrer" className="block">
+                {item.href ? (
+                  <Link to={item.href} className="block">
                     {item.src ? (
                       <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
                         <img src={item.src} alt={item.title} className="h-full w-full rounded-[1rem] object-contain" />
@@ -317,7 +317,7 @@ export const HomePage = () => {
                       <p className="text-sm font-semibold text-white">{item.title}</p>
                       <p className="mt-2 text-xs font-medium text-brand-100">{t("viewRecognition")}</p>
                     </div>
-                  </a>
+                  </Link>
                 ) : item.src ? (
                   <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
                     <img src={item.src} alt={item.title} className="h-full w-full rounded-[1rem] object-contain" />

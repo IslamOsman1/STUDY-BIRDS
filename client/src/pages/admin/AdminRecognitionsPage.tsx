@@ -11,6 +11,9 @@ const emptyRecognitionForm = {
   title: "",
   image: "",
   link: "",
+  detailTitle: "",
+  detailBody: "",
+  detailImage: "",
   featured: true,
   sortOrder: "0",
 };
@@ -52,6 +55,21 @@ export const AdminRecognitionsPage = () => {
     }
   };
 
+  const handleRecognitionDetailImageUpload = async (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    setFormError("");
+    setUploadingRecognitionImage(true);
+
+    try {
+      const imageUrl = await adminService.uploadRecognitionImage(fileList[0]);
+      setRecognitionForm((current) => ({ ...current, detailImage: imageUrl }));
+    } catch (error) {
+      setFormError(getErrorMessage(error, dt(language, "imageUploadFailed")));
+    } finally {
+      setUploadingRecognitionImage(false);
+    }
+  };
+
   const submitRecognition = async (event: FormEvent) => {
     event.preventDefault();
     setFormError("");
@@ -60,6 +78,9 @@ export const AdminRecognitionsPage = () => {
       title: recognitionForm.title,
       image: recognitionForm.image || "",
       link: recognitionForm.link || "",
+      detailTitle: recognitionForm.detailTitle || recognitionForm.title,
+      detailBody: recognitionForm.detailBody || "",
+      detailImage: recognitionForm.detailImage || recognitionForm.image || "",
       featured: recognitionForm.featured,
       sortOrder: Number(recognitionForm.sortOrder || 0),
     };
@@ -124,6 +145,65 @@ export const AdminRecognitionsPage = () => {
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
             />
           </label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">
+                {language === "ar" ? "عنوان صفحة الشهادة" : "Recognition page title"}
+              </span>
+              <input
+                value={recognitionForm.detailTitle}
+                onChange={(event) => setRecognitionForm((current) => ({ ...current, detailTitle: event.target.value }))}
+                placeholder={language === "ar" ? "يظهر داخل صفحة الشهادة" : "Shown inside the recognition page"}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+              />
+            </label>
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <p className="text-sm font-medium text-slate-700">
+                {language === "ar" ? "صورة صفحة الشهادة" : "Recognition page image"}
+              </p>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => handleRecognitionDetailImageUpload(event.target.files)}
+                className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+              />
+              <p className="mt-2 text-xs text-slate-500">
+                {uploadingRecognitionImage
+                  ? `${dt(language, "uploadImages")}...`
+                  : language === "ar"
+                    ? "ارفع الصورة التي ستظهر داخل صفحة الشهادة."
+                    : "Upload the image that will appear inside the recognition page."}
+              </p>
+              {recognitionForm.detailImage ? (
+                <div className="mt-4 rounded-2xl border border-slate-200 p-3">
+                  <img src={getApiAssetUrl(recognitionForm.detailImage)} alt={recognitionForm.detailTitle || recognitionForm.title || "Recognition details"} className="h-40 w-full rounded-2xl object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setRecognitionForm((current) => ({ ...current, detailImage: "" }))}
+                    className="mt-3 rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700"
+                  >
+                    {dt(language, "removeImage")}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">
+              {language === "ar" ? "نص صفحة الشهادة" : "Recognition page text"}
+            </span>
+            <textarea
+              value={recognitionForm.detailBody}
+              onChange={(event) => setRecognitionForm((current) => ({ ...current, detailBody: event.target.value }))}
+              rows={6}
+              placeholder={
+                language === "ar"
+                  ? "اكتب النص الذي سيظهر داخل صفحة الشهادة."
+                  : "Write the text that should appear inside the recognition page."
+              }
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+            />
+          </label>
           <div className="rounded-2xl border border-slate-200 p-4">
             <p className="text-sm font-medium text-slate-700">{dt(language, "recognitionImage")}</p>
             <input type="file" accept="image/*" onChange={(event) => handleRecognitionImageUpload(event.target.files)} className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
@@ -181,6 +261,8 @@ export const AdminRecognitionsPage = () => {
                     {recognition.link}
                   </a>
                 ) : null}
+                {recognition.detailTitle ? <p className="mt-3 text-sm font-medium text-slate-800">{recognition.detailTitle}</p> : null}
+                {recognition.detailBody ? <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">{recognition.detailBody}</p> : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -190,6 +272,9 @@ export const AdminRecognitionsPage = () => {
                       title: recognition.title,
                       image: recognition.image || "",
                       link: recognition.link || "",
+                      detailTitle: recognition.detailTitle || "",
+                      detailBody: recognition.detailBody || "",
+                      detailImage: recognition.detailImage || "",
                       featured: Boolean(recognition.featured),
                       sortOrder: String(recognition.sortOrder || 0),
                     });

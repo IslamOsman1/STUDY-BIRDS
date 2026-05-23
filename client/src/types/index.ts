@@ -178,9 +178,13 @@ export interface Testimonial {
 
 export interface Recognition {
   _id: string;
+  slug?: string;
   title: string;
   image?: string;
   link?: string;
+  detailTitle?: string;
+  detailBody?: string;
+  detailImage?: string;
   featured?: boolean;
   sortOrder?: number;
   createdAt?: string;

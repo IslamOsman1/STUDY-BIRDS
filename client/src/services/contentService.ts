@@ -24,6 +24,10 @@ export const contentService = {
     const { data } = await api.get<Recognition[]>("/content/recognitions");
     return data;
   },
+  getRecognitionBySlug: async (slug: string) => {
+    const { data } = await api.get<Recognition>(`/content/recognitions/${slug}`);
+    return data;
+  },
   getOurServices: async () => {
     const { data } = await api.get<OurService[]>("/content/our-services");
     return data;

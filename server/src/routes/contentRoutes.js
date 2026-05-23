@@ -5,6 +5,7 @@ const {
   getExhibitionArticleBySlug,
   getFaqs,
   getRecognitions,
+  getRecognitionBySlug,
   getOurServices,
   getSiteSettings,
   getStudyFields,
@@ -18,6 +19,7 @@ const router = express.Router();
 router.get("/countries", getCountries);
 router.get("/testimonials", getTestimonials);
 router.get("/recognitions", getRecognitions);
+router.get("/recognitions/:slug", getRecognitionBySlug);
 router.get("/our-services", getOurServices);
 router.get("/faqs", getFaqs);
 router.get("/exhibitions", getExhibitionArticles);

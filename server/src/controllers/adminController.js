@@ -9,6 +9,7 @@ const Testimonial = require("../models/Testimonial");
 const Recognition = require("../models/Recognition");
 const OurService = require("../models/OurService");
 const Faq = require("../models/Faq");
+const slugify = require("slugify");
 const asyncHandler = require("../utils/asyncHandler");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 const {
@@ -90,6 +91,49 @@ const buildExhibitionPayload = (body) => {
     sections,
     featured: typeof body.featured === "boolean" ? body.featured : true,
     published: typeof body.published === "boolean" ? body.published : true,
+  };
+};
+
+const buildRecognitionSlug = async (title, currentId) => {
+  const baseSlug = slugify(String(title || "recognition"), {
+    lower: true,
+    strict: true,
+  }) || "recognition";
+
+  let slug = baseSlug;
+  let suffix = 2;
+
+  while (
+    await Recognition.exists({
+      slug,
+      ...(currentId ? { _id: { $ne: currentId } } : {}),
+    })
+  ) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
+};
+
+const buildRecognitionPayload = async (body, currentRecognition = null) => {
+  const title = String(body.title || currentRecognition?.title || "").trim();
+  const titleChanged = title && title !== currentRecognition?.title;
+  const slug =
+    currentRecognition?.slug && !titleChanged
+      ? currentRecognition.slug
+      : await buildRecognitionSlug(title, currentRecognition?._id);
+
+  return {
+    title,
+    slug,
+    image: body.image || "",
+    link: body.link || "",
+    detailTitle: body.detailTitle || title,
+    detailBody: body.detailBody || "",
+    detailImage: body.detailImage || body.image || "",
+    featured: typeof body.featured === "boolean" ? body.featured : true,
+    sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
   };
 };
 
@@ -356,13 +400,7 @@ const createTestimonial = asyncHandler(async (req, res) => {
 });
 
 const createRecognition = asyncHandler(async (req, res) => {
-  const recognition = await Recognition.create({
-    title: req.body.title,
-    image: req.body.image || "",
-    link: req.body.link || "",
-    featured: typeof req.body.featured === "boolean" ? req.body.featured : true,
-    sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
-  });
+  const recognition = await Recognition.create(await buildRecognitionPayload(req.body));
 
   res.status(201).json(recognition);
 });
@@ -406,15 +444,16 @@ const updateTestimonial = asyncHandler(async (req, res) => {
 });
 
 const updateRecognition = asyncHandler(async (req, res) => {
+  const currentRecognition = await Recognition.findById(req.params.id);
+
+  if (!currentRecognition) {
+    res.status(404);
+    throw new Error("Recognition not found");
+  }
+
   const recognition = await Recognition.findByIdAndUpdate(
     req.params.id,
-    {
-      title: req.body.title,
-      image: req.body.image || "",
-      link: req.body.link || "",
-      featured: Boolean(req.body.featured),
-      sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
-    },
+    await buildRecognitionPayload(req.body, currentRecognition),
     { new: true, runValidators: true }
   );
 
