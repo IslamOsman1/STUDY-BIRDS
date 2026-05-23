@@ -39,6 +39,20 @@ const getExhibitionArticles = asyncHandler(async (req, res) => {
   res.json(articles);
 });
 
+const getExhibitionArticleBySlug = asyncHandler(async (req, res) => {
+  const article = await ExhibitionArticle.findOne({
+    slug: req.params.slug,
+    published: true,
+  }).lean();
+
+  if (!article) {
+    res.status(404);
+    throw new Error("Exhibition article not found");
+  }
+
+  res.json(article);
+});
+
 const getNotifications = asyncHandler(async (req, res) => {
   const notifications = await Notification.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
   res.json(notifications);
@@ -76,6 +90,7 @@ module.exports = {
   getOurServices,
   getFaqs,
   getExhibitionArticles,
+  getExhibitionArticleBySlug,
   getNotifications,
   getSiteSettings,
   getStudyFields,

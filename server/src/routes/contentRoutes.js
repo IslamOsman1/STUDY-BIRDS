@@ -2,6 +2,7 @@ const express = require("express");
 const {
   getCountries,
   getExhibitionArticles,
+  getExhibitionArticleBySlug,
   getFaqs,
   getRecognitions,
   getOurServices,
@@ -20,6 +21,7 @@ router.get("/recognitions", getRecognitions);
 router.get("/our-services", getOurServices);
 router.get("/faqs", getFaqs);
 router.get("/exhibitions", getExhibitionArticles);
+router.get("/exhibitions/:slug", getExhibitionArticleBySlug);
 router.get("/site-settings", getSiteSettings);
 router.get("/study-fields", getStudyFields);
 router.get("/notifications", protect, getNotifications);

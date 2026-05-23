@@ -36,6 +36,10 @@ export const contentService = {
     const { data } = await api.get<ExhibitionArticle[]>("/content/exhibitions");
     return data;
   },
+  getExhibitionArticleBySlug: async (slug: string) => {
+    const { data } = await api.get<ExhibitionArticle>(`/content/exhibitions/${slug}`);
+    return data;
+  },
   getSiteSettings: async () => {
     const { data } = await api.get<SiteSettings>("/content/site-settings");
     return data;
