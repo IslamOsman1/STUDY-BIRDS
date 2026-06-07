@@ -5,7 +5,12 @@ const SITE_NAME = process.env.SITE_NAME || "Study Birds";
 const DEFAULT_SITE_URL = "https://studybirds.net";
 
 const getSiteUrl = () =>
-  String(process.env.SITE_URL || process.env.CLIENT_URL || DEFAULT_SITE_URL)
+  String(
+    process.env.SITE_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.CLIENT_URL ||
+      DEFAULT_SITE_URL
+  )
     .trim()
     .replace(/\/+$/, "");
 

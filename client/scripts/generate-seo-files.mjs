@@ -37,7 +37,12 @@ const envValues = {
   ...process.env,
 };
 
-const siteUrl = (envValues.VITE_SITE_URL || "https://studybirds.net").replace(/\/+$/, "");
+const siteUrl = (
+  envValues.NEXT_PUBLIC_SITE_URL ||
+  envValues.VITE_SITE_URL ||
+  envValues.SITE_URL ||
+  "https://studybirds.net"
+).replace(/\/+$/, "");
 const apiUrl = (envValues.VITE_API_URL || "https://study-birds-api.onrender.com/api").replace(/\/+$/, "");
 
 const ensureDir = (targetPath) => fs.mkdirSync(targetPath, { recursive: true });

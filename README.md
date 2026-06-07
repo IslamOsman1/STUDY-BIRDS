@@ -57,6 +57,7 @@ Seeded accounts:
 3. Optional: create `.env` with:
    - `VITE_API_URL=http://localhost:5000/api`
    - `VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com`
+   - `NEXT_PUBLIC_SITE_URL=https://studybirds.net`
    - `VITE_SITE_URL=https://studybirds.net`
 4. `npm run dev`
 
@@ -90,6 +91,7 @@ Client:
 
 - `VITE_API_URL`: deployed backend API URL, for example `https://api.example.com/api`
 - `VITE_GOOGLE_CLIENT_ID`: optional if using Google sign-in
+- `NEXT_PUBLIC_SITE_URL`: official public site URL for SEO metadata on Vercel or compatible hosts
 - `VITE_SITE_URL`: deployed frontend URL, for example `https://studybirds.net`
 - `VITE_CONTACT_EMAIL`: public support email shown in the footer and contact page
 - `VITE_WHATSAPP_URL`: WhatsApp chat link

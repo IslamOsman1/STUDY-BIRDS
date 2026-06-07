@@ -24,6 +24,7 @@ Project settings:
 Environment variables:
 
 - `VITE_API_URL=https://your-render-service.onrender.com/api`
+- `NEXT_PUBLIC_SITE_URL=https://studybirds.net`
 - `VITE_SITE_URL=https://studybirds.net`
 - `VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com`
 
@@ -90,6 +91,7 @@ Frontend:
 
 ```env
 VITE_API_URL=https://study-birds-api.onrender.com/api
+NEXT_PUBLIC_SITE_URL=https://studybirds.net
 VITE_SITE_URL=https://studybirds.net
 VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 ```
