@@ -10,6 +10,7 @@ import {
 } from "../../constants/articleContent";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
+import { getSiteUrl } from "../../seo/site";
 import { adminService } from "../../services/adminService";
 import type { ExhibitionArticle } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
@@ -53,6 +54,7 @@ type ExhibitionForm = {
 };
 
 const SITE_NAME = "Study Birds";
+const SITE_URL = getSiteUrl();
 
 const emptyForm: ExhibitionForm = {
   title: "",
@@ -212,7 +214,7 @@ export const AdminExhibitionsPage = () => {
   const effectiveTwitterDescription = form.twitterDescription.trim() || effectiveOgDescription;
   const effectiveTwitterImage = form.twitterImage.trim() || effectiveOgImage;
   const effectiveAltText = form.imageAltText.trim() || form.title.trim();
-  const effectiveCanonical = form.canonicalUrl.trim() || `https://studybirds.com/blog/${effectiveSlug}`;
+  const effectiveCanonical = form.canonicalUrl.trim() || `${SITE_URL}/blog/${effectiveSlug}`;
 
   const slugExists = useMemo(
     () =>
@@ -458,7 +460,7 @@ export const AdminExhibitionsPage = () => {
               </label>
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-700">Canonical URL</span>
-                <input value={form.canonicalUrl} onChange={(event) => setForm((current) => ({ ...current, canonicalUrl: event.target.value }))} placeholder={`https://studybirds.com/blog/${effectiveSlug || "article-slug"}`} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+                <input value={form.canonicalUrl} onChange={(event) => setForm((current) => ({ ...current, canonicalUrl: event.target.value }))} placeholder={`${SITE_URL}/blog/${effectiveSlug || "article-slug"}`} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
               </label>
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-700">OG Title</span>
@@ -588,7 +590,7 @@ export const AdminExhibitionsPage = () => {
 
                   <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                     <p className="font-semibold text-slate-900">{article.resolvedSeo?.seoTitle || article.title}</p>
-                    <p className="mt-2 break-all text-emerald-700">{article.resolvedSeo?.canonicalUrl || `https://studybirds.com/blog/${article.slug}`}</p>
+                    <p className="mt-2 break-all text-emerald-700">{article.resolvedSeo?.canonicalUrl || `${SITE_URL}/blog/${article.slug}`}</p>
                     <p className="mt-2">{article.resolvedSeo?.metaDescription || article.summary}</p>
                   </div>
 

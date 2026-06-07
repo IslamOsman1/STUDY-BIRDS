@@ -2,7 +2,7 @@ const slugify = require("slugify");
 const ExhibitionArticle = require("../models/ExhibitionArticle");
 
 const SITE_NAME = process.env.SITE_NAME || "Study Birds";
-const DEFAULT_SITE_URL = "https://studybirds.com";
+const DEFAULT_SITE_URL = "https://studybirds.net";
 
 const getSiteUrl = () =>
   String(process.env.SITE_URL || process.env.CLIENT_URL || DEFAULT_SITE_URL)

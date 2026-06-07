@@ -24,7 +24,7 @@ Project settings:
 Environment variables:
 
 - `VITE_API_URL=https://your-render-service.onrender.com/api`
-- `VITE_SITE_URL=https://your-render-frontend.onrender.com`
+- `VITE_SITE_URL=https://studybirds.net`
 - `VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com`
 
 Notes:
@@ -64,6 +64,8 @@ Environment variables to provide:
   Your main Render frontend URL.
 - `CLIENT_URLS`
   Optional comma-separated allowed origins if you use multiple frontend URLs.
+- `SITE_URL`
+  Canonical public site URL used for SEO tags, sitemap, and robots output.
 - `GOOGLE_CLIENT_ID`
   Optional if you use Google sign-in.
 - `UPLOAD_DIR`
@@ -88,7 +90,7 @@ Frontend:
 
 ```env
 VITE_API_URL=https://study-birds-api.onrender.com/api
-VITE_SITE_URL=https://study-birds-web.onrender.com
+VITE_SITE_URL=https://studybirds.net
 VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 ```
 
@@ -99,7 +101,8 @@ MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/study-bird
 JWT_SECRET=change-me
 JWT_EXPIRES_IN=7d
 CLIENT_URL=https://study-birds-web.onrender.com
-CLIENT_URLS=https://study-birds-web.onrender.com,https://www.study-birds.com
+CLIENT_URLS=https://study-birds-web.onrender.com,https://studybirds.net,https://www.studybirds.net
+SITE_URL=https://studybirds.net
 GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 UPLOAD_DIR=/opt/render/project/src/uploads
 ```

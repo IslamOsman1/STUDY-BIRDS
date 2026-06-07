@@ -44,11 +44,11 @@ MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/study-bird
 
 Seeded accounts:
 
-- Admin: `admin@studybirds.com` / `Admin123!`
+- Admin: `admin@studybirds.net` / `Admin123!`
 - Student: `ava@student.com` / `Student123!`
 - Student: `noah@student.com` / `Student123!`
 - Student: `sara@student.com` / `Student123!`
-- Partner: `partner@studybirds.com` / `Partner123!`
+- Partner: `partner@studybirds.net` / `Partner123!`
 
 ## Client setup
 
@@ -57,7 +57,7 @@ Seeded accounts:
 3. Optional: create `.env` with:
    - `VITE_API_URL=http://localhost:5000/api`
    - `VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com`
-   - `VITE_SITE_URL=https://your-frontend-domain.com`
+   - `VITE_SITE_URL=https://studybirds.net`
 4. `npm run dev`
 
 ## Core features
@@ -79,6 +79,7 @@ Server:
 - `JWT_SECRET`: production secret
 - `CLIENT_URL`: main frontend URL
 - `CLIENT_URLS`: optional comma-separated list of allowed frontend URLs
+- `SITE_URL`: canonical public site URL for SEO, sitemap, and robots generation
 - `GOOGLE_CLIENT_ID`: optional if using Google sign-in
 - `UPLOAD_DIR`: optional writable uploads path on the host
 - `CLOUDINARY_CLOUD_NAME`: Cloudinary cloud name for persistent uploads
@@ -89,7 +90,7 @@ Client:
 
 - `VITE_API_URL`: deployed backend API URL, for example `https://api.example.com/api`
 - `VITE_GOOGLE_CLIENT_ID`: optional if using Google sign-in
-- `VITE_SITE_URL`: deployed frontend URL
+- `VITE_SITE_URL`: deployed frontend URL, for example `https://studybirds.net`
 - `VITE_CONTACT_EMAIL`: public support email shown in the footer and contact page
 - `VITE_WHATSAPP_URL`: WhatsApp chat link
 - `VITE_FACEBOOK_URL`: Facebook page link

@@ -7,4 +7,4 @@ Disallow: /register
 Disallow: /forgot-password
 Disallow: /api/
 
-Sitemap: https://studybirds.com/sitemap.xml
+Sitemap: https://studybirds.net/sitemap.xml

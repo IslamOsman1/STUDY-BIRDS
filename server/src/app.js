@@ -30,8 +30,8 @@ const parseAllowedOrigins = () => {
 
   return new Set([
     ...configuredOrigins,
-    "https://studybirds.com",
-    "https://www.studybirds.com",
+    "https://studybirds.net",
+    "https://www.studybirds.net",
     "https://study-birds-web.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",

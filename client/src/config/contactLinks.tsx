@@ -9,7 +9,7 @@ import {
 import type { SiteSettings } from "../types";
 
 export const defaultSiteSettings: SiteSettings = {
-  contactEmail: import.meta.env.VITE_CONTACT_EMAIL?.trim() || "hello@studybirds.com",
+  contactEmail: import.meta.env.VITE_CONTACT_EMAIL?.trim() || "hello@studybirds.net",
   whatsappUrl: import.meta.env.VITE_WHATSAPP_URL?.trim() || "https://wa.me/201000000000",
   facebookUrl: import.meta.env.VITE_FACEBOOK_URL?.trim() || "https://facebook.com/studybirds",
   instagramUrl: import.meta.env.VITE_INSTAGRAM_URL?.trim() || "https://instagram.com/studybirds",

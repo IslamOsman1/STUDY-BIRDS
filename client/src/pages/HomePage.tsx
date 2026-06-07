@@ -109,7 +109,7 @@ export const HomePage = () => {
       "@type": "Organization",
       name: SITE_NAME,
       url: getSiteUrl(),
-      email: "hello@studybirds.com",
+      email: import.meta.env.VITE_CONTACT_EMAIL?.trim() || "hello@studybirds.net",
     },
     {
       "@context": "https://schema.org",

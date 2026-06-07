@@ -53,9 +53,9 @@ const testimonialData = [
 ];
 
 const recognitionData = [
-  { title: "ICEF Agency Status", link: "https://studybirds.com", featured: true, sortOrder: 1 },
-  { title: "Student Success Recognition", link: "https://studybirds.com", featured: true, sortOrder: 2 },
-  { title: "Trusted Recruitment Partner", link: "https://studybirds.com", featured: true, sortOrder: 3 },
+  { title: "ICEF Agency Status", link: "https://studybirds.net", featured: true, sortOrder: 1 },
+  { title: "Student Success Recognition", link: "https://studybirds.net", featured: true, sortOrder: 2 },
+  { title: "Trusted Recruitment Partner", link: "https://studybirds.net", featured: true, sortOrder: 3 },
 ];
 
 const faqData = [
@@ -101,7 +101,7 @@ const seed = async () => {
 
   const admin = await User.create({
     name: "Admin User",
-    email: "admin@studybirds.com",
+    email: "admin@studybirds.net",
     password: "Admin123!",
     role: "admin",
   });
@@ -114,7 +114,7 @@ const seed = async () => {
 
   await User.create({
     name: "Partner User",
-    email: "partner@studybirds.com",
+    email: "partner@studybirds.net",
     password: "Partner123!",
     role: "partner",
   });
