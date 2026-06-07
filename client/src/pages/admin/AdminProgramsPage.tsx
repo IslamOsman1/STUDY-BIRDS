@@ -12,6 +12,7 @@ import { PROGRAM_DEGREE_LEVELS, PROGRAM_INTAKES } from "../../constants/programO
 import { getErrorMessage } from "../../utils/errors";
 import { formatCurrency, formatDate } from "../../utils/format";
 import { dt } from "../../utils/dashboardTranslations";
+import { getPaginatedItems } from "../../utils/pagination";
 
 const emptyProgramForm = {
   title: "",
@@ -57,8 +58,8 @@ export const AdminProgramsPage = () => {
       universityService.getAll(),
       adminService.getStudyFields(),
     ]);
-    setPrograms(programsData);
-    setUniversities(universitiesData);
+    setPrograms(getPaginatedItems(programsData));
+    setUniversities(getPaginatedItems(universitiesData));
     setStudyFields(studyFieldsData);
   };
 

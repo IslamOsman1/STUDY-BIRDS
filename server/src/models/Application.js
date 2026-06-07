@@ -86,4 +86,10 @@ const applicationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+applicationSchema.index({ student: 1, createdAt: -1 });
+applicationSchema.index({ status: 1, createdAt: -1 });
+applicationSchema.index({ reviewedBy: 1, updatedAt: -1 });
+applicationSchema.index({ university: 1, createdAt: -1 });
+applicationSchema.index({ program: 1, createdAt: -1 });
+
 module.exports = mongoose.model("Application", applicationSchema);

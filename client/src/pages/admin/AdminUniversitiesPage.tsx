@@ -10,6 +10,7 @@ import { createEmptyArticleBodies, createEmptyArticleHeadings, normalizeArticleB
 import { getErrorMessage } from "../../utils/errors";
 import { formatCurrency } from "../../utils/format";
 import { dt } from "../../utils/dashboardTranslations";
+import { getPaginatedItems } from "../../utils/pagination";
 
 const emptyUniversityForm = {
   name: "",
@@ -49,7 +50,7 @@ export const AdminUniversitiesPage = () => {
 
   const loadData = async () => {
     const [universitiesData, countriesData] = await Promise.all([universityService.getAll(), adminService.getCountries()]);
-    setUniversities(universitiesData);
+    setUniversities(getPaginatedItems(universitiesData));
     setCountries(countriesData);
   };
 

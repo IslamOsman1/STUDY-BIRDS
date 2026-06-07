@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ScrollText, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, ScrollText, Sparkles } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { ProgramCard } from "../components/marketing/ProgramCard";
 import { SearchFilter } from "../components/marketing/SearchFilter";
@@ -12,15 +12,20 @@ import type { Country, Program, StudyField, University } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { seoText } from "../seo/site";
 import { getApiAssetUrl } from "../lib/api";
+import { getPaginatedItems, getPaginationMeta } from "../utils/pagination";
+import type { PaginationMeta } from "../types";
 
 export const ProgramsPage = () => {
   const { t, language, tv } = useLanguage();
   const [searchParams] = useSearchParams();
   const [programs, setPrograms] = useState<Program[]>([]);
+  const [programPagination, setProgramPagination] = useState<PaginationMeta | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
   const [studyFields, setStudyFields] = useState<StudyField[]>([]);
+  const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState(() => searchParams.get("keyword") || "");
+  const [page, setPage] = useState(() => Number(searchParams.get("page") || 1));
   const [filters, setFilters] = useState<Record<string, string>>(() => ({
     country: searchParams.get("country") || "",
     university: searchParams.get("university") || "",
@@ -44,19 +49,25 @@ export const ProgramsPage = () => {
     Promise.all([
       contentService.getCountries(),
       universityService.getAll(),
-      programService.getAll(),
       contentService.getStudyFields(),
-    ]).then(([countryData, universityData, programData, studyFieldData]) => {
-      setCountries(countryData);
-      setUniversities(universityData);
-      setPrograms(programData);
-      setStudyFields(studyFieldData);
+    ]).then(([countryData, universityData, studyFieldData]) => {
+      setCountries(getPaginatedItems(countryData));
+      setUniversities(getPaginatedItems(universityData));
+      setStudyFields(getPaginatedItems(studyFieldData));
     });
   }, []);
 
   useEffect(() => {
-    const params = { keyword, ...filters };
-    programService.getAll(params).then(setPrograms);
+    setLoading(true);
+    const params = { keyword, ...filters, page, limit: 12, paginate: true };
+    programService.getAll(params).then((response) => {
+      setPrograms(getPaginatedItems(response));
+      setProgramPagination(getPaginationMeta(response));
+    }).finally(() => setLoading(false));
+  }, [keyword, filters, page]);
+
+  useEffect(() => {
+    setPage(1);
   }, [keyword, filters]);
 
   useEffect(() => {
@@ -144,7 +155,9 @@ export const ProgramsPage = () => {
         onFilterChange={(key, value) => setFilters((current) => ({ ...current, [key]: value }))}
         onUniversitySelect={(universityId) => setFilters((current) => ({ ...current, university: universityId }))}
       />
-      {programs.length ? (
+      {loading ? (
+        <div className="panel p-8 text-sm text-slate-500">{language === "ar" ? "جاري تحميل البرامج..." : "Loading programs..."}</div>
+      ) : programs.length ? (
         <div className="grid gap-5 lg:grid-cols-3">
           {programs.map((program) => (
             <ProgramCard key={program._id} program={program} />
@@ -153,6 +166,35 @@ export const ProgramsPage = () => {
       ) : (
         <EmptyState title={t("noPrograms")} description={t("noProgramsDescription")} />
       )}
+      {programPagination ? (
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 px-4 py-3">
+          <p className="text-sm text-slate-600">
+            {language === "ar"
+              ? `صفحة ${programPagination.page} من ${programPagination.totalPages}`
+              : `Page ${programPagination.page} of ${programPagination.totalPages}`}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={!programPagination.hasPreviousPage}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {language === "ar" ? "السابق" : "Previous"}
+            </button>
+            <button
+              type="button"
+              disabled={!programPagination.hasNextPage}
+              onClick={() => setPage((current) => current + 1)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+            >
+              {language === "ar" ? "التالي" : "Next"}
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

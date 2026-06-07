@@ -57,4 +57,7 @@ recognitionSchema.pre("validate", function recognitionPreValidate(next) {
   next();
 });
 
+recognitionSchema.index({ featured: -1, sortOrder: 1, createdAt: -1 });
+recognitionSchema.index({ updatedAt: -1 });
+
 module.exports = mongoose.model("Recognition", recognitionSchema);

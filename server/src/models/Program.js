@@ -85,5 +85,6 @@ programSchema.index({ university: 1, featured: -1, createdAt: -1 });
 programSchema.index({ degreeLevel: 1, intake: 1, featured: -1, createdAt: -1 });
 programSchema.index({ fieldOfStudy: 1, featured: -1, createdAt: -1 });
 programSchema.index({ fieldsOfStudy: 1 });
+programSchema.index({ updatedAt: -1 });
 
 module.exports = mongoose.model("Program", programSchema);

@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { Program } from "../types";
+import type { PaginatedResponse, Program } from "../types";
 
 type ProgramPayload = {
   university?: string;
@@ -27,8 +27,8 @@ type ProgramPayload = {
 };
 
 export const programService = {
-  getAll: async (params?: Record<string, string>) => {
-    const { data } = await api.get<Program[]>("/programs", { params });
+  getAll: async (params?: Record<string, string | number | boolean>) => {
+    const { data } = await api.get<Program[] | PaginatedResponse<Program>>("/programs", { params });
     return data;
   },
   getById: async (id: string) => {

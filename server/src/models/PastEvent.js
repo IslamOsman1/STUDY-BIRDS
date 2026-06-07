@@ -77,4 +77,7 @@ pastEventSchema.pre("validate", function pastEventPreValidate(next) {
   next();
 });
 
+pastEventSchema.index({ category: 1, featured: -1, eventDate: -1, createdAt: -1 });
+pastEventSchema.index({ updatedAt: -1 });
+
 module.exports = mongoose.model("PastEvent", pastEventSchema);

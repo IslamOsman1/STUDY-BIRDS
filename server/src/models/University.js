@@ -78,5 +78,7 @@ universitySchema.pre("validate", function setSlug(next) {
 });
 
 universitySchema.index({ country: 1, featured: -1, name: 1 });
+universitySchema.index({ featured: 1, createdAt: -1 });
+universitySchema.index({ updatedAt: -1 });
 
 module.exports = mongoose.model("University", universitySchema);

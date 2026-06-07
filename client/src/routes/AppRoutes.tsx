@@ -16,6 +16,7 @@ const ServiceDetailsPage = lazy(() => import("../pages/ServiceDetailsPage").then
 const RecognitionDetailsPage = lazy(() => import("../pages/RecognitionDetailsPage").then((module) => ({ default: module.RecognitionDetailsPage })));
 const ExhibitionsPage = lazy(() => import("../pages/ExhibitionsPage").then((module) => ({ default: module.ExhibitionsPage })));
 const ExhibitionDetailsPage = lazy(() => import("../pages/ExhibitionDetailsPage").then((module) => ({ default: module.ExhibitionDetailsPage })));
+const BlogCategoryPage = lazy(() => import("../pages/BlogCategoryPage").then((module) => ({ default: module.BlogCategoryPage })));
 const AboutPage = lazy(() => import("../pages/AboutPage").then((module) => ({ default: module.AboutPage })));
 const OurEventPage = lazy(() => import("../pages/OurEventPage").then((module) => ({ default: module.OurEventPage })));
 const OurStoryPage = lazy(() => import("../pages/OurStoryPage").then((module) => ({ default: module.OurStoryPage })));
@@ -62,7 +63,10 @@ export const AppRoutes = () => (
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/services/:slug" element={<ServiceDetailsPage />} />
         <Route path="/recognitions/:slug" element={<RecognitionDetailsPage />} />
-        <Route path="/exhibitions" element={<ExhibitionsPage />} />
+        <Route path="/blog" element={<ExhibitionsPage />} />
+        <Route path="/blog/category/:categorySlug" element={<BlogCategoryPage />} />
+        <Route path="/blog/:slug" element={<ExhibitionDetailsPage />} />
+        <Route path="/exhibitions" element={<Navigate replace to="/blog" />} />
         <Route path="/exhibitions/:slug" element={<ExhibitionDetailsPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/our-event" element={<OurEventPage />} />

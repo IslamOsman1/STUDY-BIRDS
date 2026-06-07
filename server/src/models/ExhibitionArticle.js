@@ -42,6 +42,12 @@ const exhibitionArticleSchema = new mongoose.Schema(
     slug: {
       type: String,
       unique: true,
+      trim: true,
+    },
+    customSlug: {
+      type: String,
+      default: "",
+      trim: true,
     },
     summary: {
       type: String,
@@ -118,6 +124,93 @@ const exhibitionArticleSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    seoTitle: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    metaDescription: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    focusKeyword: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    seoKeywords: {
+      type: [String],
+      default: [],
+    },
+    canonicalUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    ogTitle: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    ogDescription: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    ogImage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    twitterTitle: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    twitterDescription: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    twitterImage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    imageAltText: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    robotsIndex: {
+      type: String,
+      enum: ["index", "noindex"],
+      default: "index",
+    },
+    robotsFollow: {
+      type: String,
+      enum: ["follow", "nofollow"],
+      default: "follow",
+    },
+    category: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    authorName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    publishedAt: {
+      type: Date,
+      default: null,
+    },
+    seoUpdatedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
@@ -130,5 +223,7 @@ exhibitionArticleSchema.pre("validate", function setSlug(next) {
 });
 
 exhibitionArticleSchema.index({ published: 1, featured: -1, createdAt: -1 });
+exhibitionArticleSchema.index({ category: 1, published: 1, createdAt: -1 });
+exhibitionArticleSchema.index({ updatedAt: -1 });
 
 module.exports = mongoose.model("ExhibitionArticle", exhibitionArticleSchema);

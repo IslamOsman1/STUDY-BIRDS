@@ -16,7 +16,7 @@ export const ProgramCard = ({ program }: { program: Program }) => {
 
   return (
     <div className="panel overflow-hidden bg-white p-0">
-      {coverImage ? <img src={getApiAssetUrl(coverImage)} alt={program.title} className="h-48 w-full object-cover" /> : null}
+      {coverImage ? <img src={getApiAssetUrl(coverImage)} alt={program.title} loading="lazy" className="h-48 w-full object-cover" /> : null}
       <div className="p-6">
       <div className="flex flex-wrap gap-2">
         <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">

@@ -8,6 +8,7 @@ import { SITE_NAME, seoText } from "../seo/site";
 import { contentService } from "../services/contentService";
 import type { Recognition } from "../types";
 import { getErrorMessage } from "../utils/errors";
+import { getPaginatedItems } from "../utils/pagination";
 
 export const AboutPage = () => {
   const { t, language } = useLanguage();
@@ -21,8 +22,8 @@ export const AboutPage = () => {
       setError("");
 
       try {
-        const recognitionsData = await contentService.getRecognitions();
-        setRecognitions(recognitionsData.filter((recognition) => recognition.featured !== false));
+        const recognitionsData = await contentService.getRecognitions({ page: 1, limit: 12, paginate: true, featuredOnly: true });
+        setRecognitions(getPaginatedItems(recognitionsData).filter((recognition) => recognition.featured !== false));
       } catch (loadError) {
         setError(
           getErrorMessage(
@@ -127,7 +128,7 @@ export const AboutPage = () => {
                   <Link to={`/recognitions/${recognition.slug || recognition._id}`} className="block">
                     {imageUrl ? (
                       <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
-                        <img src={imageUrl} alt={recognition.title} className="h-full w-full rounded-[1rem] object-contain" />
+                        <img src={imageUrl} alt={recognition.title} loading="lazy" className="h-full w-full rounded-[1rem] object-contain" />
                       </div>
                     ) : (
                       <div className="flex h-32 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-4 sm:h-40 sm:p-5 lg:h-48">

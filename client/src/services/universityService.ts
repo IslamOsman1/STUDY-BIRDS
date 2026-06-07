@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { University } from "../types";
+import type { PaginatedResponse, University } from "../types";
 
 type UniversityPayload = {
   name?: string;
@@ -21,8 +21,8 @@ type UniversityPayload = {
 };
 
 export const universityService = {
-  getAll: async (params?: { country?: string; featured?: boolean }) => {
-    const { data } = await api.get<University[]>("/universities", { params });
+  getAll: async (params?: { country?: string; featured?: boolean; page?: number; limit?: number; paginate?: boolean }) => {
+    const { data } = await api.get<University[] | PaginatedResponse<University>>("/universities", { params });
     return data;
   },
   getById: async (id: string) => {

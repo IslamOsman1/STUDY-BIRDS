@@ -1,5 +1,6 @@
 const StudyField = require("../models/StudyField");
 const asyncHandler = require("../utils/asyncHandler");
+const { clearResponseCache } = require("../utils/responseCache");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 
 const studyFieldSort = { featured: -1, sortOrder: 1, createdAt: -1, name: 1 };
@@ -18,6 +19,7 @@ const createStudyField = asyncHandler(async (req, res) => {
     sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
   });
 
+  clearResponseCache();
   res.status(201).json(studyField);
 });
 
@@ -39,6 +41,7 @@ const updateStudyField = asyncHandler(async (req, res) => {
     throw new Error("Study field not found");
   }
 
+  clearResponseCache();
   res.json(studyField);
 });
 
@@ -50,6 +53,7 @@ const deleteStudyField = asyncHandler(async (req, res) => {
     throw new Error("Study field not found");
   }
 
+  clearResponseCache();
   res.json({ message: "Study field deleted" });
 });
 

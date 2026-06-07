@@ -15,6 +15,11 @@ const PastEvent = require("../models/PastEvent");
 const EventRegistration = require("../models/EventRegistration");
 const slugify = require("slugify");
 const asyncHandler = require("../utils/asyncHandler");
+const {
+  attachResolvedSeo,
+  buildExhibitionPayload: buildExhibitionSeoPayload,
+} = require("../utils/exhibitionSeo");
+const { clearResponseCache } = require("../utils/responseCache");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 const {
   hydrateApplicationsWithStudentProfiles,
@@ -96,6 +101,33 @@ const buildExhibitionPayload = (body) => {
     featured: typeof body.featured === "boolean" ? body.featured : true,
     published: typeof body.published === "boolean" ? body.published : true,
   };
+};
+
+const triggerFrontendRebuild = async (reason) => {
+  const deployHookUrl = String(process.env.FRONTEND_DEPLOY_HOOK_URL || "").trim();
+
+  if (!deployHookUrl) {
+    return;
+  }
+
+  try {
+    await fetch(deployHookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        trigger: "article-seo-update",
+        reason,
+      }),
+    });
+  } catch (error) {
+    console.error("Unable to trigger frontend rebuild", error);
+  }
+};
+
+const invalidatePublicContent = () => {
+  clearResponseCache();
 };
 
 const buildRecognitionSlug = async (title, currentId) => {
@@ -448,6 +480,7 @@ const buildCountryPayload = (body) => ({
 
 const createCountry = asyncHandler(async (req, res) => {
   const country = await Country.create(buildCountryPayload(req.body));
+  invalidatePublicContent();
   res.status(201).json(country);
 });
 
@@ -469,6 +502,7 @@ const updateCountry = asyncHandler(async (req, res) => {
     throw new Error("Country not found");
   }
 
+  invalidatePublicContent();
   res.json(country);
 });
 
@@ -480,6 +514,7 @@ const deleteCountry = asyncHandler(async (req, res) => {
     throw new Error("Country not found");
   }
 
+  invalidatePublicContent();
   res.json({ message: "Country deleted" });
 });
 
@@ -517,6 +552,7 @@ const updateSiteSettings = asyncHandler(async (req, res) => {
       })
     : await SiteSettings.create(payload);
 
+  invalidatePublicContent();
   res.json(settings);
 });
 
@@ -573,8 +609,8 @@ const getOurStoryAdmin = asyncHandler(async (req, res) => {
 });
 
 const getExhibitionArticlesAdmin = asyncHandler(async (req, res) => {
-  const articles = await ExhibitionArticle.find().sort({ featured: -1, createdAt: -1 });
-  res.json(articles);
+  const articles = await ExhibitionArticle.find().sort({ featured: -1, createdAt: -1 }).lean();
+  res.json(articles.map(attachResolvedSeo));
 });
 
 const getUpcomingEventAdmin = asyncHandler(async (req, res) => {
@@ -606,12 +642,13 @@ const getEventRegistrationsAdmin = asyncHandler(async (req, res) => {
 
 const createTestimonial = asyncHandler(async (req, res) => {
   const testimonial = await Testimonial.create(req.body);
+  invalidatePublicContent();
   res.status(201).json(testimonial);
 });
 
 const createRecognition = asyncHandler(async (req, res) => {
   const recognition = await Recognition.create(await buildRecognitionPayload(req.body));
-
+  invalidatePublicContent();
   res.status(201).json(recognition);
 });
 
@@ -623,12 +660,13 @@ const createFaq = asyncHandler(async (req, res) => {
     sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
   });
 
+  invalidatePublicContent();
   res.status(201).json(faq);
 });
 
 const createOurService = asyncHandler(async (req, res) => {
   const service = await OurService.create(await buildOurServicePayload(req.body));
-
+  invalidatePublicContent();
   res.status(201).json(service);
 });
 
@@ -638,18 +676,26 @@ const upsertOurStory = asyncHandler(async (req, res) => {
 
   if (!existingStory) {
     const createdStory = await OurStory.create(payload);
+    invalidatePublicContent();
     res.status(201).json(createdStory);
     return;
   }
 
   existingStory.set(payload);
   await existingStory.save();
+  invalidatePublicContent();
   res.json(existingStory);
 });
 
 const createExhibitionArticle = asyncHandler(async (req, res) => {
-  const article = await ExhibitionArticle.create(buildExhibitionPayload(req.body));
-  res.status(201).json(article);
+  const payload = {
+    ...buildExhibitionPayload(req.body),
+    ...(await buildExhibitionSeoPayload(req.body)),
+  };
+  const article = await ExhibitionArticle.create(payload);
+  invalidatePublicContent();
+  await triggerFrontendRebuild(`create:${article.slug}`);
+  res.status(201).json(attachResolvedSeo(article.toObject()));
 });
 
 const upsertUpcomingEvent = asyncHandler(async (req, res) => {
@@ -667,17 +713,20 @@ const upsertUpcomingEvent = asyncHandler(async (req, res) => {
 
   if (!existingEvent) {
     const createdEvent = await UpcomingEvent.create(payload);
+    invalidatePublicContent();
     res.status(201).json(createdEvent);
     return;
   }
 
   existingEvent.set(payload);
   await existingEvent.save();
+  invalidatePublicContent();
   res.json(existingEvent);
 });
 
 const createPastEvent = asyncHandler(async (req, res) => {
   const event = await PastEvent.create(await buildPastEventPayload(req.body));
+  invalidatePublicContent();
   res.status(201).json(event);
 });
 
@@ -689,6 +738,7 @@ const updateTestimonial = asyncHandler(async (req, res) => {
     throw new Error("Testimonial not found");
   }
 
+  invalidatePublicContent();
   res.json(testimonial);
 });
 
@@ -711,6 +761,7 @@ const updateRecognition = asyncHandler(async (req, res) => {
     throw new Error("Recognition not found");
   }
 
+  invalidatePublicContent();
   res.json(recognition);
 });
 
@@ -731,6 +782,7 @@ const updateFaq = asyncHandler(async (req, res) => {
     throw new Error("FAQ not found");
   }
 
+  invalidatePublicContent();
   res.json(faq);
 });
 
@@ -753,18 +805,32 @@ const updateOurService = asyncHandler(async (req, res) => {
     throw new Error("Service not found");
   }
 
+  invalidatePublicContent();
   res.json(service);
 });
 
 const updateExhibitionArticle = asyncHandler(async (req, res) => {
-  const article = await ExhibitionArticle.findByIdAndUpdate(req.params.id, buildExhibitionPayload(req.body), { new: true, runValidators: true });
+  const currentArticle = await ExhibitionArticle.findById(req.params.id);
+
+  if (!currentArticle) {
+    res.status(404);
+    throw new Error("Exhibition article not found");
+  }
+
+  const payload = {
+    ...buildExhibitionPayload(req.body),
+    ...(await buildExhibitionSeoPayload(req.body, currentArticle)),
+  };
+  const article = await ExhibitionArticle.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
 
   if (!article) {
     res.status(404);
     throw new Error("Exhibition article not found");
   }
 
-  res.json(article);
+  invalidatePublicContent();
+  await triggerFrontendRebuild(`update:${article.slug}`);
+  res.json(attachResolvedSeo(article.toObject()));
 });
 
 const updatePastEvent = asyncHandler(async (req, res) => {
@@ -781,6 +847,7 @@ const updatePastEvent = asyncHandler(async (req, res) => {
     { new: true, runValidators: true }
   );
 
+  invalidatePublicContent();
   res.json(event);
 });
 
@@ -792,6 +859,7 @@ const deleteTestimonial = asyncHandler(async (req, res) => {
     throw new Error("Testimonial not found");
   }
 
+  invalidatePublicContent();
   res.json({ message: "Testimonial deleted" });
 });
 
@@ -803,6 +871,7 @@ const deleteRecognition = asyncHandler(async (req, res) => {
     throw new Error("Recognition not found");
   }
 
+  invalidatePublicContent();
   res.json({ message: "Recognition deleted" });
 });
 
@@ -814,6 +883,7 @@ const deleteFaq = asyncHandler(async (req, res) => {
     throw new Error("FAQ not found");
   }
 
+  invalidatePublicContent();
   res.json({ message: "FAQ deleted" });
 });
 
@@ -825,6 +895,7 @@ const deleteOurService = asyncHandler(async (req, res) => {
     throw new Error("Service not found");
   }
 
+  invalidatePublicContent();
   res.json({ message: "Service deleted" });
 });
 
@@ -897,6 +968,8 @@ const deleteExhibitionArticle = asyncHandler(async (req, res) => {
     throw new Error("Exhibition article not found");
   }
 
+  invalidatePublicContent();
+  await triggerFrontendRebuild(`delete:${article.slug}`);
   res.json({ message: "Exhibition article deleted" });
 });
 
@@ -908,6 +981,7 @@ const deletePastEvent = asyncHandler(async (req, res) => {
     throw new Error("Past event not found");
   }
 
+  invalidatePublicContent();
   res.json({ message: "Past event deleted" });
 });
 

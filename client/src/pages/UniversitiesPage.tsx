@@ -1,21 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapPinned, ScrollText } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPinned, ScrollText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { UniversityCard } from "../components/marketing/UniversityCard";
 import { Seo } from "../components/seo/Seo";
 import { universityService } from "../services/universityService";
 import { contentService } from "../services/contentService";
-import type { Country, University } from "../types";
+import type { Country, PaginationMeta, University } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { seoText } from "../seo/site";
 import { getDestinationImage } from "../utils/marketingVisuals";
+import { getPaginatedItems, getPaginationMeta } from "../utils/pagination";
 
 export const UniversitiesPage = () => {
   const { t, language, tv } = useLanguage();
   const [searchParams] = useSearchParams();
   const [universities, setUniversities] = useState<University[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(() => Number(searchParams.get("page") || 1));
   const selectedCountryId = searchParams.get("country") || "";
   const selectedCountry = useMemo(
     () => countries.find((country) => country._id === selectedCountryId),
@@ -23,13 +27,26 @@ export const UniversitiesPage = () => {
   );
 
   useEffect(() => {
+    setLoading(true);
+
     Promise.all([
-      universityService.getAll(selectedCountryId ? { country: selectedCountryId } : undefined),
+      universityService.getAll(
+        selectedCountryId
+          ? { country: selectedCountryId, page, limit: 12, paginate: true }
+          : { page, limit: 12, paginate: true }
+      ),
       contentService.getCountries(),
-    ]).then(([universitiesData, countriesData]) => {
-      setUniversities(universitiesData);
-      setCountries(countriesData);
-    });
+    ])
+      .then(([universitiesData, countriesData]) => {
+        setUniversities(getPaginatedItems(universitiesData));
+        setPagination(getPaginationMeta(universitiesData));
+        setCountries(getPaginatedItems(countriesData));
+      })
+      .finally(() => setLoading(false));
+  }, [page, selectedCountryId]);
+
+  useEffect(() => {
+    setPage(1);
   }, [selectedCountryId]);
 
   return (
@@ -60,6 +77,7 @@ export const UniversitiesPage = () => {
               <img
                 src={getDestinationImage(selectedCountry.name, selectedCountry.heroImage)}
                 alt={tv(selectedCountry.name)}
+                loading="lazy"
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
@@ -101,14 +119,42 @@ export const UniversitiesPage = () => {
         </div>
       ) : null}
       {selectedCountry ? <ArticleContentSection article={selectedCountry} language={language} /> : null}
+      {loading ? <div className="panel mt-8 p-8 text-sm text-slate-500">{language === "ar" ? "جاري تحميل الجامعات..." : "Loading universities..."}</div> : null}
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
         {universities.map((university) => (
           <UniversityCard key={university._id} university={university} />
         ))}
       </div>
-      {!universities.length ? (
+      {!loading && !universities.length ? (
         <div className="panel mt-8 p-8 text-sm text-slate-500">
           {language === "ar" ? "لا توجد جامعات مضافة لهذه الدولة حاليًا." : "No universities are available for this country yet."}
+        </div>
+      ) : null}
+      {pagination ? (
+        <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-slate-200 px-4 py-3">
+          <p className="text-sm text-slate-600">
+            {language === "ar" ? `صفحة ${pagination.page} من ${pagination.totalPages}` : `Page ${pagination.page} of ${pagination.totalPages}`}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={!pagination.hasPreviousPage}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {language === "ar" ? "السابق" : "Previous"}
+            </button>
+            <button
+              type="button"
+              disabled={!pagination.hasNextPage}
+              onClick={() => setPage((current) => current + 1)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+            >
+              {language === "ar" ? "التالي" : "Next"}
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

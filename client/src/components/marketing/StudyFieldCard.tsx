@@ -16,7 +16,7 @@ export const StudyFieldCard = ({ studyField }: { studyField: StudyField }) => {
     >
       <div className="relative h-56 overflow-hidden bg-slate-950 sm:h-52 lg:h-64">
         {imageSrc ? (
-          <img src={imageSrc} alt={tv(studyField.name)} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+          <img src={imageSrc} alt={tv(studyField.name)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
         ) : (
           <div className="h-full w-full bg-fusion" />
         )}

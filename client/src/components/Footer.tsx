@@ -26,7 +26,7 @@ export const Footer = () => {
             <Link to="/universities">{t("universities")}</Link>
             <Link to="/destinations">{t("destinations")}</Link>
             <Link to="/services">{t("servicesEyebrow")}</Link>
-            <Link to="/exhibitions">{t("exhibitions")}</Link>
+            <Link to="/blog">{t("exhibitions")}</Link>
             <Link to="/partner">{t("partner")}</Link>
           </div>
         </div>

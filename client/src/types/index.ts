@@ -48,6 +48,20 @@ export interface SiteSettings {
   officeLocations?: string;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  pagination: PaginationMeta;
+}
+
 export interface UpcomingEvent {
   _id?: string;
   title?: string;
@@ -314,6 +328,7 @@ export interface ExhibitionArticle extends ArticleContent {
   _id: string;
   title: string;
   slug: string;
+  customSlug?: string;
   image?: string;
   summary: string;
   body: string;
@@ -323,6 +338,24 @@ export interface ExhibitionArticle extends ArticleContent {
   youtubeUrl: string;
   featured?: boolean;
   published?: boolean;
+  seoTitle?: string;
+  metaDescription?: string;
+  focusKeyword?: string;
+  seoKeywords?: string[];
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
+  imageAltText?: string;
+  robotsIndex?: "index" | "noindex";
+  robotsFollow?: "follow" | "nofollow";
+  category?: string;
+  authorName?: string;
+  publishedAt?: string | null;
+  seoUpdatedAt?: string | null;
   sections?: Array<{
     title: string;
     summary?: string;
@@ -332,6 +365,29 @@ export interface ExhibitionArticle extends ArticleContent {
   }>;
   createdAt?: string;
   updatedAt?: string;
+  resolvedSeo?: {
+    articleUrl: string;
+    canonicalUrl: string;
+    seoTitle: string;
+    metaDescription: string;
+    focusKeyword?: string;
+    seoKeywords: string[];
+    ogTitle: string;
+    ogDescription: string;
+    ogImage: string;
+    twitterTitle: string;
+    twitterDescription: string;
+    twitterImage: string;
+    imageAltText: string;
+    robotsIndex: "index" | "noindex";
+    robotsFollow: "follow" | "nofollow";
+    category: string;
+    categorySlug: string;
+    authorName: string;
+    publishedAt?: string | null;
+    updatedAt?: string | null;
+  };
+  articleSchema?: Record<string, unknown>;
 }
 
 export interface NotificationItem {
@@ -340,6 +396,16 @@ export interface NotificationItem {
   message: string;
   type: string;
   isRead: boolean;
+}
+
+export interface HomePageContent {
+  countries: Country[];
+  studyFields: StudyField[];
+  universities: University[];
+  testimonials: Testimonial[];
+  recognitions: Recognition[];
+  services: OurService[];
+  faqs: Faq[];
 }
 
 export interface AuthResponse {

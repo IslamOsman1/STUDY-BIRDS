@@ -6,9 +6,9 @@ import { useLanguage } from "../hooks/useLanguage";
 import { BRAND_LOGO_PATH, SITE_NAME } from "../seo/site";
 import { dt } from "../utils/dashboardTranslations";
 
-const exhibitionsLabel = {
-  en: "Exhibitions Station",
-  ar: "محطة المعارض",
+const blogLabel = {
+  en: "Blog",
+  ar: "المدونة",
 } as const;
 
 const navItems = [
@@ -33,7 +33,7 @@ export const Navbar = () => {
   const { user, logout } = useAuth();
   const { language, t, toggleLanguage } = useLanguage();
   const location = useLocation();
-  const exhibitionsText = exhibitionsLabel[language];
+  const blogText = blogLabel[language];
   const aboutMenuActive = aboutMenuItems.some((item) => location.pathname === item.href);
   const profileHref = user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner/profile" : "/student";
   const profileLabel = user?.role === "partner" ? dt(language, "profileHub") : t("dashboard");
@@ -110,12 +110,12 @@ export const Navbar = () => {
             ) : null}
           </div>
           <NavLink
-            to="/exhibitions"
+            to="/blog"
             className={({ isActive }) =>
               `text-sm font-medium ${isActive ? "text-brand-700" : "text-slate-600 hover:text-slate-900"}`
             }
           >
-            {exhibitionsText}
+            {blogText}
           </NavLink>
         </nav>
 
@@ -207,8 +207,8 @@ export const Navbar = () => {
                 </div>
               ) : null}
             </div>
-            <Link to="/exhibitions" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
-              {exhibitionsText}
+            <Link to="/blog" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
+              {blogText}
             </Link>
             <button
               onClick={toggleLanguage}

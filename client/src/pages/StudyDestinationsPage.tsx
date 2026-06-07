@@ -5,13 +5,14 @@ import { contentService } from "../services/contentService";
 import type { Country } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { seoText } from "../seo/site";
+import { getPaginatedItems } from "../utils/pagination";
 
 export const StudyDestinationsPage = () => {
   const { t, language } = useLanguage();
   const [countries, setCountries] = useState<Country[]>([]);
 
   useEffect(() => {
-    contentService.getCountries().then(setCountries);
+    contentService.getCountries().then((data) => setCountries(getPaginatedItems(data)));
   }, []);
 
   return (

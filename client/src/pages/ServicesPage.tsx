@@ -8,6 +8,7 @@ import { SITE_NAME, seoText } from "../seo/site";
 import { contentService } from "../services/contentService";
 import type { OurService } from "../types";
 import { getErrorMessage } from "../utils/errors";
+import { getPaginatedItems } from "../utils/pagination";
 
 export const ServicesPage = () => {
   const { language, t } = useLanguage();
@@ -21,8 +22,8 @@ export const ServicesPage = () => {
       setError("");
 
       try {
-        const servicesData = await contentService.getOurServices();
-        setServices(servicesData.filter((service) => service.featured !== false));
+        const servicesData = await contentService.getOurServices({ page: 1, limit: 12, paginate: true, featuredOnly: true });
+        setServices(getPaginatedItems(servicesData).filter((service) => service.featured !== false));
       } catch (loadError) {
         setError(
           getErrorMessage(
@@ -110,7 +111,7 @@ export const ServicesPage = () => {
             >
               {imageUrl ? (
                 <div className="flex h-44 w-full items-center justify-center rounded-[1.4rem] bg-[linear-gradient(180deg,rgba(17,24,39,0.04)_0%,rgba(17,24,39,0.01)_100%)] p-4 sm:h-52">
-                  <img src={imageUrl} alt={service.title} className="h-full w-full rounded-[1rem] object-contain" />
+                  <img src={imageUrl} alt={service.title} loading="lazy" className="h-full w-full rounded-[1rem] object-contain" />
                 </div>
               ) : (
                 <div className="flex h-44 w-full flex-col justify-between rounded-[1.4rem] bg-fusion p-5 text-white sm:h-52">

@@ -1,5 +1,8 @@
 const University = require("../models/University");
 const asyncHandler = require("../utils/asyncHandler");
+const { buildPaginationMeta, parsePagination } = require("../utils/queryUtils");
+const { timedOperation } = require("../utils/perf");
+const { clearResponseCache } = require("../utils/responseCache");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 
 const buildUniversityPayload = (body) => ({
@@ -28,7 +31,10 @@ const buildUniversityPayload = (body) => ({
 });
 
 const getUniversities = asyncHandler(async (req, res) => {
+  const requestStartedAt = Date.now();
   const query = {};
+  const { page, limit, skip } = parsePagination(req.query, 12);
+  const shouldPaginate = "page" in req.query || "limit" in req.query || req.query.paginate === "true";
 
   if (req.query.country) {
     query.country = req.query.country;
@@ -38,11 +44,29 @@ const getUniversities = asyncHandler(async (req, res) => {
     query.featured = req.query.featured === "true";
   }
 
-  const universities = await University.find(query)
-    .select("name slug city language studentCount specialtyCount overview ranking tuitionRange logo campusImages featured isPartnerInstitution country createdAt")
+  const listQuery = University.find(query)
+    .select("name slug city language studentCount specialtyCount overview ranking tuitionRange logo featured isPartnerInstitution country createdAt")
     .populate("country", "name slug code heroImage featured")
-    .sort({ featured: -1, name: 1 })
-    .lean();
+    .sort({ featured: -1, name: 1 });
+
+  if (shouldPaginate) {
+    listQuery.skip(skip).limit(limit);
+  }
+
+  const [universities, total] = await Promise.all([
+    timedOperation("universities.listQuery", () => listQuery.lean()),
+    shouldPaginate ? timedOperation("universities.countQuery", () => University.countDocuments(query)) : Promise.resolve(0),
+  ]);
+
+  res.set("X-Response-Time", `${Date.now() - requestStartedAt}ms`);
+
+  if (shouldPaginate) {
+    res.json({
+      items: universities,
+      pagination: buildPaginationMeta({ page, limit, total }),
+    });
+    return;
+  }
 
   res.json(universities);
 });
@@ -60,6 +84,7 @@ const getUniversityById = asyncHandler(async (req, res) => {
 
 const createUniversity = asyncHandler(async (req, res) => {
   const university = await University.create(buildUniversityPayload(req.body));
+  clearResponseCache();
   res.status(201).json(university);
 });
 
@@ -73,6 +98,7 @@ const updateUniversity = asyncHandler(async (req, res) => {
     throw new Error("University not found");
   }
 
+  clearResponseCache();
   res.json(university);
 });
 
@@ -84,6 +110,7 @@ const deleteUniversity = asyncHandler(async (req, res) => {
     throw new Error("University not found");
   }
 
+  clearResponseCache();
   res.json({ message: "University deleted" });
 });
 

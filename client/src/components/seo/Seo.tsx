@@ -17,8 +17,13 @@ type SeoProps = {
   description: string;
   keywords?: string[];
   noIndex?: boolean;
+  noFollow?: boolean;
   type?: "website" | "article";
   canonicalPath?: string;
+  image?: string;
+  twitterImage?: string;
+  articlePublishedTime?: string | null;
+  articleModifiedTime?: string | null;
   structuredData?: StructuredData;
 };
 
@@ -83,8 +88,13 @@ export const Seo = ({
   description,
   keywords = [],
   noIndex = false,
+  noFollow = false,
   type = "website",
   canonicalPath,
+  image,
+  twitterImage,
+  articlePublishedTime,
+  articleModifiedTime,
   structuredData,
 }: SeoProps) => {
   const location = useLocation();
@@ -95,9 +105,7 @@ export const Seo = ({
     const pageDescription = normalizeSeoDescription(description);
     const currentPath = canonicalPath || location.pathname || "/";
     const canonicalUrl = buildLocalizedUrl(currentPath, language);
-    const robotsValue = noIndex
-      ? "noindex, nofollow"
-      : "index, follow, max-image-preview:large";
+    const robotsValue = `${noIndex ? "noindex" : "index"}, ${noFollow ? "nofollow" : "follow"}, max-image-preview:large`;
     const keywordValue = [
       ...keywords,
       seoText(
@@ -124,6 +132,9 @@ export const Seo = ({
     );
     setMetaTag('meta[property="og:type"]', "property", "og:type", type);
     setMetaTag('meta[property="og:url"]', "property", "og:url", canonicalUrl);
+    if (image) {
+      setMetaTag('meta[property="og:image"]', "property", "og:image", image);
+    }
     setMetaTag(
       'meta[property="og:site_name"]',
       "property",
@@ -149,6 +160,30 @@ export const Seo = ({
       "twitter:description",
       pageDescription
     );
+    if (twitterImage || image) {
+      setMetaTag(
+        'meta[name="twitter:image"]',
+        "name",
+        "twitter:image",
+        twitterImage || image || ""
+      );
+    }
+    if (type === "article" && articlePublishedTime) {
+      setMetaTag(
+        'meta[property="article:published_time"]',
+        "property",
+        "article:published_time",
+        articlePublishedTime
+      );
+    }
+    if (type === "article" && articleModifiedTime) {
+      setMetaTag(
+        'meta[property="article:modified_time"]',
+        "property",
+        "article:modified_time",
+        articleModifiedTime
+      );
+    }
 
     setLinkTag("canonical", canonicalUrl);
     setLinkTag("alternate", buildLocalizedUrl(currentPath, "en"), "en");
@@ -163,6 +198,11 @@ export const Seo = ({
     language,
     location.pathname,
     noIndex,
+    noFollow,
+    image,
+    twitterImage,
+    articlePublishedTime,
+    articleModifiedTime,
     structuredData,
     title,
     type,

@@ -52,4 +52,7 @@ ourServiceSchema.pre("validate", function ourServicePreValidate(next) {
   next();
 });
 
+ourServiceSchema.index({ featured: -1, sortOrder: 1, createdAt: -1 });
+ourServiceSchema.index({ updatedAt: -1 });
+
 module.exports = mongoose.model("OurService", ourServiceSchema);

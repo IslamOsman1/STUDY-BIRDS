@@ -41,4 +41,8 @@ studyFieldSchema.pre("validate", function setSlug(next) {
   next();
 });
 
+studyFieldSchema.index({ slug: 1 });
+studyFieldSchema.index({ featured: -1, sortOrder: 1, createdAt: -1, name: 1 });
+studyFieldSchema.index({ updatedAt: -1 });
+
 module.exports = mongoose.model("StudyField", studyFieldSchema);

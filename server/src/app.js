@@ -11,6 +11,11 @@ const applicationRoutes = require("./routes/applicationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const contentRoutes = require("./routes/contentRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
+const {
+  buildRobotsTxt,
+  buildSitemapXml,
+} = require("./utils/exhibitionSeo");
+const ExhibitionArticle = require("./models/ExhibitionArticle");
 
 const app = express();
 
@@ -51,10 +56,35 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
+app.use((req, res, next) => {
+  const startedAt = process.hrtime.bigint();
+
+  res.on("finish", () => {
+    const elapsedMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+    console.log(`[perf] ${req.method} ${req.originalUrl} ${res.statusCode} - ${elapsedMs.toFixed(2)}ms`);
+  });
+
+  next();
+});
 app.use("/uploads", express.static(path.resolve(process.cwd(), process.env.UPLOAD_DIR || "src/uploads")));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "study-birds-api" });
+});
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.send(buildRobotsTxt());
+});
+
+app.get("/sitemap.xml", async (req, res, next) => {
+  try {
+    const articles = await ExhibitionArticle.find({ published: true }).lean();
+    res.type("application/xml");
+    res.send(buildSitemapXml(articles));
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use("/api/auth", authRoutes);

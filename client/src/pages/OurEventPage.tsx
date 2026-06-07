@@ -11,6 +11,7 @@ import type { PastEvent, UpcomingEvent } from "../types";
 import { getErrorMessage } from "../utils/errors";
 import { formatDate } from "../utils/format";
 import { buildPhoneNumber, DEFAULT_PHONE_DIAL_CODE } from "../utils/phoneCountryOptions";
+import { getPaginatedItems } from "../utils/pagination";
 
 const eventCategoryOptions = [
   { value: "all", en: "All Events", ar: "كل الفعاليات" },
@@ -74,11 +75,11 @@ export const OurEventPage = () => {
       try {
         const [upcomingEventData, pastEventsData] = await Promise.all([
           contentService.getUpcomingEvent(),
-          contentService.getPastEvents(),
+          contentService.getPastEvents({ page: 1, limit: 9, paginate: true, featuredOnly: true }),
         ]);
 
         setUpcomingEvent(upcomingEventData);
-        setPastEvents(pastEventsData.filter((event) => event.featured !== false));
+        setPastEvents(getPaginatedItems(pastEventsData).filter((event) => event.featured !== false));
       } catch (loadError) {
         setError(
           getErrorMessage(
@@ -330,7 +331,7 @@ export const OurEventPage = () => {
                   className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-1 hover:shadow-2xl"
                 >
                   <div className="relative h-64 overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_100%)]">
-                    {coverImage ? <img src={coverImage} alt={event.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : null}
+                    {coverImage ? <img src={coverImage} alt={event.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : null}
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
                     <div className="absolute left-4 right-4 top-4 flex items-center justify-between">
                       <span className="rounded-full border border-white/15 bg-slate-950/45 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
@@ -496,7 +497,7 @@ export const OurEventPage = () => {
                 {selectedMedia.type === "video" ? (
                   <video src={getApiAssetUrl(selectedMedia.url)} className="max-h-[70vh] w-full bg-black object-contain" controls autoPlay />
                 ) : (
-                  <img src={getApiAssetUrl(selectedMedia.url)} alt={selectedEvent.title} className="max-h-[70vh] w-full object-contain" />
+                  <img src={getApiAssetUrl(selectedMedia.url)} alt={selectedEvent.title} loading="lazy" className="max-h-[70vh] w-full object-contain" />
                 )}
 
                 {selectedEvent.mediaItems && selectedEvent.mediaItems.length > 1 ? (
@@ -524,7 +525,7 @@ export const OurEventPage = () => {
                           <PlayCircle className="h-8 w-8" />
                         </div>
                       ) : (
-                        <img src={getApiAssetUrl(item.url)} alt={`Media ${index + 1}`} className="h-20 w-24 object-cover" />
+                        <img src={getApiAssetUrl(item.url)} alt={`Media ${index + 1}`} loading="lazy" className="h-20 w-24 object-cover" />
                       )}
                     </button>
                   ))}

@@ -10,9 +10,9 @@ import { DestinationCard } from "../components/marketing/DestinationCard";
 import { StudyFieldCard } from "../components/marketing/StudyFieldCard";
 import { UniversityCard } from "../components/marketing/UniversityCard";
 import { TestimonialCard } from "../components/marketing/TestimonialCard";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useAuth } from "../hooks/useAuth";
 import { contentService } from "../services/contentService";
-import { universityService } from "../services/universityService";
 import type { Country, Faq, OurService, Recognition, StudyField, Testimonial, University } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { SITE_NAME, getSiteUrl, seoText } from "../seo/site";
@@ -29,6 +29,8 @@ export const HomePage = () => {
   const [recognitions, setRecognitions] = useState<Recognition[]>([]);
   const [services, setServices] = useState<OurService[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [contentLoading, setContentLoading] = useState(true);
+  const [contentLoadFailed, setContentLoadFailed] = useState(false);
   const [selectedUniversityCountry, setSelectedUniversityCountry] = useState("all");
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
   const countriesScrollerRef = useRef<HTMLDivElement | null>(null);
@@ -50,23 +52,38 @@ export const HomePage = () => {
     !user ? t("startJourney") : user.role === "student" ? t("studentProfile") : user.role === "partner" ? dt(language, "profileHub") : t("dashboard");
 
   useEffect(() => {
-    Promise.all([
-      contentService.getCountries(),
-      contentService.getStudyFields(),
-      universityService.getAll(),
-      contentService.getTestimonials(),
-      contentService.getRecognitions(),
-      contentService.getOurServices(),
-      contentService.getFaqs(),
-    ]).then(([countriesData, studyFieldsData, universitiesData, testimonialsData, recognitionsData, servicesData, faqsData]) => {
-      setCountries(countriesData.slice(0, 7));
-      setStudyFields(studyFieldsData.slice(0, 6));
-      setUniversities(universitiesData);
-      setTestimonials(testimonialsData.slice(0, 3));
-      setRecognitions(recognitionsData.filter((recognition) => recognition.featured !== false).slice(0, 6));
-      setServices(servicesData.filter((service) => service.featured !== false).slice(0, 6));
-      setFaqs(faqsData.filter((faq) => faq.featured !== false));
-    });
+    let active = true;
+
+    contentService
+      .getHomePageContent()
+      .then((data) => {
+        if (!active) {
+          return;
+        }
+
+        setCountries(data.countries);
+        setStudyFields(data.studyFields);
+        setUniversities(data.universities);
+        setTestimonials(data.testimonials);
+        setRecognitions(data.recognitions);
+        setServices(data.services);
+        setFaqs(data.faqs);
+        setContentLoadFailed(false);
+      })
+      .catch(() => {
+        if (active) {
+          setContentLoadFailed(true);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setContentLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const universityCountries = universities.reduce<Country[]>((list, university) => {
@@ -169,6 +186,18 @@ export const HomePage = () => {
       />
 
       <HeroSection />
+
+      {contentLoading ? (
+        <div className="panel flex items-center gap-3 p-6 text-sm text-slate-500">
+          <LoadingSpinner />
+          <span>{language === "ar" ? "جاري تحميل المحتوى الديناميكي..." : "Loading dynamic content..."}</span>
+        </div>
+      ) : null}
+      {contentLoadFailed ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {language === "ar" ? "تعذر تحميل بعض البيانات الديناميكية حاليًا." : "Some dynamic content could not be loaded right now."}
+        </div>
+      ) : null}
 
       <motion.section
         initial={{ opacity: 0, y: 24 }}

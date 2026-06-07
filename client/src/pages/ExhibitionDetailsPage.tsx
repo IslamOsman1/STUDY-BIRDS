@@ -1,11 +1,10 @@
-import { CalendarDays, Newspaper, PlayCircle } from "lucide-react";
+import { CalendarDays, Newspaper, PlayCircle, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { Seo } from "../components/seo/Seo";
 import { useLanguage } from "../hooks/useLanguage";
 import { getApiAssetUrl } from "../lib/api";
-import { SITE_NAME, seoText } from "../seo/site";
 import { contentService } from "../services/contentService";
 import type { ExhibitionArticle } from "../types";
 import { getErrorMessage } from "../utils/errors";
@@ -36,7 +35,9 @@ export const ExhibitionDetailsPage = () => {
           ? article.articleHeadings
           : (article.sections || []).map((section) => section.title || "").filter((item) => item.trim()),
       articleBodies:
-        article.articleBodies?.length ? article.articleBodies : (article.sections || []).map((section) => section.body || ""),
+        article.articleBodies?.length
+          ? article.articleBodies
+          : (article.sections || []).map((section) => section.body || ""),
     };
   }, [article]);
 
@@ -51,7 +52,7 @@ export const ExhibitionDetailsPage = () => {
         setError(
           getErrorMessage(
             loadError,
-            language === "ar" ? "تعذر تحميل تفاصيل المنشور." : "Unable to load the exhibition post."
+            language === "ar" ? "تعذر تحميل تفاصيل المقال." : "Unable to load the article."
           )
         );
       } finally {
@@ -62,21 +63,22 @@ export const ExhibitionDetailsPage = () => {
     loadArticle();
   }, [slug, language]);
 
+  const seo = article?.resolvedSeo;
   const mainEmbedUrl = article?.youtubeUrl ? getYoutubeEmbedUrl(article.youtubeUrl) : null;
   const heroImage = article?.image ? getApiAssetUrl(article.image) : "";
 
   if (loading) {
-    return <div className="panel p-8 text-sm text-slate-500">{language === "ar" ? "جاري تحميل المنشور..." : "Loading post..."}</div>;
+    return <div className="panel p-8 text-sm text-slate-500">{language === "ar" ? "جاري تحميل المقال..." : "Loading article..."}</div>;
   }
 
-  if (error || !article || !articleContent) {
+  if (error || !article || !articleContent || !seo) {
     return (
       <div className="space-y-4">
-        <Link to="/exhibitions" className="inline-flex text-sm font-semibold text-brand-700">
-          {language === "ar" ? "العودة إلى صفحة المعارض" : "Back to exhibitions"}
+        <Link to="/blog" className="inline-flex text-sm font-semibold text-brand-700">
+          {language === "ar" ? "العودة إلى المدونة" : "Back to the blog"}
         </Link>
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error || (language === "ar" ? "المنشور غير موجود." : "Post not found.")}
+          {error || (language === "ar" ? "المقال غير موجود." : "Article not found.")}
         </div>
       </div>
     );
@@ -85,14 +87,18 @@ export const ExhibitionDetailsPage = () => {
   return (
     <div className="space-y-8">
       <Seo
-        title={seoText(language, article.title, article.title)}
-        description={seoText(
-          language,
-          article.summary || `Explore this exhibitions post from ${SITE_NAME}.`,
-          article.summary || `استكشف هذا المنشور من ${SITE_NAME}.`
-        )}
+        title={seo.seoTitle}
+        description={seo.metaDescription}
+        keywords={seo.seoKeywords}
+        noIndex={seo.robotsIndex === "noindex"}
+        noFollow={seo.robotsFollow === "nofollow"}
         type="article"
-        canonicalPath={`/exhibitions/${article.slug}`}
+        canonicalPath={`/blog/${article.slug}`}
+        image={getApiAssetUrl(seo.ogImage)}
+        twitterImage={getApiAssetUrl(seo.twitterImage)}
+        articlePublishedTime={seo.publishedAt || article.createdAt || null}
+        articleModifiedTime={seo.updatedAt || article.updatedAt || null}
+        structuredData={article.articleSchema}
       />
 
       <section
@@ -108,28 +114,44 @@ export const ExhibitionDetailsPage = () => {
         <div className="px-8 py-14 sm:px-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/85">
             <Newspaper className="h-4 w-4" />
-            {language === "ar" ? "محطة المعارض" : "Exhibitions Station"}
+            {article.category || (language === "ar" ? "المدونة" : "Blog")}
           </div>
           <h1 className="mt-5 max-w-4xl text-4xl font-semibold leading-tight sm:text-5xl">{article.title}</h1>
-          <p className="mt-5 max-w-3xl text-base leading-8 text-white/85 sm:text-lg">{article.summary}</p>
+          <p className="mt-5 max-w-3xl text-base leading-8 text-white/85 sm:text-lg">{seo.metaDescription}</p>
           <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/80">
-            {article.createdAt ? (
+            {(seo.publishedAt || article.createdAt) ? (
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
                 <CalendarDays className="h-4 w-4" />
-                {formatDate(article.createdAt)}
+                {formatDate(seo.publishedAt || article.createdAt || "")}
+              </span>
+            ) : null}
+            {seo.authorName ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+                <UserRound className="h-4 w-4" />
+                {seo.authorName}
               </span>
             ) : null}
             <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
-              {language === "ar" ? `عدد المقالات ${articleContent.articleHeadings?.filter(Boolean).length || 0}` : `${articleContent.articleHeadings?.filter(Boolean).length || 0} articles`}
+              {language === "ar"
+                ? `عدد الأقسام ${articleContent.articleHeadings?.filter(Boolean).length || 0}`
+                : `${articleContent.articleHeadings?.filter(Boolean).length || 0} sections`}
             </span>
           </div>
         </div>
       </section>
 
-      <div className="flex justify-between gap-4">
-        <Link to="/exhibitions" className="inline-flex text-sm font-semibold text-brand-700">
-          {language === "ar" ? "العودة إلى كل المنشورات" : "Back to all posts"}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Link to="/blog" className="inline-flex text-sm font-semibold text-brand-700">
+          {language === "ar" ? "العودة إلى كل المقالات" : "Back to all articles"}
         </Link>
+        {seo.categorySlug ? (
+          <Link
+            to={`/blog/category/${seo.categorySlug}`}
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            {language === "ar" ? `تصنيف: ${seo.category}` : `Category: ${seo.category}`}
+          </Link>
+        ) : null}
       </div>
 
       <article className="panel overflow-hidden p-0">
@@ -140,7 +162,7 @@ export const ExhibitionDetailsPage = () => {
             <div className="mt-8 overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-2xl">
               <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 text-sm font-semibold text-white">
                 <PlayCircle className="h-5 w-5 text-orange-400" />
-                {language === "ar" ? "فيديو المنشور" : "Post video"}
+                {language === "ar" ? "فيديو المقال" : "Article video"}
               </div>
               <iframe
                 src={mainEmbedUrl}
