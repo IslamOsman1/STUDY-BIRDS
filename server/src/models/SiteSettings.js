@@ -7,6 +7,7 @@ const siteSettingsSchema = new mongoose.Schema(
     facebookUrl: String,
     instagramUrl: String,
     tiktokUrl: String,
+    britishMembershipUrl: String,
     supportHours: String,
     officeLocations: String,
   },

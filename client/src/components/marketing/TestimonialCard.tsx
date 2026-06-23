@@ -1,5 +1,6 @@
 import { MapPin, Quote, Star } from "lucide-react";
 import type { Testimonial } from "../../types";
+import { getApiAssetUrl } from "../../lib/api";
 import { getStudentPhoto } from "../../utils/marketingVisuals";
 
 export const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => {
@@ -10,7 +11,7 @@ export const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) =
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <img
-            src={getStudentPhoto(testimonial.studentName)}
+            src={testimonial.avatar ? getApiAssetUrl(testimonial.avatar) : getStudentPhoto(testimonial.studentName)}
             alt={testimonial.studentName}
             loading="lazy"
             className="h-12 w-12 rounded-2xl object-cover sm:h-14 sm:w-14 lg:h-16 lg:w-16"

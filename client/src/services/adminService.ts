@@ -1,6 +1,7 @@
 import { api } from "../lib/api";
 import type {
   AdminOverview,
+  AgencyRequest,
   Application,
   Country,
   EventRegistration,
@@ -40,6 +41,14 @@ export const adminService = {
   },
   getApplications: async () => {
     const { data } = await api.get<Application[]>("/admin/applications");
+    return data;
+  },
+  getAgencyRequests: async () => {
+    const { data } = await api.get<AgencyRequest[]>("/admin/agency-requests");
+    return data;
+  },
+  updateAgencyRequestStatus: async (id: string, payload: { status: AgencyRequest["status"]; adminNote?: string }) => {
+    const { data } = await api.patch<AgencyRequest>(`/admin/agency-requests/${id}`, payload);
     return data;
   },
   getCountries: async () => {
@@ -169,6 +178,14 @@ export const adminService = {
   createTestimonial: async (payload: Partial<Testimonial>) => {
     const { data } = await api.post<Testimonial>("/admin/testimonials", payload);
     return data;
+  },
+  uploadTestimonialAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ url: string }>("/admin/testimonials/upload-avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.url;
   },
   createRecognition: async (payload: Partial<Recognition>) => {
     const { data } = await api.post<Recognition>("/admin/recognitions", payload);

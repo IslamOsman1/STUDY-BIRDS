@@ -44,6 +44,7 @@ export interface SiteSettings {
   facebookUrl?: string;
   instagramUrl?: string;
   tiktokUrl?: string;
+  britishMembershipUrl?: string;
   supportHours?: string;
   officeLocations?: string;
 }
@@ -226,11 +227,25 @@ export interface StudentProfile {
   };
 }
 
+export interface AgencyRequest {
+  _id: string;
+  status: "pending" | "approved" | "rejected";
+  student?: User;
+  studentNote?: string;
+  adminNote?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: User;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Testimonial {
   _id: string;
   studentName: string;
   destination?: string;
   quote: string;
+  avatar?: string;
   rating?: number;
   featured?: boolean;
   createdAt?: string;

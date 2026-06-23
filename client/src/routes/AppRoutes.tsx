@@ -21,7 +21,9 @@ const AboutPage = lazy(() => import("../pages/AboutPage").then((module) => ({ de
 const OurEventPage = lazy(() => import("../pages/OurEventPage").then((module) => ({ default: module.OurEventPage })));
 const OurStoryPage = lazy(() => import("../pages/OurStoryPage").then((module) => ({ default: module.OurStoryPage })));
 const ContactPage = lazy(() => import("../pages/ContactPage").then((module) => ({ default: module.ContactPage })));
+const FaqPage = lazy(() => import("../pages/FaqPage").then((module) => ({ default: module.FaqPage })));
 const PartnerPage = lazy(() => import("../pages/PartnerPage").then((module) => ({ default: module.PartnerPage })));
+const BecomeAgentPage = lazy(() => import("../pages/BecomeAgentPage").then((module) => ({ default: module.BecomeAgentPage })));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
 const LoginPage = lazy(() => import("../pages/auth/LoginPage").then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import("../pages/auth/RegisterPage").then((module) => ({ default: module.RegisterPage })));
@@ -29,6 +31,7 @@ const ForgotPasswordPage = lazy(() => import("../pages/auth/ForgotPasswordPage")
 const StudentProfilePage = lazy(() => import("../pages/student/StudentProfilePage").then((module) => ({ default: module.StudentProfilePage })));
 const StudentDocumentsPage = lazy(() => import("../pages/student/StudentDocumentsPage").then((module) => ({ default: module.StudentDocumentsPage })));
 const StudentApplicationsPage = lazy(() => import("../pages/student/StudentApplicationsPage").then((module) => ({ default: module.StudentApplicationsPage })));
+const StudentBecomeAgentPage = lazy(() => import("../pages/student/StudentBecomeAgentPage").then((module) => ({ default: module.StudentBecomeAgentPage })));
 const AdminDashboardPage = lazy(() => import("../pages/admin/AdminDashboardPage").then((module) => ({ default: module.AdminDashboardPage })));
 const AdminUsersPage = lazy(() => import("../pages/admin/AdminUsersPage").then((module) => ({ default: module.AdminUsersPage })));
 const AdminUniversitiesPage = lazy(() => import("../pages/admin/AdminUniversitiesPage").then((module) => ({ default: module.AdminUniversitiesPage })));
@@ -38,6 +41,9 @@ const AdminContentPage = lazy(() => import("../pages/admin/AdminContentPage").th
 const AdminRecognitionsPage = lazy(() => import("../pages/admin/AdminRecognitionsPage").then((module) => ({ default: module.AdminRecognitionsPage })));
 const AdminServicesPage = lazy(() => import("../pages/admin/AdminServicesPage").then((module) => ({ default: module.AdminServicesPage })));
 const AdminFaqsPage = lazy(() => import("../pages/admin/AdminFaqsPage").then((module) => ({ default: module.AdminFaqsPage })));
+const AdminTestimonialsPage = lazy(() => import("../pages/admin/AdminTestimonialsPage").then((module) => ({ default: module.AdminTestimonialsPage })));
+const AdminSiteSettingsPage = lazy(() => import("../pages/admin/AdminSiteSettingsPage").then((module) => ({ default: module.AdminSiteSettingsPage })));
+const AdminAgencyRequestsPage = lazy(() => import("../pages/admin/AdminAgencyRequestsPage").then((module) => ({ default: module.AdminAgencyRequestsPage })));
 const AdminExhibitionsPage = lazy(() => import("../pages/admin/AdminExhibitionsPage").then((module) => ({ default: module.AdminExhibitionsPage })));
 const AdminEventsPage = lazy(() => import("../pages/admin/AdminEventsPage").then((module) => ({ default: module.AdminEventsPage })));
 const AdminOurStoryPage = lazy(() => import("../pages/admin/AdminOurStoryPage").then((module) => ({ default: module.AdminOurStoryPage })));
@@ -72,7 +78,9 @@ export const AppRoutes = () => (
         <Route path="/our-event" element={<OurEventPage />} />
         <Route path="/our-story" element={<OurStoryPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/faqs" element={<FaqPage />} />
         <Route path="/partner" element={<PartnerPage />} />
+        <Route path="/become-agent" element={<BecomeAgentPage />} />
       </Route>
 
       <Route element={<ProtectedRoute roles={["student"]} />}>
@@ -82,6 +90,7 @@ export const AppRoutes = () => (
           <Route path="/student/profile" element={<Navigate replace to="/student" />} />
           <Route path="/student/documents" element={<StudentDocumentsPage />} />
           <Route path="/student/applications" element={<StudentApplicationsPage />} />
+          <Route path="/student/become-agent" element={<StudentBecomeAgentPage />} />
         </Route>
       </Route>
 
@@ -104,6 +113,9 @@ export const AppRoutes = () => (
           <Route path="/admin/recognitions" element={<AdminRecognitionsPage />} />
           <Route path="/admin/services" element={<AdminServicesPage />} />
           <Route path="/admin/faqs" element={<AdminFaqsPage />} />
+          <Route path="/admin/testimonials" element={<AdminTestimonialsPage />} />
+          <Route path="/admin/site-settings" element={<AdminSiteSettingsPage />} />
+          <Route path="/admin/agency-requests" element={<AdminAgencyRequestsPage />} />
           <Route path="/admin/exhibitions" element={<AdminExhibitionsPage />} />
           <Route path="/admin/events" element={<AdminEventsPage />} />
           <Route path="/admin/our-story" element={<AdminOurStoryPage />} />

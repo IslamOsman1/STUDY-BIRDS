@@ -1,5 +1,6 @@
 import {
   Award,
+  BriefcaseBusiness,
   Building2,
   CalendarClock,
   FileText,
@@ -30,6 +31,7 @@ export const DashboardLayout = () => {
     { label: dt(language, "profileHub"), href: "/student", icon: Settings2, description: dt(language, "profileHubDesc") },
     { label: t("documents"), href: "/student/documents", icon: FileText, description: dt(language, "documentsDesc") },
     { label: t("applications"), href: "/student/applications", icon: LayoutDashboard, description: dt(language, "applicationsDescStudent") },
+    { label: dt(language, "becomeAgentNav"), href: "/student/become-agent", icon: BriefcaseBusiness, description: dt(language, "becomeAgentNavDesc") },
   ];
 
   const partnerLinks = [
@@ -43,9 +45,12 @@ export const DashboardLayout = () => {
     { label: t("programs"), href: "/admin/programs", icon: GraduationCap, description: dt(language, "programsDesc") },
     { label: t("applications"), href: "/admin/applications", icon: FileText, description: dt(language, "applicationsDesc") },
     { label: dt(language, "content"), href: "/admin/content", icon: Layers3, description: dt(language, "contentDesc") },
+    { label: dt(language, "testimonialsContent"), href: "/admin/testimonials", icon: MessageSquare, description: dt(language, "testimonialsHelp") },
+    { label: dt(language, "contactLinksNav"), href: "/admin/site-settings", icon: Settings2, description: dt(language, "contactLinksNavDesc") },
     { label: dt(language, "recognitionsNav"), href: "/admin/recognitions", icon: Award, description: dt(language, "recognitionsNavDesc") },
     { label: dt(language, "servicesNav"), href: "/admin/services", icon: Award, description: dt(language, "servicesNavDesc") },
     { label: dt(language, "faqsNav"), href: "/admin/faqs", icon: MessageSquare, description: dt(language, "faqsNavDesc") },
+    { label: dt(language, "agencyRequestsNav"), href: "/admin/agency-requests", icon: BriefcaseBusiness, description: dt(language, "agencyRequestsNavDesc") },
     {
       label: language === "ar" ? "فعاليتنا" : "Our Event",
       href: "/admin/events",

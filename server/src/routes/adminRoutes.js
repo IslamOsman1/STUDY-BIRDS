@@ -14,6 +14,7 @@ const {
   getSiteSettingsAdmin,
   updateSiteSettings,
   getTestimonialsAdmin,
+  uploadTestimonialAvatar,
   getRecognitionsAdmin,
   getOurServicesAdmin,
   getOurStoryAdmin,
@@ -22,6 +23,7 @@ const {
   getUpcomingEventAdmin,
   getPastEventsAdmin,
   getEventRegistrationsAdmin,
+  getAgencyRequestsAdmin,
   createTestimonial,
   createRecognition,
   createOurService,
@@ -36,6 +38,7 @@ const {
   updateFaq,
   updateExhibitionArticle,
   updatePastEvent,
+  updateAgencyRequestStatus,
   deleteTestimonial,
   deleteRecognition,
   deleteOurService,
@@ -81,6 +84,7 @@ router.post("/study-fields", createStudyField);
 router.put("/study-fields/:id", updateStudyField);
 router.delete("/study-fields/:id", deleteStudyField);
 router.get("/testimonials", getTestimonialsAdmin);
+router.post("/testimonials/upload-avatar", upload.single("file"), uploadTestimonialAvatar);
 router.post("/testimonials", createTestimonial);
 router.put("/testimonials/:id", updateTestimonial);
 router.delete("/testimonials/:id", deleteTestimonial);
@@ -110,6 +114,8 @@ router.post("/past-events", createPastEvent);
 router.put("/past-events/:id", updatePastEvent);
 router.delete("/past-events/:id", deletePastEvent);
 router.get("/event-registrations", getEventRegistrationsAdmin);
+router.get("/agency-requests", getAgencyRequestsAdmin);
+router.patch("/agency-requests/:id", updateAgencyRequestStatus);
 router.get("/exhibitions", getExhibitionArticlesAdmin);
 router.post("/exhibitions/upload-image", upload.single("file"), uploadExhibitionImage);
 router.post("/exhibitions", createExhibitionArticle);

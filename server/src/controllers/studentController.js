@@ -1,6 +1,7 @@
 const StudentProfile = require("../models/StudentProfile");
 const Document = require("../models/Document");
 const Application = require("../models/Application");
+const AgencyRequest = require("../models/AgencyRequest");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
@@ -117,10 +118,70 @@ const getApplications = asyncHandler(async (req, res) => {
   res.json(await hydrateApplicationsWithStudentProfiles(applications));
 });
 
+const getAgencyRequest = asyncHandler(async (req, res) => {
+  const agencyRequest = await AgencyRequest.findOne({ student: req.user._id })
+    .populate("student", "name email role")
+    .populate("reviewedBy", "name email role");
+
+  res.json(agencyRequest);
+});
+
+const createAgencyRequest = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (user.role === "partner") {
+    res.status(400);
+    throw new Error("You are already a partner");
+  }
+
+  const studentNote = String(req.body.studentNote || "").trim();
+  const existingRequest = await AgencyRequest.findOne({ student: req.user._id });
+
+  if (existingRequest?.status === "pending") {
+    res.status(400);
+    throw new Error("Agency request already submitted");
+  }
+
+  if (existingRequest) {
+    existingRequest.status = "pending";
+    existingRequest.studentNote = studentNote;
+    existingRequest.adminNote = "";
+    existingRequest.submittedAt = new Date();
+    existingRequest.reviewedAt = undefined;
+    existingRequest.reviewedBy = undefined;
+    await existingRequest.save();
+
+    res.status(201).json(
+      await AgencyRequest.findById(existingRequest._id)
+        .populate("student", "name email role")
+        .populate("reviewedBy", "name email role")
+    );
+    return;
+  }
+
+  const agencyRequest = await AgencyRequest.create({
+    student: req.user._id,
+    studentNote,
+  });
+
+  res.status(201).json(
+    await AgencyRequest.findById(agencyRequest._id)
+      .populate("student", "name email role")
+      .populate("reviewedBy", "name email role")
+  );
+});
+
 module.exports = {
   getProfile,
   updateProfile,
   uploadDocument,
   getDocuments,
   getApplications,
+  getAgencyRequest,
+  createAgencyRequest,
 };

@@ -8,7 +8,7 @@ import { dt } from "../utils/dashboardTranslations";
 
 const blogLabel = {
   en: "Blog",
-  ar: "المدونة",
+  ar: "محطة المعارض",
 } as const;
 
 const navItems = [
@@ -16,7 +16,6 @@ const navItems = [
   ["universities", "/universities"],
   ["destinations", "/destinations"],
   ["servicesEyebrow", "/services"],
-  ["contact", "/contact"],
 ] as const;
 
 const aboutMenuItems = [
@@ -24,6 +23,11 @@ const aboutMenuItems = [
   { href: "/our-event", label: { en: "Our Event", ar: "فعاليتنا" } },
   { href: "/our-story", label: { en: "Our Story", ar: "قصتنا" } },
 ] as const;
+
+const becomeAgentLabel = {
+  en: "Become an Agent",
+  ar: "كن وكيلاً",
+} as const;
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -34,6 +38,7 @@ export const Navbar = () => {
   const { language, t, toggleLanguage } = useLanguage();
   const location = useLocation();
   const blogText = blogLabel[language];
+  const becomeAgentText = becomeAgentLabel[language];
   const aboutMenuActive = aboutMenuItems.some((item) => location.pathname === item.href);
   const profileHref = user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner/profile" : "/student";
   const profileLabel = user?.role === "partner" ? dt(language, "profileHub") : t("dashboard");
@@ -80,35 +85,6 @@ export const Navbar = () => {
               {t(label)}
             </NavLink>
           ))}
-          <div ref={aboutMenuRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setAboutOpen((value) => !value)}
-              className={`inline-flex items-center gap-2 text-sm font-medium ${
-                aboutMenuActive ? "text-brand-700" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              {language === "ar" ? "من نحن" : "About"}
-              <ChevronDown className={`h-4 w-4 transition ${aboutOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            {aboutOpen ? (
-              <div className="absolute left-1/2 top-full mt-3 w-56 -translate-x-1/2 rounded-3xl border border-slate-200 bg-white p-2 shadow-2xl">
-                {aboutMenuItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    onClick={() => setAboutOpen(false)}
-                    className={`block rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                      location.pathname === item.href ? "bg-brand-50 text-brand-700" : "text-slate-700 hover:bg-slate-50"
-                    }`}
-                  >
-                    {item.label[language]}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-          </div>
           <NavLink
             to="/blog"
             className={({ isActive }) =>
@@ -116,6 +92,14 @@ export const Navbar = () => {
             }
           >
             {blogText}
+          </NavLink>
+          <NavLink
+            to="/become-agent"
+            className={({ isActive }) =>
+              `text-sm font-medium ${isActive ? "text-brand-700" : "text-slate-600 hover:text-slate-900"}`
+            }
+          >
+            {becomeAgentText}
           </NavLink>
         </nav>
 
@@ -168,6 +152,53 @@ export const Navbar = () => {
         </button>
       </div>
 
+      <div className="hidden border-t border-slate-200 bg-white lg:block">
+        <div className="container-shell flex h-14 items-center justify-center gap-8">
+          <NavLink
+            to="/contact"
+            className={({ isActive }) =>
+              `text-sm font-medium ${isActive ? "text-brand-700" : "text-slate-600 hover:text-slate-900"}`
+            }
+          >
+            {t("contact")}
+          </NavLink>
+
+          <Link to="/faqs" className={`text-sm font-medium ${location.pathname === "/faqs" ? "text-brand-700" : "text-slate-600 hover:text-slate-900"}`}>
+            {t("faqTitle")}
+          </Link>
+
+          <div ref={aboutMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setAboutOpen((value) => !value)}
+              className={`inline-flex items-center gap-2 text-sm font-medium ${
+                aboutMenuActive ? "text-brand-700" : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              {language === "ar" ? "من نحن" : "About"}
+              <ChevronDown className={`h-4 w-4 transition ${aboutOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {aboutOpen ? (
+              <div className="absolute left-1/2 top-full mt-3 w-56 -translate-x-1/2 rounded-3xl border border-slate-200 bg-white p-2 shadow-2xl">
+                {aboutMenuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setAboutOpen(false)}
+                    className={`block rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                      location.pathname === item.href ? "bg-brand-50 text-brand-700" : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {item.label[language]}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       {open && (
         <div className="border-t border-slate-200 bg-white lg:hidden">
           <div className="container-shell flex flex-col gap-3 py-4">
@@ -176,6 +207,12 @@ export const Navbar = () => {
                 {t(label)}
               </Link>
             ))}
+            <Link to="/contact" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
+              {t("contact")}
+            </Link>
+            <Link to="/faqs" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
+              {t("faqTitle")}
+            </Link>
             <div>
               <button
                 type="button"
@@ -209,6 +246,9 @@ export const Navbar = () => {
             </div>
             <Link to="/blog" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
               {blogText}
+            </Link>
+            <Link to="/become-agent" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
+              {becomeAgentText}
             </Link>
             <button
               onClick={toggleLanguage}

@@ -5,6 +5,8 @@ const {
   uploadDocument,
   getDocuments,
   getApplications,
+  getAgencyRequest,
+  createAgencyRequest,
 } = require("../controllers/studentController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
@@ -15,6 +17,8 @@ router.use(protect);
 router.get("/profile", getProfile);
 router.put("/profile", authorize("student", "partner"), updateProfile);
 router.use(authorize("student"));
+router.get("/agency-request", getAgencyRequest);
+router.post("/agency-request", createAgencyRequest);
 router.post("/documents", upload.single("file"), uploadDocument);
 router.get("/documents", getDocuments);
 router.get("/applications", getApplications);

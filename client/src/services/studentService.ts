@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { Application, DocumentItem, StudentProfile } from "../types";
+import type { AgencyRequest, Application, DocumentItem, StudentProfile } from "../types";
 
 export const studentService = {
   getProfile: async () => {
@@ -25,6 +25,16 @@ export const studentService = {
   },
   getApplications: async () => {
     const { data } = await api.get<Application[]>("/students/applications");
+    return data;
+  },
+  getAgencyRequest: async () => {
+    const { data } = await api.get<AgencyRequest | null>("/students/agency-request");
+    return data;
+  },
+  createAgencyRequest: async (studentNote?: string) => {
+    const { data } = await api.post<AgencyRequest>("/students/agency-request", {
+      studentNote: studentNote || "",
+    });
     return data;
   },
 };

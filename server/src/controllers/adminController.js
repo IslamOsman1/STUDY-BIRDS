@@ -13,6 +13,7 @@ const Faq = require("../models/Faq");
 const UpcomingEvent = require("../models/UpcomingEvent");
 const PastEvent = require("../models/PastEvent");
 const EventRegistration = require("../models/EventRegistration");
+const AgencyRequest = require("../models/AgencyRequest");
 const slugify = require("slugify");
 const asyncHandler = require("../utils/asyncHandler");
 const {
@@ -527,6 +528,7 @@ const getSiteSettingsAdmin = asyncHandler(async (req, res) => {
       facebookUrl: "",
       instagramUrl: "",
       tiktokUrl: "",
+      britishMembershipUrl: "",
       supportHours: "",
       officeLocations: "",
     }
@@ -540,6 +542,7 @@ const updateSiteSettings = asyncHandler(async (req, res) => {
     facebookUrl: req.body.facebookUrl || "",
     instagramUrl: req.body.instagramUrl || "",
     tiktokUrl: req.body.tiktokUrl || "",
+    britishMembershipUrl: req.body.britishMembershipUrl || "",
     supportHours: req.body.supportHours || "",
     officeLocations: req.body.officeLocations || "",
   };
@@ -638,6 +641,54 @@ const getEventRegistrationsAdmin = asyncHandler(async (req, res) => {
     .populate("upcomingEvent", "title eventDate")
     .sort({ createdAt: -1 });
   res.json(registrations);
+});
+
+const getAgencyRequestsAdmin = asyncHandler(async (req, res) => {
+  const agencyRequests = await AgencyRequest.find()
+    .populate("student", "name email role createdAt")
+    .populate("reviewedBy", "name email role")
+    .sort({ submittedAt: -1, createdAt: -1 });
+
+  res.json(agencyRequests);
+});
+
+const updateAgencyRequestStatus = asyncHandler(async (req, res) => {
+  const agencyRequest = await AgencyRequest.findById(req.params.id).populate("student");
+
+  if (!agencyRequest) {
+    res.status(404);
+    throw new Error("Agency request not found");
+  }
+
+  const nextStatus = String(req.body.status || "").trim();
+
+  if (!["pending", "approved", "rejected"].includes(nextStatus)) {
+    res.status(400);
+    throw new Error("Invalid agency request status");
+  }
+
+  agencyRequest.status = nextStatus;
+  agencyRequest.adminNote = String(req.body.adminNote || "").trim();
+  agencyRequest.reviewedAt = nextStatus === "pending" ? undefined : new Date();
+  agencyRequest.reviewedBy = nextStatus === "pending" ? undefined : req.user._id;
+
+  if (agencyRequest.student && typeof agencyRequest.student === "object") {
+    if (nextStatus === "approved") {
+      agencyRequest.student.role = "partner";
+      await agencyRequest.student.save();
+    } else if (nextStatus === "rejected" && agencyRequest.student.role !== "admin") {
+      agencyRequest.student.role = "student";
+      await agencyRequest.student.save();
+    }
+  }
+
+  await agencyRequest.save();
+
+  res.json(
+    await AgencyRequest.findById(agencyRequest._id)
+      .populate("student", "name email role createdAt")
+      .populate("reviewedBy", "name email role")
+  );
 });
 
 const createTestimonial = asyncHandler(async (req, res) => {
@@ -899,6 +950,16 @@ const deleteOurService = asyncHandler(async (req, res) => {
   res.json({ message: "Service deleted" });
 });
 
+const uploadTestimonialAvatar = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error("Testimonial avatar is required");
+  }
+
+  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/testimonials");
+  res.status(201).json({ url: uploadResult.url });
+});
+
 const uploadRecognitionImage = asyncHandler(async (req, res) => {
   if (!req.file) {
     res.status(400);
@@ -1008,7 +1069,9 @@ module.exports = {
   getUpcomingEventAdmin,
   getPastEventsAdmin,
   getEventRegistrationsAdmin,
+  getAgencyRequestsAdmin,
   createTestimonial,
+  uploadTestimonialAvatar,
   createRecognition,
   createOurService,
   upsertOurStory,
@@ -1022,6 +1085,7 @@ module.exports = {
   updateFaq,
   updateExhibitionArticle,
   updatePastEvent,
+  updateAgencyRequestStatus,
   deleteTestimonial,
   deleteRecognition,
   deleteOurService,

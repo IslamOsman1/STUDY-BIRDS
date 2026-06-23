@@ -28,6 +28,7 @@ const defaultSiteSettingsPayload = {
   facebookUrl: "",
   instagramUrl: "",
   tiktokUrl: "",
+  britishMembershipUrl: "",
   supportHours: "",
   officeLocations: "",
 };
@@ -114,7 +115,7 @@ const getTestimonials = asyncHandler(async (req, res) => {
     res,
     model: Testimonial,
     query: {},
-    select: "studentName destination quote rating featured createdAt",
+    select: "studentName destination quote avatar rating featured createdAt",
     sort: { featured: -1, createdAt: -1 },
     defaultLimit: 6,
   });
@@ -330,7 +331,7 @@ const getHomePageContent = asyncHandler(async (req, res) => {
         .lean()
     ),
     timedOperation("home.testimonials", () =>
-      Testimonial.find().select("studentName destination quote rating featured createdAt").sort({ featured: -1, createdAt: -1 }).limit(3).lean()
+      Testimonial.find().select("studentName destination quote avatar rating featured createdAt").sort({ featured: -1, createdAt: -1 }).lean()
     ),
     timedOperation("home.recognitions", () =>
       Recognition.find({ featured: true }).select("slug title image featured sortOrder createdAt").sort({ sortOrder: 1, createdAt: -1 }).limit(6).lean()
@@ -380,7 +381,7 @@ const getSiteSettings = asyncHandler(async (req, res) => {
   const settings = await timedOperation("SiteSettings.latest", () =>
     SiteSettings.findOne()
       .sort({ createdAt: -1 })
-      .select("contactEmail whatsappUrl facebookUrl instagramUrl tiktokUrl supportHours officeLocations createdAt")
+      .select("contactEmail whatsappUrl facebookUrl instagramUrl tiktokUrl britishMembershipUrl supportHours officeLocations createdAt")
       .lean()
   );
   res.json(settings || defaultSiteSettingsPayload);

@@ -3,7 +3,7 @@ import { BookOpenCheck, FileCheck2, GraduationCap, PlaneTakeoff, Search, Trendin
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useLanguage } from "../../hooks/useLanguage";
-import { journeyShowcaseImages, studentHeroImage, studentPortraits } from "../../utils/marketingVisuals";
+import { journeyShowcaseImages, studentHeroImage } from "../../utils/marketingVisuals";
 import { dt } from "../../utils/dashboardTranslations";
 
 export const HeroSection = () => {
@@ -28,17 +28,6 @@ export const HeroSection = () => {
 
   const primaryLabel =
     !user ? t("startJourney") : user.role === "student" ? t("studentProfile") : user.role === "partner" ? dt(language, "profileHub") : t("dashboard");
-
-  const quickStats = [
-    {
-      value: t("heroStatAdmissionsTitle"),
-      label: t("heroStatAdmissionsBody"),
-    },
-    {
-      value: t("heroStatWorkspaceTitle"),
-      label: t("heroStatWorkspaceBody"),
-    },
-  ];
 
   return (
     <section className="relative overflow-hidden rounded-[2rem] bg-fusion text-white shadow-soft">
@@ -191,38 +180,6 @@ export const HeroSection = () => {
             <Link to="/programs" className="rounded-full border border-white/30 px-6 py-3 font-semibold text-white">
               {t("explorePrograms")}
             </Link>
-          </div>
-
-          <div className="mt-8 flex items-center gap-4">
-            <div className="flex -space-x-3 rtl:space-x-reverse">
-              {studentPortraits.slice(0, 4).map((student) => (
-                <img
-                  key={student.name}
-                  src={student.src}
-                  alt={student.name}
-                  className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-soft"
-                />
-              ))}
-            </div>
-            <div className="text-sm text-brand-50">
-              <p className="font-semibold text-white">50,000+</p>
-              <p>{t("studentsHelped")}</p>
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            {quickStats.map((item, index) => (
-              <motion.div
-                key={item.value}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.2 + index * 0.12 }}
-                className="rounded-[1.4rem] border border-white/12 bg-[rgba(9,18,36,0.26)] p-4 backdrop-blur-md"
-              >
-                <p className="text-sm font-semibold text-white">{item.value}</p>
-                <p className="mt-2 text-sm leading-6 text-white/72">{item.label}</p>
-              </motion.div>
-            ))}
           </div>
         </motion.div>
 
