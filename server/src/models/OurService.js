@@ -40,6 +40,11 @@ const ourServiceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    country: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Country",
+      default: null,
+    },
   },
   { timestamps: true }
 );

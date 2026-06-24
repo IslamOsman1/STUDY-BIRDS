@@ -70,16 +70,14 @@ export const Footer = () => {
         </div>
 
         <div>
-          <h4 className="font-semibold">{language === "ar" ? "روابط سريعة" : "Quick Links"}</h4>
+          <h4 className="font-semibold">{language === "ar" ? "\u0631\u0648\u0627\u0628\u0637 \u0633\u0631\u064a\u0639\u0629" : "Quick Links"}</h4>
           <div className="mt-4 flex flex-col gap-3 text-sm text-brand-100">
-            <Link to="/about">{language === "ar" ? "من نحن" : "About Us"}</Link>
+            <Link to="/about">{language === "ar" ? "\u0645\u0646 \u0646\u062d\u0646" : "About Us"}</Link>
             <Link to="/contact">{t("contact")}</Link>
-            <Link to="/blog">{language === "ar" ? "المدونة" : "Blog"}</Link>
-            <Link to="/services">{language === "ar" ? "خدماتنا" : "Our Services"}</Link>
           </div>
           {countries.length ? (
             <div className="mt-6">
-              <h5 className="font-semibold text-white">{language === "ar" ? "الدوله المستهدفه للدراسه" : "Target Study Countries"}</h5>
+              <h5 className="font-semibold text-white">{language === "ar" ? "\u0627\u0644\u062f\u0648\u0644 \u0627\u0644\u0645\u0633\u062a\u0647\u062f\u0641\u0629 \u0644\u0644\u062f\u0631\u0627\u0633\u0629" : "Target Study Countries"}</h5>
               <div className="mt-4 flex flex-col gap-3 text-sm text-brand-100">
                 {countries.map((country) => (
                   <Link key={country._id} to={`/universities?country=${country._id}`}>
@@ -93,20 +91,20 @@ export const Footer = () => {
 
         <div>
           <div className="mb-6">
-            <h4 className="font-semibold">{language === "ar" ? "عضو في" : "Member of"}</h4>
+            <h4 className="font-semibold">{language === "ar" ? "\u0639\u0636\u0648 \u0641\u064a" : "Member of"}</h4>
             {siteSettings.britishMembershipUrl ? (
               <a
                 href={siteSettings.britishMembershipUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-4 inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 p-3 transition hover:-translate-y-0.5 hover:bg-white"
-                aria-label={language === "ar" ? "العضوية البريطانية" : "British membership"}
+                aria-label={language === "ar" ? "\u0627\u0644\u0639\u0636\u0648\u064a\u0629 \u0627\u0644\u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0629" : "British membership"}
               >
-                <img src="/british.svg" alt={language === "ar" ? "العضوية البريطانية" : "British membership"} className="h-12 w-auto" />
+                <img src="/british.svg" alt={language === "ar" ? "\u0627\u0644\u0639\u0636\u0648\u064a\u0629 \u0627\u0644\u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0629" : "British membership"} className="h-12 w-auto" />
               </a>
             ) : (
               <div className="mt-4 inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 p-3 opacity-80">
-                <img src="/british.svg" alt={language === "ar" ? "العضوية البريطانية" : "British membership"} className="h-12 w-auto" />
+                <img src="/british.svg" alt={language === "ar" ? "\u0627\u0644\u0639\u0636\u0648\u064a\u0629 \u0627\u0644\u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0629" : "British membership"} className="h-12 w-auto" />
               </div>
             )}
           </div>

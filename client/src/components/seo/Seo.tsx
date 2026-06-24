@@ -7,6 +7,7 @@ import {
   normalizeSeoDescription,
   seoText,
 } from "../../seo/site";
+import { repairMojibake } from "../../utils/textCodec";
 
 type StructuredData =
   | Record<string, unknown>
@@ -101,8 +102,10 @@ export const Seo = ({
   const { language } = useLanguage();
 
   useEffect(() => {
-    const pageTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
-    const pageDescription = normalizeSeoDescription(description);
+    const safeTitle = repairMojibake(title);
+    const safeDescription = repairMojibake(description);
+    const pageTitle = safeTitle.includes(SITE_NAME) ? safeTitle : `${safeTitle} | ${SITE_NAME}`;
+    const pageDescription = normalizeSeoDescription(safeDescription);
     const currentPath = canonicalPath || location.pathname || "/";
     const canonicalUrl = buildLocalizedUrl(currentPath, language);
     const robotsValue = `${noIndex ? "noindex" : "index"}, ${noFollow ? "nofollow" : "follow"}, max-image-preview:large`;
@@ -116,11 +119,12 @@ export const Seo = ({
     ]
       .filter(Boolean)
       .join(", ");
+    const normalizedKeywordValue = repairMojibake(keywordValue);
 
     document.title = pageTitle;
 
     setMetaTag('meta[name="description"]', "name", "description", pageDescription);
-    setMetaTag('meta[name="keywords"]', "name", "keywords", keywordValue);
+    setMetaTag('meta[name="keywords"]', "name", "keywords", normalizedKeywordValue);
     setMetaTag('meta[name="robots"]', "name", "robots", robotsValue);
     setMetaTag('meta[name="googlebot"]', "name", "googlebot", robotsValue);
     setMetaTag('meta[property="og:title"]', "property", "og:title", pageTitle);

@@ -46,6 +46,7 @@ type ListParams = {
   limit?: number;
   featuredOnly?: boolean;
   paginate?: boolean;
+  country?: string;
 };
 
 const buildParams = (params?: ListParams) => params;

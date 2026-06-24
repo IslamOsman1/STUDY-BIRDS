@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { SITE_NAME } from "../seo/site";
+import { repairMojibake } from "../utils/textCodec";
 
 export type Language = "en" | "ar";
 
@@ -575,6 +576,7 @@ const valueTranslations: Record<string, string> = {
 };
 
 const replaceBrandName = (value: string) => value.replace(/Study Birds/g, SITE_NAME);
+const normalizeUiText = (value: string) => replaceBrandName(repairMojibake(value));
 
 export const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
@@ -610,10 +612,10 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       isRtl: language === "ar",
       toggleLanguage,
       setLanguage,
-      t: (key) => replaceBrandName(translations[language][key]),
+      t: (key) => normalizeUiText(translations[language][key]),
       tv: (value) => {
         const nextValue = language === "ar" && value ? valueTranslations[value] || value : value || "";
-        return replaceBrandName(nextValue);
+        return normalizeUiText(nextValue);
       },
     }),
     [language, setLanguage, toggleLanguage]

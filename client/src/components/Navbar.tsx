@@ -1,4 +1,4 @@
-import { ChevronDown, Languages, Menu, UserCircle2 } from "lucide-react";
+﻿import { ChevronDown, Languages, Menu, UserCircle2 } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
@@ -40,6 +40,7 @@ export const Navbar = () => {
   const blogText = blogLabel[language];
   const becomeAgentText = becomeAgentLabel[language];
   const aboutMenuActive = aboutMenuItems.some((item) => location.pathname === item.href);
+  const showBecomeAgentLink = !user || user.role === "student";
   const profileHref = user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner/profile" : "/student";
   const profileLabel = user?.role === "partner" ? dt(language, "profileHub") : t("dashboard");
   const initials = user?.name
@@ -92,14 +93,6 @@ export const Navbar = () => {
             }
           >
             {blogText}
-          </NavLink>
-          <NavLink
-            to="/become-agent"
-            className={({ isActive }) =>
-              `text-sm font-medium ${isActive ? "text-brand-700" : "text-slate-600 hover:text-slate-900"}`
-            }
-          >
-            {becomeAgentText}
           </NavLink>
         </nav>
 
@@ -196,6 +189,17 @@ export const Navbar = () => {
               </div>
             ) : null}
           </div>
+
+          {showBecomeAgentLink ? (
+            <NavLink
+              to="/become-agent"
+              className={({ isActive }) =>
+                `text-sm font-medium ${isActive ? "text-brand-700" : "text-blue-600 hover:text-blue-700"}`
+              }
+            >
+              {becomeAgentText}
+            </NavLink>
+          ) : null}
         </div>
       </div>
 
@@ -244,11 +248,13 @@ export const Navbar = () => {
                 </div>
               ) : null}
             </div>
+            {showBecomeAgentLink ? (
+              <Link to="/become-agent" className="text-sm font-medium text-blue-600" onClick={() => setOpen(false)}>
+                {becomeAgentText}
+              </Link>
+            ) : null}
             <Link to="/blog" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
               {blogText}
-            </Link>
-            <Link to="/become-agent" className="text-sm font-medium text-slate-700" onClick={() => setOpen(false)}>
-              {becomeAgentText}
             </Link>
             <button
               onClick={toggleLanguage}

@@ -198,6 +198,11 @@ const exhibitionArticleSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    country: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Country",
+      default: null,
+    },
     authorName: {
       type: String,
       default: "",

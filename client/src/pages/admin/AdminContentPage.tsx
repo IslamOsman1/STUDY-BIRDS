@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+﻿import { useEffect, useState, type FormEvent } from "react";
 import { Globe2, GraduationCap, PencilLine, Plus, Trash2 } from "lucide-react";
 import { ArticleContentFields } from "../../components/admin/ArticleContentFields";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -193,15 +193,15 @@ export const AdminContentPage = () => {
             </label>
             <div className="grid gap-4 md:grid-cols-3">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "??? ????????" : "Universities count"}</span>
+                <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "عدد الجامعات" : "Universities count"}</span>
                 <input type="number" min="0" value={countryForm.universityCount} onChange={(event) => setCountryForm((current) => ({ ...current, universityCount: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
               </label>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "??? ????????" : "Specialties count"}</span>
+                <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "عدد التخصصات" : "Specialties count"}</span>
                 <input type="number" min="0" value={countryForm.specialtyCount} onChange={(event) => setCountryForm((current) => ({ ...current, specialtyCount: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
               </label>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "????? ???????" : "Average tuition"}</span>
+                <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "متوسط الرسوم" : "Average tuition"}</span>
                 <input type="number" min="0" value={countryForm.averageTuition} onChange={(event) => setCountryForm((current) => ({ ...current, averageTuition: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
               </label>
             </div>
@@ -245,10 +245,10 @@ export const AdminContentPage = () => {
               language={language}
             />
             <div className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-sm font-medium text-slate-700">{language === "ar" ? "???? ??????" : "Country cover image"}</p>
+              <p className="text-sm font-medium text-slate-700">{language === "ar" ? "صورة الدولة" : "Country cover image"}</p>
               <input type="file" accept="image/*" onChange={(event) => handleCountryImageUpload(event.target.files)} className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
               <p className="mt-2 text-xs text-slate-500">
-                {uploadingCountryImage ? `${dt(language, "uploadImages")}...` : language === "ar" ? "???? ???? ???? ?? ????? ?????? ???? ??????." : "Upload the image shown on the destination card."}
+                {uploadingCountryImage ? `${dt(language, "uploadImages")}...` : language === "ar" ? "ارفع صورة الدولة التي تظهر في بطاقة الوجهة الدراسية." : "Upload the image shown on the destination card."}
               </p>
               {countryForm.heroImage ? (
                 <div className="mt-4 rounded-2xl border border-slate-200 p-3">
@@ -286,16 +286,16 @@ export const AdminContentPage = () => {
             <GraduationCap className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">{language === "ar" ? "?????? ???????" : "Study fields"}</h1>
+            <h1 className="text-2xl font-semibold text-slate-900">{language === "ar" ? "التخصصات الدراسية" : "Study fields"}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {language === "ar" ? "??? ???????? ?? ???? ???? ???? ????? ?? ?????? ???????? ?????? ???????." : "Manage the study fields shown on the homepage and in program filters."}
+              {language === "ar" ? "أدر التخصصات التي تظهر في الصفحة الرئيسية وفي فلاتر البرامج الدراسية." : "Manage the study fields shown on the homepage and in program filters."}
             </p>
           </div>
         </div>
         <form onSubmit={submitStudyField} className="mt-6 space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "??? ??????" : "Field name"}</span>
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "اسم التخصص" : "Field name"}</span>
               <input
                 value={studyFieldForm.name}
                 onChange={(event) => setStudyFieldForm((current) => ({ ...current, name: event.target.value }))}
@@ -304,7 +304,7 @@ export const AdminContentPage = () => {
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "???????" : "Sort order"}</span>
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "الترتيب" : "Sort order"}</span>
               <input
                 type="number"
                 value={studyFieldForm.sortOrder}
@@ -314,7 +314,7 @@ export const AdminContentPage = () => {
             </label>
           </div>
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "??? ????" : "Short description"}</span>
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "وصف مختصر" : "Short description"}</span>
             <textarea
               value={studyFieldForm.description}
               onChange={(event) => setStudyFieldForm((current) => ({ ...current, description: event.target.value }))}
@@ -323,13 +323,13 @@ export const AdminContentPage = () => {
             />
           </label>
           <div className="rounded-2xl border border-slate-200 p-4">
-            <p className="text-sm font-medium text-slate-700">{language === "ar" ? "???? ??????" : "Field image"}</p>
+            <p className="text-sm font-medium text-slate-700">{language === "ar" ? "صورة التخصص" : "Field image"}</p>
             <input type="file" accept="image/*" onChange={(event) => handleStudyFieldImageUpload(event.target.files)} className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
             <p className="mt-2 text-xs text-slate-500">
               {uploadingStudyFieldImage
                 ? `${dt(language, "uploadImages")}...`
                 : language === "ar"
-                  ? "???? ???? ???? ??? ????? ?????? ?? ?????? ????????."
+                  ? "ارفع صورة التخصص التي تظهر في بطاقة التخصص بالواجهة الرئيسية."
                   : "Upload the image shown on the homepage study field card."}
             </p>
             {studyFieldForm.image ? (
@@ -347,12 +347,12 @@ export const AdminContentPage = () => {
           </div>
           <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3">
             <input type="checkbox" checked={studyFieldForm.featured} onChange={(event) => setStudyFieldForm((current) => ({ ...current, featured: event.target.checked }))} />
-            <span className="text-sm font-medium text-slate-700">{language === "ar" ? "?????? ?? ??????? ????????" : "Show on homepage"}</span>
+            <span className="text-sm font-medium text-slate-700">{language === "ar" ? "إظهار في الصفحة الرئيسية" : "Show on homepage"}</span>
           </label>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 font-semibold text-white">
               <Plus className="h-4 w-4" />
-              {editingStudyFieldId ? (language === "ar" ? "????? ??????" : "Update field") : language === "ar" ? "????? ????" : "Create field"}
+              {editingStudyFieldId ? (language === "ar" ? "تحديث التخصص" : "Update field") : language === "ar" ? "إضافة تخصص" : "Create field"}
             </button>
             <button type="button" onClick={resetStudyFieldForm} className="rounded-full border border-slate-200 px-5 py-3 font-semibold text-slate-700">
               {dt(language, "clearForm")}
@@ -371,7 +371,7 @@ export const AdminContentPage = () => {
                   <div className="mt-4 flex flex-wrap items-center gap-2">
                     <p className="text-lg font-semibold text-slate-900">{studyField.name}</p>
                     {studyField.featured ? <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">{dt(language, "featured")}</span> : null}
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{language === "ar" ? `????? ${studyField.sortOrder || 0}` : `Order ${studyField.sortOrder || 0}`}</span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{language === "ar" ? `الترتيب ${studyField.sortOrder || 0}` : `Order ${studyField.sortOrder || 0}`}</span>
                   </div>
                   {studyField.description ? <p className="mt-3 text-sm leading-6 text-slate-600">{studyField.description}</p> : null}
                 </div>
@@ -415,9 +415,9 @@ export const AdminContentPage = () => {
                   {country.heroImage ? <img src={getApiAssetUrl(country.heroImage)} alt={country.name} className="mt-4 h-32 w-full rounded-2xl object-cover" /> : null}
                   {country.description ? <p className="mt-3 text-sm leading-6 text-slate-600">{country.description}</p> : null}
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-                    <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `???????? ${country.universityCount || 0}` : `Universities ${country.universityCount || 0}`}</span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `???????? ${country.specialtyCount || 0}` : `Specialties ${country.specialtyCount || 0}`}</span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `????? ?????? ${country.averageTuition || 0}$` : `Avg tuition $${country.averageTuition || 0}`}</span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `الجامعات ${country.universityCount || 0}` : `Universities ${country.universityCount || 0}`}</span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `التخصصات ${country.specialtyCount || 0}` : `Specialties ${country.specialtyCount || 0}`}</span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1">{language === "ar" ? `متوسط الرسوم ${country.averageTuition || 0}$` : `Avg tuition $${country.averageTuition || 0}`}</span>
                   </div>
                   {country.visaNotes ? <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">{country.visaNotes}</p> : null}
                 </div>
@@ -462,3 +462,4 @@ export const AdminContentPage = () => {
     </div>
   );
 };
+

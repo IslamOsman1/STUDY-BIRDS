@@ -1,12 +1,12 @@
-import { ArrowRight, CalendarDays, Newspaper } from "lucide-react";
+﻿import { ArrowRight, CalendarDays, Newspaper } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Seo } from "../components/seo/Seo";
 import { useLanguage } from "../hooks/useLanguage";
 import { getApiAssetUrl } from "../lib/api";
 import { SITE_NAME, seoText } from "../seo/site";
 import { contentService } from "../services/contentService";
-import type { ExhibitionArticle } from "../types";
+import type { Country, ExhibitionArticle } from "../types";
 import { getErrorMessage } from "../utils/errors";
 import { formatDate } from "../utils/format";
 import { getPaginatedItems } from "../utils/pagination";
@@ -18,12 +18,19 @@ const slugifyCategory = (value: string) =>
     .replace(/^-+|-+$/g, "");
 
 export const ExhibitionsPage = () => {
-  const { language } = useLanguage();
+  const { language, t, tv } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [articles, setArticles] = useState<ExhibitionArticle[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const blogText = language === "ar" ? "المدونة" : "Blog";
+  const blogText = language === "ar" ? "محطة المعارض" : "Blog";
+  const selectedCountryId = searchParams.get("country") || "";
+  const selectedCountry = useMemo(
+    () => countries.find((country) => country._id === selectedCountryId),
+    [countries, selectedCountryId]
+  );
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -31,18 +38,20 @@ export const ExhibitionsPage = () => {
       setError("");
 
       try {
-        const [articlesData, categoryData] = await Promise.all([
-          contentService.getExhibitionArticles({ page: 1, limit: 12, paginate: true }),
+        const [articlesData, categoryData, countriesData] = await Promise.all([
+          contentService.getExhibitionArticles({ page: 1, limit: 12, paginate: true, ...(selectedCountryId ? { country: selectedCountryId } : {}) }),
           contentService.getBlogCategories(),
+          contentService.getCountries(),
         ]);
         setArticles(getPaginatedItems(articlesData));
         setCategories(categoryData);
+        setCountries(getPaginatedItems(countriesData));
       } catch (loadError) {
         setError(
           getErrorMessage(
             loadError,
             language === "ar"
-              ? "تعذر تحميل محتوى المدونة حاليًا."
+              ? "تعذر تحميل محتوى محطة المعارض حاليًا."
               : "Unable to load the blog right now."
           )
         );
@@ -52,7 +61,19 @@ export const ExhibitionsPage = () => {
     };
 
     loadArticles();
-  }, [language]);
+  }, [language, selectedCountryId]);
+
+  const handleCountryFilter = (countryId: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (countryId) {
+      nextParams.set("country", countryId);
+    } else {
+      nextParams.delete("country");
+    }
+
+    setSearchParams(nextParams);
+  };
 
   const categoryLinks = useMemo(
     () =>
@@ -68,14 +89,14 @@ export const ExhibitionsPage = () => {
   return (
     <div className="space-y-8">
       <Seo
-        title={seoText(language, "Study Abroad Blog", "مدونة الدراسة بالخارج")}
+        title={seoText(language, "Study Abroad Blog", "محطة المعارض")}
         description={seoText(
           language,
           `Explore fresh study abroad articles, university updates, and student guidance from ${SITE_NAME}.`,
-          `استكشف أحدث مقالات الدراسة بالخارج وتحديثات الجامعات والمحتوى الإرشادي من ${SITE_NAME}.`
+          `استكشف أحدث المقالات والتحديثات والإرشادات الخاصة بالدراسة بالخارج من ${SITE_NAME}.`
         )}
         canonicalPath="/blog"
-        keywords={["study abroad blog", "university updates", "articles", "المدونة", "الدراسة بالخارج"]}
+        keywords={["study abroad blog", "university updates", "articles", "محطة المعارض", "الدراسة بالخارج"]}
       />
 
       <section className="relative overflow-hidden rounded-[2rem] bg-fusion px-8 py-12 text-white">
@@ -101,13 +122,47 @@ export const ExhibitionsPage = () => {
               <p className="text-sm text-brand-100">{language === "ar" ? "إجمالي المقالات" : "Total articles"}</p>
               <p className="mt-3 text-4xl font-semibold">{articles.length}</p>
             </div>
-            <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
-              <p className="text-sm text-brand-100">{language === "ar" ? "التصنيفات" : "Categories"}</p>
-              <p className="mt-3 text-4xl font-semibold">{categoryLinks.length}</p>
-            </div>
           </div>
         </div>
       </section>
+
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => handleCountryFilter("")}
+          className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+            !selectedCountryId
+              ? "bg-brand-900 text-white shadow-soft"
+              : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+          }`}
+        >
+          {t("allCountries")}
+        </button>
+        {countries.map((country) => {
+          const isActive = selectedCountryId === country._id;
+
+          return (
+            <button
+              key={country._id}
+              type="button"
+              onClick={() => handleCountryFilter(country._id)}
+              className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-900 text-white shadow-soft"
+                  : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+              }`}
+            >
+              {tv(country.name)}
+            </button>
+          );
+        })}
+      </div>
+
+      {selectedCountry ? (
+        <p className="text-sm font-semibold text-slate-600">
+          {language === "ar" ? `عرض مقالات ${tv(selectedCountry.name)}` : `Showing articles for ${tv(selectedCountry.name)}`}
+        </p>
+      ) : null}
 
       {categoryLinks.length ? (
         <section className="flex flex-wrap gap-3">
@@ -129,7 +184,13 @@ export const ExhibitionsPage = () => {
       {!loading && !error && articles.length === 0 ? (
         <div className="panel p-10 text-center">
           <h2 className="text-2xl font-semibold text-slate-900">
-            {language === "ar" ? "لا توجد مقالات منشورة حاليًا" : "No articles have been published yet"}
+            {selectedCountryId
+              ? language === "ar"
+                ? "لا توجد مقالات منشورة لهذه الدولة حاليًا"
+                : "No articles have been published for this country yet"
+              : language === "ar"
+                ? "لا توجد مقالات منشورة حاليًا"
+                : "No articles have been published yet"}
           </h2>
           <p className="mt-3 text-slate-600">
             {language === "ar"

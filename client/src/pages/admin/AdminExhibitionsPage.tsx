@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarDays, PencilLine, Plus, Search, Trash2, Video } from "lucide-react";
+﻿import { AlertTriangle, CalendarDays, PencilLine, Plus, Search, Trash2, Video } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ArticleContentFields } from "../../components/admin/ArticleContentFields";
@@ -12,7 +12,7 @@ import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 import { getSiteUrl } from "../../seo/site";
 import { adminService } from "../../services/adminService";
-import type { ExhibitionArticle } from "../../types";
+import type { Country, ExhibitionArticle } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
 import { formatDate } from "../../utils/format";
 import { getYoutubeEmbedUrl } from "../../utils/youtube";
@@ -48,6 +48,7 @@ type ExhibitionForm = {
   robotsIndex: "index" | "noindex";
   robotsFollow: "follow" | "nofollow";
   category: string;
+  country: string;
   authorName: string;
   publishedAt: string;
   seoUpdatedAt: string;
@@ -87,6 +88,7 @@ const emptyForm: ExhibitionForm = {
   robotsIndex: "index",
   robotsFollow: "follow",
   category: "",
+  country: "",
   authorName: "",
   publishedAt: "",
   seoUpdatedAt: "",
@@ -107,7 +109,7 @@ const clipText = (value: string, maxLength: number) => {
   if (normalized.length <= maxLength) {
     return normalized;
   }
-  return `${normalized.slice(0, Math.max(0, maxLength - 1)).trim()}…`;
+  return `${normalized.slice(0, Math.max(0, maxLength - 1)).trim()}...`;
 };
 
 const slugifyValue = (value: string) =>
@@ -157,26 +159,28 @@ const mapSectionsToArticleContent = (article: ExhibitionArticle) => {
 
 export const AdminExhibitionsPage = () => {
   const { language } = useLanguage();
+  const [countries, setCountries] = useState<Country[]>([]);
   const [articles, setArticles] = useState<ExhibitionArticle[]>([]);
   const [form, setForm] = useState<ExhibitionForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
-
   const labels = {
-    title: language === "ar" ? "إدارة المدونة" : "Blog manager",
+    title: language === "ar" ? "إدارة محطة المعارض" : "Blog manager",
     intro:
       language === "ar"
         ? "أضف المقال مع محتواه وحقول SEO اليدوية أو اتركها فارغة ليتم توليدها تلقائيًا."
         : "Add the article content and optional SEO fields, or leave them blank to auto-generate.",
-    preview: language === "ar" ? "فتح المدونة" : "Open blog",
+    preview: language === "ar" ? "فتح محطة المعارض" : "Open blog",
     create: language === "ar" ? "إضافة المقال" : "Create article",
     update: language === "ar" ? "تحديث المقال" : "Update article",
     reset: language === "ar" ? "مسح النموذج" : "Clear form",
   };
 
   const loadArticles = async () => {
-    setArticles(await adminService.getExhibitions());
+    const [articlesData, countriesData] = await Promise.all([adminService.getExhibitions(), adminService.getCountries()]);
+    setArticles(articlesData);
+    setCountries(countriesData);
   };
 
   useEffect(() => {
@@ -184,7 +188,7 @@ export const AdminExhibitionsPage = () => {
       setFormError(
         getErrorMessage(
           error,
-          language === "ar" ? "تعذر تحميل مقالات المدونة." : "Unable to load blog articles."
+          language === "ar" ? "تعذر تحميل مقالات محطة المعارض." : "Unable to load blog articles."
         )
       )
     );
@@ -237,13 +241,13 @@ export const AdminExhibitionsPage = () => {
       items.push(language === "ar" ? "الوصف التعريفي يفضل أن يكون بين 150 و160 حرفًا." : "Meta description should be between 150 and 160 characters.");
     }
     if (form.image && !form.imageAltText.trim()) {
-      items.push(language === "ar" ? "لا يوجد Image Alt Text مكتوب يدويًا، وسيتم استخدام عنوان المقال تلقائيًا." : "Image alt text is empty; the article title will be used automatically.");
+      items.push(language === "ar" ? "لا يوجد نص بديل للصورة مكتوب يدويًا، وسيتم استخدام عنوان المقال تلقائيًا." : "Image alt text is empty; the article title will be used automatically.");
     }
     if (!form.focusKeyword.trim()) {
-      items.push(language === "ar" ? "لا يوجد Focus Keyword للمقال." : "Focus keyword is missing.");
+      items.push(language === "ar" ? "لا توجد كلمة مفتاحية رئيسية للمقال." : "Focus keyword is missing.");
     }
     if (slugExists) {
-      items.push(language === "ar" ? "الـ slug الحالي مكرر. عدله قبل الحفظ." : "The current slug is duplicated. Change it before saving.");
+      items.push(language === "ar" ? "الرابط الحالي مكرر. عدله قبل الحفظ." : "The current slug is duplicated. Change it before saving.");
     }
 
     return items;
@@ -276,7 +280,7 @@ export const AdminExhibitionsPage = () => {
     setFormError("");
 
     if (slugExists) {
-      setFormError(language === "ar" ? "لا يمكن حفظ المقال لأن الـ slug مكرر." : "Cannot save the article because the slug is duplicated.");
+      setFormError(language === "ar" ? "لا يمكن حفظ المقال لأن الرابط مكرر." : "Cannot save the article because the slug is duplicated.");
       return;
     }
 
@@ -290,6 +294,7 @@ export const AdminExhibitionsPage = () => {
         .map((item) => item.trim())
         .filter(Boolean),
       publishedAt: form.publishedAt || null,
+      country: form.country || null,
       seoUpdatedAt: form.seoUpdatedAt || null,
     };
 
@@ -346,10 +351,19 @@ export const AdminExhibitionsPage = () => {
             </label>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "التصنيف" : "Category"}</span>
               <input value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))} placeholder={language === "ar" ? "مثال: الدراسة في تركيا" : "Example: Study in Turkey"} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "الدولة" : "Country"}</span>
+              <select value={form.country} onChange={(event) => setForm((current) => ({ ...current, country: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring">
+                <option value="">{language === "ar" ? "مقال عام لكل الدول" : "General article for all countries"}</option>
+                {countries.map((country) => (
+                  <option key={country._id} value={country._id}>{country.name}</option>
+                ))}
+              </select>
             </label>
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "اسم الكاتب" : "Author"}</span>
@@ -366,7 +380,7 @@ export const AdminExhibitionsPage = () => {
             <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "صورة الغلاف" : "Cover image"}</span>
             <input type="file" accept="image/*" onChange={(event) => handleImageUpload(event.target.files)} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring" />
             <p className="mt-2 text-xs text-slate-500">
-              {uploadingImage ? (language === "ar" ? "جاري رفع الصورة..." : "Uploading image...") : language === "ar" ? "الصورة الأساسية ستُستخدم تلقائيًا في OG/Twitter إذا لم تدخل صورًا مخصصة." : "The main image will be reused for OG/Twitter if custom images are empty."}
+              {uploadingImage ? (language === "ar" ? "جاري رفع الصورة..." : "Uploading image...") : language === "ar" ? "الصورة الأساسية ستستخدم تلقائيًا في OG/Twitter إذا لم تدخل صورًا مخصصة." : "The main image will be reused for OG/Twitter if custom images are empty."}
             </p>
           </label>
 
@@ -629,6 +643,7 @@ export const AdminExhibitionsPage = () => {
                           imageAltText: article.imageAltText || "",
                           robotsIndex: article.robotsIndex || "index",
                           robotsFollow: article.robotsFollow || "follow",
+                          country: article.country && typeof article.country !== "string" ? article.country._id : typeof article.country === "string" ? article.country : "",
                           category: article.category || "",
                           authorName: article.authorName || "",
                           publishedAt: toDatetimeLocalValue(article.publishedAt || article.createdAt),
@@ -679,3 +694,7 @@ export const AdminExhibitionsPage = () => {
     </div>
   );
 };
+
+
+
+

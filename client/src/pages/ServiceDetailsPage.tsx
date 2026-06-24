@@ -1,5 +1,5 @@
-import { ArrowRight, Award, Compass } from "lucide-react";
-import { useEffect, useState } from "react";
+﻿import { ArrowRight, Award, Compass } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Seo } from "../components/seo/Seo";
 import { useLanguage } from "../hooks/useLanguage";
@@ -9,6 +9,7 @@ import { contentService } from "../services/contentService";
 import type { OurService } from "../types";
 import { getErrorMessage } from "../utils/errors";
 import { renderRichTextLines } from "../utils/richText";
+import { repairMojibake } from "../utils/textCodec";
 
 export const ServiceDetailsPage = () => {
   const { language } = useLanguage();
@@ -39,11 +40,24 @@ export const ServiceDetailsPage = () => {
     loadService();
   }, [slug, language]);
 
+  const normalizedService = useMemo(
+    () =>
+      service
+        ? {
+            ...service,
+            title: repairMojibake(service.title),
+            detailTitle: repairMojibake(service.detailTitle),
+            detailBody: repairMojibake(service.detailBody),
+          }
+        : null,
+    [service]
+  );
+
   if (loading) {
     return <div className="panel p-8 text-sm text-slate-500">{language === "ar" ? "جارٍ تحميل الخدمة..." : "Loading service..."}</div>;
   }
 
-  if (error || !service) {
+  if (error || !normalizedService) {
     return (
       <div className="space-y-4">
         <Link to="/services" className="inline-flex text-sm font-semibold text-brand-700">
@@ -56,8 +70,8 @@ export const ServiceDetailsPage = () => {
     );
   }
 
-  const heroImage = getApiAssetUrl(service.detailImage || service.image || "");
-  const pageTitle = service.detailTitle || service.title;
+  const heroImage = getApiAssetUrl(normalizedService.detailImage || normalizedService.image || "");
+  const pageTitle = normalizedService.detailTitle || normalizedService.title;
 
   return (
     <div className="space-y-8">
@@ -65,11 +79,11 @@ export const ServiceDetailsPage = () => {
         title={seoText(language, pageTitle, pageTitle)}
         description={seoText(
           language,
-          service.detailBody || `Read more about this service from ${SITE_NAME}.`,
-          service.detailBody || `تعرّف على تفاصيل هذه الخدمة من ${SITE_NAME}.`
+          normalizedService.detailBody || `Read more about this service from ${SITE_NAME}.`,
+          normalizedService.detailBody || `تعرّف على تفاصيل هذه الخدمة من ${SITE_NAME}.`
         )}
         type="article"
-        canonicalPath={`/services/${service.slug || service._id}`}
+        canonicalPath={`/services/${normalizedService.slug || normalizedService._id}`}
       />
 
       <section
@@ -89,7 +103,7 @@ export const ServiceDetailsPage = () => {
           </div>
           <h1 className="mt-5 max-w-4xl text-4xl font-semibold leading-tight sm:text-5xl">{pageTitle}</h1>
           <p className="mt-5 max-w-3xl text-base leading-8 text-white/85">
-            {service.detailBody
+            {normalizedService.detailBody
               ? language === "ar"
                 ? "تفاصيل الخدمة موضحة في هذه الصفحة."
                 : "This page shows the service details."
@@ -115,7 +129,7 @@ export const ServiceDetailsPage = () => {
               <div className="flex h-80 items-center justify-center rounded-[1.5rem] bg-fusion text-white">
                 <div className="text-center">
                   <Award className="mx-auto h-12 w-12" />
-                  <p className="mt-4 text-lg font-semibold">{service.title}</p>
+                  <p className="mt-4 text-lg font-semibold">{normalizedService.title}</p>
                 </div>
               </div>
             )}
@@ -124,8 +138,8 @@ export const ServiceDetailsPage = () => {
           <div className="p-8">
             <h2 className="text-3xl font-semibold text-slate-900">{pageTitle}</h2>
             <div className="mt-5 space-y-3 text-sm leading-7 text-slate-600">
-              {service.detailBody
-                ? renderRichTextLines(service.detailBody)
+              {normalizedService.detailBody
+                ? renderRichTextLines(normalizedService.detailBody)
                 : renderRichTextLines(
                     language === "ar"
                       ? "لم يتم إضافة نص تفصيلي لهذه الخدمة بعد."

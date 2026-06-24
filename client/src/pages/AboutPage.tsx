@@ -1,4 +1,4 @@
-import { ArrowRight, Award, Sparkles } from "lucide-react";
+﻿import { ArrowRight, Award, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Seo } from "../components/seo/Seo";
@@ -9,6 +9,7 @@ import { contentService } from "../services/contentService";
 import type { Recognition } from "../types";
 import { getErrorMessage } from "../utils/errors";
 import { getPaginatedItems } from "../utils/pagination";
+import { repairMojibake } from "../utils/textCodec";
 
 export const AboutPage = () => {
   const { t, language } = useLanguage();
@@ -25,12 +26,7 @@ export const AboutPage = () => {
         const recognitionsData = await contentService.getRecognitions({ page: 1, limit: 12, paginate: true, featuredOnly: true });
         setRecognitions(getPaginatedItems(recognitionsData).filter((recognition) => recognition.featured !== false));
       } catch (loadError) {
-        setError(
-          getErrorMessage(
-            loadError,
-            language === "ar" ? "تعذر تحميل محتوى صفحة من نحن حاليًا." : "Unable to load the About page content right now."
-          )
-        );
+        setError(getErrorMessage(loadError, language === "ar" ? "تعذر تحميل محتوى صفحة من نحن حاليًا." : "Unable to load the About page content right now."));
       } finally {
         setLoading(false);
       }
@@ -45,7 +41,7 @@ export const AboutPage = () => {
       title: language === "ar" ? "من نحن" : "About Us",
       body:
         language === "ar"
-          ? "تعرف على رؤية Study Birds وطريقتنا في مرافقة الطالب من أول استشارة حتى بداية الرحلة الجامعية."
+          ? "تعرّف على رؤية Study Birds وطريقتنا في مرافقة الطالب من أول استشارة حتى بداية الرحلة الجامعية."
           : "Get to know the Study Birds vision and the way we guide students from first consultation to university arrival.",
     },
     {
@@ -119,6 +115,7 @@ export const AboutPage = () => {
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
             {recognitions.map((recognition) => {
               const imageUrl = recognition.image ? getApiAssetUrl(recognition.image) : "";
+              const title = repairMojibake(recognition.title);
 
               return (
                 <div
@@ -128,18 +125,18 @@ export const AboutPage = () => {
                   <Link to={`/recognitions/${recognition.slug || recognition._id}`} className="block">
                     {imageUrl ? (
                       <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-3 sm:h-40 lg:h-48">
-                        <img src={imageUrl} alt={recognition.title} loading="lazy" className="h-full w-full rounded-[1rem] object-contain" />
+                        <img src={imageUrl} alt={title} loading="lazy" className="h-full w-full rounded-[1rem] object-contain" />
                       </div>
                     ) : (
                       <div className="flex h-32 w-full flex-col justify-between rounded-[1.2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_100%)] p-4 sm:h-40 sm:p-5 lg:h-48">
                         <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-brand-100">
                           <Award size={22} />
                         </span>
-                        <p className="text-lg font-semibold text-white">{recognition.title}</p>
+                        <p className="text-lg font-semibold text-white">{title}</p>
                       </div>
                     )}
                     <div className="px-1 pb-1 pt-3">
-                      <p className="text-sm font-semibold text-white">{recognition.title}</p>
+                      <p className="text-sm font-semibold text-white">{title}</p>
                       <p className="mt-2 text-xs font-medium text-brand-100">{t("viewRecognition")}</p>
                     </div>
                   </Link>

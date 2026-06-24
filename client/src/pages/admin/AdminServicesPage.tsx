@@ -1,11 +1,20 @@
-import { useEffect, useState, type FormEvent } from "react";
+﻿import { useEffect, useState, type FormEvent } from "react";
 import { Award, PencilLine, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 import { adminService } from "../../services/adminService";
-import type { OurService } from "../../types";
+import type { Country, OurService } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
 import { dt } from "../../utils/dashboardTranslations";
+import { repairMojibake } from "../../utils/textCodec";
+
+const countryLabel = (country: Country) => country.name;
+const normalizeService = (service: OurService): OurService => ({
+  ...service,
+  title: repairMojibake(service.title),
+  detailTitle: repairMojibake(service.detailTitle),
+  detailBody: repairMojibake(service.detailBody),
+});
 
 const emptyServiceForm = {
   title: "",
@@ -15,19 +24,22 @@ const emptyServiceForm = {
   detailImage: "",
   featured: true,
   sortOrder: "0",
+  country: "",
 };
 
 export const AdminServicesPage = () => {
   const { language } = useLanguage();
   const [services, setServices] = useState<OurService[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [serviceForm, setServiceForm] = useState(emptyServiceForm);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [uploadingServiceImage, setUploadingServiceImage] = useState(false);
   const [formError, setFormError] = useState("");
 
   const loadData = async () => {
-    const servicesData = await adminService.getOurServices();
-    setServices(servicesData);
+    const [servicesData, countriesData] = await Promise.all([adminService.getOurServices(), adminService.getCountries()]);
+    setServices(servicesData.map(normalizeService));
+    setCountries(countriesData);
   };
 
   useEffect(() => {
@@ -81,6 +93,7 @@ export const AdminServicesPage = () => {
       detailImage: serviceForm.detailImage || serviceForm.image || "",
       featured: serviceForm.featured,
       sortOrder: Number(serviceForm.sortOrder || 0),
+      country: serviceForm.country || null,
     };
 
     try {
@@ -131,6 +144,21 @@ export const AdminServicesPage = () => {
                 onChange={(event) => setServiceForm((current) => ({ ...current, sortOrder: event.target.value }))}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
               />
+            </label>
+            <label className="block md:col-span-2">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "الدولة" : "Country"}</span>
+              <select
+                value={serviceForm.country}
+                onChange={(event) => setServiceForm((current) => ({ ...current, country: event.target.value }))}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+              >
+                <option value="">{language === "ar" ? "خدمة عامة لكل الدول" : "General service for all countries"}</option>
+                {countries.map((country) => (
+                  <option key={country._id} value={country._id}>
+                    {countryLabel(country)}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -243,6 +271,15 @@ export const AdminServicesPage = () => {
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                     {language === "ar" ? `ترتيب ${service.sortOrder || 0}` : `Order ${service.sortOrder || 0}`}
                   </span>
+                  {service.country && typeof service.country !== "string" ? (
+                    <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+                      {countryLabel(service.country)}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                      {language === "ar" ? "عام" : "General"}
+                    </span>
+                  )}
                 </div>
                 {service.detailTitle ? <p className="mt-3 text-sm font-medium text-slate-800">{service.detailTitle}</p> : null}
                 {service.detailBody ? <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">{service.detailBody}</p> : null}
@@ -259,6 +296,7 @@ export const AdminServicesPage = () => {
                       detailImage: service.detailImage || "",
                       featured: Boolean(service.featured),
                       sortOrder: String(service.sortOrder || 0),
+                      country: service.country && typeof service.country !== "string" ? service.country._id : typeof service.country === "string" ? service.country : "",
                     });
                   }}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-700"

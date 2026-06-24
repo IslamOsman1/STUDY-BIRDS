@@ -21,6 +21,7 @@ const {
   buildExhibitionPayload: buildExhibitionSeoPayload,
 } = require("../utils/exhibitionSeo");
 const { clearResponseCache } = require("../utils/responseCache");
+const { normalizeOptionalText, normalizeOurService } = require("../utils/text");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 const {
   hydrateApplicationsWithStudentProfiles,
@@ -101,6 +102,7 @@ const buildExhibitionPayload = (body) => {
     sections,
     featured: typeof body.featured === "boolean" ? body.featured : true,
     published: typeof body.published === "boolean" ? body.published : true,
+    country: body.country || null,
   };
 };
 
@@ -197,7 +199,7 @@ const buildOurServiceSlug = async (title, currentId) => {
 };
 
 const buildOurServicePayload = async (body, currentService = null) => {
-  const title = String(body.title || currentService?.title || "").trim();
+  const title = normalizeOptionalText(body.title, currentService?.title || "");
   const titleChanged = title && title !== currentService?.title;
   const slug =
     currentService?.slug && !titleChanged
@@ -208,11 +210,12 @@ const buildOurServicePayload = async (body, currentService = null) => {
     title,
     slug,
     image: body.image || "",
-    detailTitle: body.detailTitle || title,
-    detailBody: body.detailBody || "",
+    detailTitle: normalizeOptionalText(body.detailTitle, title),
+    detailBody: normalizeOptionalText(body.detailBody),
     detailImage: body.detailImage || body.image || "",
     featured: typeof body.featured === "boolean" ? body.featured : true,
     sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
+    country: body.country || null,
   };
 };
 
@@ -570,13 +573,17 @@ const getRecognitionsAdmin = asyncHandler(async (req, res) => {
 });
 
 const getFaqsAdmin = asyncHandler(async (req, res) => {
-  const faqs = await Faq.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  const faqs = await Faq.find()
+    .populate("country", "name code slug")
+    .sort({ featured: -1, sortOrder: 1, createdAt: -1 });
   res.json(faqs);
 });
 
 const getOurServicesAdmin = asyncHandler(async (req, res) => {
-  const services = await OurService.find().sort({ featured: -1, sortOrder: 1, createdAt: -1 });
-  res.json(services);
+  const services = await OurService.find()
+    .populate("country", "name code slug")
+    .sort({ featured: -1, sortOrder: 1, createdAt: -1 });
+  res.json(services.map((service) => normalizeOurService(service.toObject())));
 });
 
 const getOurStoryAdmin = asyncHandler(async (req, res) => {
@@ -612,7 +619,10 @@ const getOurStoryAdmin = asyncHandler(async (req, res) => {
 });
 
 const getExhibitionArticlesAdmin = asyncHandler(async (req, res) => {
-  const articles = await ExhibitionArticle.find().sort({ featured: -1, createdAt: -1 }).lean();
+  const articles = await ExhibitionArticle.find()
+    .populate("country", "name code slug")
+    .sort({ featured: -1, createdAt: -1 })
+    .lean();
   res.json(articles.map(attachResolvedSeo));
 });
 
@@ -709,16 +719,18 @@ const createFaq = asyncHandler(async (req, res) => {
     answer: req.body.answer,
     featured: typeof req.body.featured === "boolean" ? req.body.featured : true,
     sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+    country: req.body.country || null,
   });
 
   invalidatePublicContent();
-  res.status(201).json(faq);
+  const populatedFaq = await Faq.findById(faq._id).populate("country", "name code slug");
+  res.status(201).json(populatedFaq);
 });
 
 const createOurService = asyncHandler(async (req, res) => {
   const service = await OurService.create(await buildOurServicePayload(req.body));
   invalidatePublicContent();
-  res.status(201).json(service);
+  res.status(201).json(normalizeOurService(service.toObject()));
 });
 
 const upsertOurStory = asyncHandler(async (req, res) => {
@@ -824,9 +836,10 @@ const updateFaq = asyncHandler(async (req, res) => {
       answer: req.body.answer,
       featured: Boolean(req.body.featured),
       sortOrder: Number.isFinite(Number(req.body.sortOrder)) ? Number(req.body.sortOrder) : 0,
+      country: req.body.country || null,
     },
     { new: true, runValidators: true }
-  );
+  ).populate("country", "name code slug");
 
   if (!faq) {
     res.status(404);
@@ -857,7 +870,7 @@ const updateOurService = asyncHandler(async (req, res) => {
   }
 
   invalidatePublicContent();
-  res.json(service);
+  res.json(normalizeOurService(service.toObject()));
 });
 
 const updateExhibitionArticle = asyncHandler(async (req, res) => {

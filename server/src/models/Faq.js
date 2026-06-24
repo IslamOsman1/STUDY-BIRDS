@@ -21,6 +21,11 @@ const faqSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    country: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Country",
+      default: null,
+    },
   },
   { timestamps: true }
 );

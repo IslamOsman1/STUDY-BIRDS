@@ -14,7 +14,7 @@ import { getPaginatedItems, getPaginationMeta } from "../utils/pagination";
 
 export const UniversitiesPage = () => {
   const { t, language, tv } = useLanguage();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [universities, setUniversities] = useState<University[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
@@ -25,6 +25,23 @@ export const UniversitiesPage = () => {
     () => countries.find((country) => country._id === selectedCountryId),
     [countries, selectedCountryId]
   );
+  const filterCountries = useMemo(
+    () => countries.filter((country) => country._id),
+    [countries]
+  );
+
+  const handleCountryFilter = (countryId: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (countryId) {
+      nextParams.set("country", countryId);
+    } else {
+      nextParams.delete("country");
+    }
+
+    nextParams.delete("page");
+    setSearchParams(nextParams);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -70,6 +87,37 @@ export const UniversitiesPage = () => {
       <h1 className="mt-3 text-4xl font-semibold text-slate-900">
         {selectedCountry ? tv(selectedCountry.name) : t("universitiesTitle")}
       </h1>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => handleCountryFilter("")}
+          className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+            !selectedCountryId
+              ? "bg-brand-900 text-white shadow-soft"
+              : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+          }`}
+        >
+          {t("allCountries")}
+        </button>
+        {filterCountries.map((country) => {
+          const isActive = selectedCountryId === country._id;
+
+          return (
+            <button
+              key={country._id}
+              type="button"
+              onClick={() => handleCountryFilter(country._id)}
+              className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-900 text-white shadow-soft"
+                  : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+              }`}
+            >
+              {tv(country.name)}
+            </button>
+          );
+        })}
+      </div>
       {selectedCountry ? (
         <div className="mt-6 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
           <div className="grid gap-0 lg:grid-cols-[320px_minmax(0,1fr)]">

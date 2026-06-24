@@ -17,6 +17,22 @@ import { useLanguage } from "../hooks/useLanguage";
 import { SITE_NAME, getSiteUrl, seoText } from "../seo/site";
 import { dt } from "../utils/dashboardTranslations";
 import { journeyShowcaseImages } from "../utils/marketingVisuals";
+import { repairMojibake } from "../utils/textCodec";
+
+const isMeaningfulServiceTitle = (value: string) => {
+  const text = repairMojibake(value).trim();
+
+  if (text.length < 4) {
+    return false;
+  }
+
+  if (/\s/.test(text)) {
+    return true;
+  }
+
+  const normalizedChars = Array.from(text.replace(/[^\p{L}\p{N}]/gu, ""));
+  return new Set(normalizedChars).size >= 5;
+};
 
 export const HomePage = () => {
   const { t, tv, language } = useLanguage();
@@ -103,6 +119,8 @@ export const HomePage = () => {
     `استكشف الجامعات، وقارن البرامج الدولية، وقدّم للدراسة بالخارج مع ${SITE_NAME} باللغتين العربية والإنجليزية.`
   );
 
+  const normalizedHomeDescription = repairMojibake(homeDescription);
+
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -169,12 +187,52 @@ export const HomePage = () => {
 
   const sectionTransition = { duration: 0.55, ease: "easeOut" } as const;
   const displayedFaqs = faqs.slice(0, 4);
+  const normalizedServices = services.map((service) => ({
+    ...service,
+    title: repairMojibake(service.title),
+    detailTitle: repairMojibake(service.detailTitle),
+    detailBody: repairMojibake(service.detailBody),
+  }));
+  const fallbackServices: OurService[] = [
+    {
+      _id: "fallback-service-1",
+      title: language === "ar" ? "\u0627\u0644\u0642\u0628\u0648\u0644 \u0627\u0644\u062C\u0627\u0645\u0639\u064A" : "University admissions",
+      image: "",
+      detailTitle: "",
+      detailBody: "",
+      detailImage: "",
+      featured: true,
+      sortOrder: 0,
+    },
+    {
+      _id: "fallback-service-2",
+      title: language === "ar" ? "\u062A\u062C\u0647\u064A\u0632 \u0627\u0644\u0645\u0633\u062A\u0646\u062F\u0627\u062A" : "Document preparation",
+      image: "",
+      detailTitle: "",
+      detailBody: "",
+      detailImage: "",
+      featured: true,
+      sortOrder: 1,
+    },
+    {
+      _id: "fallback-service-3",
+      title: language === "ar" ? "\u062F\u0639\u0645 \u0627\u0644\u062A\u0623\u0634\u064A\u0631\u0629 \u0648\u0627\u0644\u0625\u0642\u0627\u0645\u0629" : "Visa and residency support",
+      image: "",
+      detailTitle: "",
+      detailBody: "",
+      detailImage: "",
+      featured: true,
+      sortOrder: 2,
+    },
+  ];
+  const visibleServices = normalizedServices.filter((service) => isMeaningfulServiceTitle(service.title));
+  const homepageServices = visibleServices.length ? visibleServices : fallbackServices;
 
   return (
     <div className="space-y-16">
       <Seo
         title={seoText(language, "Study Abroad Platform", "منصة الدراسة بالخارج")}
-        description={homeDescription}
+        description={normalizedHomeDescription}
         keywords={[
           SITE_NAME,
           "study abroad platform",
@@ -191,7 +249,7 @@ export const HomePage = () => {
       {contentLoading ? (
         <div className="panel flex items-center gap-3 p-6 text-sm text-slate-500">
           <LoadingSpinner />
-          <span>{language === "ar" ? "جاري تحميل المحتوى الديناميكي..." : "Loading dynamic content..."}</span>
+          <span>{language === "ar" ? "جارٍ تحميل المحتوى الديناميكي..." : "Loading dynamic content..."}</span>
         </div>
       ) : null}
       {contentLoadFailed ? (
@@ -236,27 +294,25 @@ export const HomePage = () => {
           <h2 className="text-3xl font-semibold">
             {recognitions.length ? t("recognitionsTitle") : t("homeExperienceTitle")}
           </h2>
-          <div className="flex items-center gap-3 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => scrollRecognitions("left")}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-              aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollRecognitions("right")}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-              aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
-            >
-              <ArrowRight size={18} />
-            </button>
-          </div>
         </div>
 
         <div className="relative mt-6 -mx-2 overflow-hidden sm:mx-0">
+          <button
+            type="button"
+            onClick={() => scrollRecognitions("left")}
+            className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+            aria-label={language === "ar" ? "Ø§Ù„ØªÙ…Ø±ÙŠØ± ÙŠÙ…ÙŠÙ†Ù‹Ø§" : "Scroll left"}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollRecognitions("right")}
+            className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+            aria-label={language === "ar" ? "Ø§Ù„ØªÙ…Ø±ÙŠØ± ÙŠØ³Ø§Ø±Ù‹Ø§" : "Scroll right"}
+          >
+            <ArrowRight size={18} />
+          </button>
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-white to-transparent sm:w-10" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-white to-transparent sm:w-10" />
           <div
@@ -321,7 +377,7 @@ export const HomePage = () => {
         </div>
       </motion.section>
 
-      {services.length ? (
+      {homepageServices.length ? (
         <motion.section
           initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -329,39 +385,40 @@ export const HomePage = () => {
           transition={sectionTransition}
           className="panel overflow-hidden rounded-[2.5rem] px-8 py-10 text-slate-900 sm:px-10"
         >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
             <div>
               <h2 className="text-3xl font-semibold">{t("servicesTitle")}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">{t("servicesBody")}</p>
             </div>
-            <div className="flex items-center gap-3 self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => scrollServices("left")}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
-              >
-                <ArrowLeft size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollServices("right")}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
-              >
-                <ArrowRight size={18} />
-              </button>
-            </div>
           </div>
 
           <div className="relative mt-6 -mx-2 overflow-hidden sm:mx-0">
+            <button
+              type="button"
+              onClick={() => scrollServices("left")}
+              className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+              aria-label={language === "ar" ? "??????? ??????" : "Scroll left"}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollServices("right")}
+              className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+              aria-label={language === "ar" ? "??????? ??????" : "Scroll right"}
+            >
+              <ArrowRight size={18} />
+            </button>
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-white to-transparent sm:w-10" />
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-white to-transparent sm:w-10" />
             <div
               ref={servicesScrollerRef}
               className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0"
             >
-            {services.map((service, index) => (
+            {homepageServices.map((service, index) => {
+              const serviceHref = service._id.startsWith("fallback-service-") ? "/services" : `/services/${service.slug || service._id}`;
+
+              return (
               <motion.div
                 key={service._id}
                 initial={{ opacity: 0, y: 20 }}
@@ -370,7 +427,7 @@ export const HomePage = () => {
                 transition={{ duration: 0.42, delay: index * 0.1 }}
                 className="w-[calc(50%-0.625rem)] min-w-[calc(50%-0.625rem)] overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white p-2 sm:w-[320px] sm:min-w-[320px]"
               >
-                <Link to={`/services/${service.slug || service._id}`} className="block">
+                <Link to={serviceHref} className="block">
                   {service.image ? (
                     <div className="flex h-32 w-full items-center justify-center rounded-[1.2rem] bg-slate-50 p-3 sm:h-40 lg:h-48">
                       <img src={service.image} alt={service.title} className="h-full w-full rounded-[1rem] object-contain" />
@@ -386,12 +443,13 @@ export const HomePage = () => {
                   <div className="px-1 pb-1 pt-3">
                     <p className="text-sm font-semibold text-slate-900">{service.title}</p>
                     <p className="mt-2 text-xs font-medium text-brand-700">
-                      {language === "ar" ? "عرض تفاصيل الخدمة" : "View service details"}
+                      {language === "ar" ? "\u0639\u0631\u0636 \u062A\u0641\u0627\u0635\u064A\u0644 \u0627\u0644\u062E\u062F\u0645\u0629" : "View service details"}
                     </p>
                   </div>
                 </Link>
               </motion.div>
-            ))}
+              );
+            })}
             </div>
           </div>
         </motion.section>
@@ -412,38 +470,25 @@ export const HomePage = () => {
               <p className="mt-3 text-sm leading-7 text-slate-600">{t("studyFieldsBody")}</p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45 }}
-                className="hidden overflow-hidden rounded-[1.8rem] border border-slate-200 bg-white p-2 shadow-soft lg:block"
-              >
-                <img src={journeyShowcaseImages[0]?.src} alt="Study fields" className="h-28 w-48 rounded-[1.3rem] object-cover" />
-              </motion.div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => scrollStudyFields("left")}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                  aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
-                >
-                  <ArrowLeft size={18} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollStudyFields("right")}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                  aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
-                >
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="relative mt-8 -mx-2 overflow-hidden sm:mx-0">
+            <button
+              type="button"
+              onClick={() => scrollStudyFields("left")}
+              className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+              aria-label={language === "ar" ? "??????? ??????" : "Scroll left"}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollStudyFields("right")}
+              className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+              aria-label={language === "ar" ? "??????? ??????" : "Scroll right"}
+            >
+              <ArrowRight size={18} />
+            </button>
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-white to-transparent sm:w-10" />
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-white to-transparent sm:w-10" />
             <div
@@ -479,36 +524,43 @@ export const HomePage = () => {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("destinations")}</p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("featuredDestinations")}</h2>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden lg:block">
-              <img
-                src={journeyShowcaseImages[2]?.src}
-                alt="Study destinations"
-                className="h-24 w-36 rounded-[1.4rem] object-cover shadow-soft"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => scrollCountries("left")}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                aria-label={language === "ar" ? "التمرير يمينًا" : "Scroll left"}
-              >
-                <ArrowLeft size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollCountries("right")}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                aria-label={language === "ar" ? "التمرير يسارًا" : "Scroll right"}
-              >
-                <ArrowRight size={18} />
-              </button>
-            </div>
+          <div className="flex items-center gap-3 lg:hidden">
+            <button
+              type="button"
+              onClick={() => scrollCountries("left")}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
+              aria-label={language === "ar" ? "??????? ??????" : "Scroll left"}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollCountries("right")}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
+              aria-label={language === "ar" ? "??????? ??????" : "Scroll right"}
+            >
+              <ArrowRight size={18} />
+            </button>
           </div>
         </div>
 
         <div className="relative mt-8 -mx-2 overflow-hidden sm:mx-0">
+          <button
+            type="button"
+            onClick={() => scrollCountries("left")}
+            className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+            aria-label={language === "ar" ? "Ø§Ù„ØªÙ…Ø±ÙŠØ± ÙŠÙ…ÙŠÙ†Ù‹Ø§" : "Scroll left"}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollCountries("right")}
+            className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+            aria-label={language === "ar" ? "Ø§Ù„ØªÙ…Ø±ÙŠØ± ÙŠØ³Ø§Ø±Ù‹Ø§" : "Scroll right"}
+          >
+            <ArrowRight size={18} />
+          </button>
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-white to-transparent sm:w-10" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-white to-transparent sm:w-10" />
           <div
@@ -542,33 +594,6 @@ export const HomePage = () => {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("universities")}</p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-900">{t("featuredUniversities")}</h2>
-          </div>
-          <div className="flex items-center gap-3">
-            {visibleUniversities.length > 3 ? (
-              <div className="hidden items-center gap-2 md:flex">
-                <button
-                  type="button"
-                  onClick={() => scrollUniversities(language === "ar" ? "right" : "left")}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                  aria-label={language === "ar" ? "تمرير الجامعات لليمين" : "Scroll universities right"}
-                >
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollUniversities(language === "ar" ? "left" : "right")}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-                  aria-label={language === "ar" ? "تمرير الجامعات لليسار" : "Scroll universities left"}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-              </div>
-            ) : null}
-            <img
-              src={journeyShowcaseImages[1]?.src}
-              alt="Featured universities"
-              className="hidden h-24 w-36 rounded-[1.4rem] object-cover shadow-soft lg:block"
-            />
           </div>
         </div>
 
@@ -605,6 +630,26 @@ export const HomePage = () => {
         </div>
 
         <div className="relative mt-8 -mx-2 overflow-hidden sm:mx-0">
+          {visibleUniversities.length > 3 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => scrollUniversities(language === "ar" ? "left" : "right")}
+                className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+                aria-label={language === "ar" ? "????? ???????? ??????" : "Scroll universities left"}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollUniversities(language === "ar" ? "right" : "left")}
+                className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-soft transition hover:border-brand-300 hover:text-brand-700 lg:inline-flex"
+                aria-label={language === "ar" ? "????? ???????? ??????" : "Scroll universities right"}
+              >
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            </>
+          ) : null}
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-white to-transparent sm:w-10" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-white to-transparent sm:w-10" />
           <div ref={universitiesScrollerRef} className="flex gap-5 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0">
@@ -690,7 +735,7 @@ export const HomePage = () => {
               type="button"
               onClick={() => scrollTestimonials("left")}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-              aria-label={language === "ar" ? "تمرير الآراء لليمين" : "Scroll testimonials left"}
+              aria-label={language === "ar" ? "ØªÙ…Ø±ÙŠØ± Ø§Ù„Ø¢Ø±Ø§Ø¡ Ù„Ù„ÙŠÙ…ÙŠÙ†" : "Scroll testimonials left"}
             >
               <ArrowLeft size={18} />
             </button>
@@ -698,7 +743,7 @@ export const HomePage = () => {
               type="button"
               onClick={() => scrollTestimonials("right")}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
-              aria-label={language === "ar" ? "تمرير الآراء لليسار" : "Scroll testimonials right"}
+              aria-label={language === "ar" ? "ØªÙ…Ø±ÙŠØ± Ø§Ù„Ø¢Ø±Ø§Ø¡ Ù„Ù„ÙŠØ³Ø§Ø±" : "Scroll testimonials right"}
             >
               <ArrowRight size={18} />
             </button>
@@ -739,3 +784,5 @@ export const HomePage = () => {
     </div>
   );
 };
+
+

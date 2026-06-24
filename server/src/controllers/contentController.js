@@ -21,6 +21,7 @@ const {
   buildRobotsTxt,
   buildSitemapXml,
 } = require("../utils/exhibitionSeo");
+const { normalizeOurService } = require("../utils/text");
 
 const defaultSiteSettingsPayload = {
   contactEmail: "",
@@ -153,12 +154,19 @@ const getRecognitionBySlug = asyncHandler(async (req, res) => {
 });
 
 const getFaqs = asyncHandler(async (req, res) => {
+  const query = {};
+
+  if (req.query.country) {
+    query.country = req.query.country;
+  }
+
   await paginateResponse({
     req,
     res,
     model: Faq,
-    query: {},
-    select: "question answer featured sortOrder createdAt",
+    query,
+    select: "question answer featured sortOrder country createdAt",
+    populate: [{ path: "country", select: "name code slug" }],
     sort: { featured: -1, sortOrder: 1, createdAt: -1 },
     defaultLimit: 12,
   });
@@ -166,13 +174,20 @@ const getFaqs = asyncHandler(async (req, res) => {
 
 const getOurServices = asyncHandler(async (req, res) => {
   const query = req.query.featuredOnly === "true" ? { featured: true } : {};
+
+  if (req.query.country) {
+    query.country = req.query.country;
+  }
+
   await paginateResponse({
     req,
     res,
     model: OurService,
     query,
-    select: "slug title image detailTitle detailBody detailImage featured sortOrder createdAt updatedAt",
+    select: "slug title image detailTitle detailBody detailImage featured sortOrder country createdAt updatedAt",
+    populate: [{ path: "country", select: "name code slug" }],
     sort: { featured: -1, sortOrder: 1, createdAt: -1 },
+    transform: normalizeOurService,
     defaultLimit: 12,
   });
 });
@@ -183,7 +198,8 @@ const getOurServiceBySlug = asyncHandler(async (req, res) => {
     OurService.findOne({
       $or: [{ slug }, ...(mongoose.Types.ObjectId.isValid(slug) ? [{ _id: slug }] : [])],
     })
-      .select("slug title image detailTitle detailBody detailImage featured sortOrder createdAt updatedAt")
+      .populate("country", "name code slug")
+      .select("slug title image detailTitle detailBody detailImage featured sortOrder country createdAt updatedAt")
       .lean()
   );
 
@@ -192,7 +208,7 @@ const getOurServiceBySlug = asyncHandler(async (req, res) => {
     throw new Error("Service not found");
   }
 
-  res.json(service);
+  res.json(normalizeOurService(service));
 });
 
 const getOurStory = asyncHandler(async (req, res) => {
@@ -262,12 +278,19 @@ const createEventRegistration = asyncHandler(async (req, res) => {
 });
 
 const getExhibitionArticles = asyncHandler(async (req, res) => {
+  const query = { published: true };
+
+  if (req.query.country) {
+    query.country = req.query.country;
+  }
+
   await paginateResponse({
     req,
     res,
     model: ExhibitionArticle,
-    query: { published: true },
-    select: "title slug customSlug image summary body articleTitle articleTitleColor articleHeadingColor articleBodyColor articleHeadings articleBodies titleColor ctaText ctaUrl youtubeUrl featured published seoTitle metaDescription focusKeyword seoKeywords canonicalUrl ogTitle ogDescription ogImage twitterTitle twitterDescription twitterImage imageAltText robotsIndex robotsFollow category authorName publishedAt seoUpdatedAt sections createdAt updatedAt",
+    query,
+    select: "title slug customSlug image summary body articleTitle articleTitleColor articleHeadingColor articleBodyColor articleHeadings articleBodies titleColor ctaText ctaUrl youtubeUrl featured published seoTitle metaDescription focusKeyword seoKeywords canonicalUrl ogTitle ogDescription ogImage twitterTitle twitterDescription twitterImage imageAltText robotsIndex robotsFollow category country authorName publishedAt seoUpdatedAt sections createdAt updatedAt",
+    populate: [{ path: "country", select: "name code slug" }],
     sort: { featured: -1, createdAt: -1 },
     transform: attachResolvedSeo,
     defaultLimit: 12,
@@ -280,7 +303,8 @@ const getExhibitionArticleBySlug = asyncHandler(async (req, res) => {
       slug: req.params.slug,
       published: true,
     })
-      .select("title slug customSlug image summary body articleTitle articleTitleColor articleHeadingColor articleBodyColor articleHeadings articleBodies titleColor ctaText ctaUrl youtubeUrl featured published seoTitle metaDescription focusKeyword seoKeywords canonicalUrl ogTitle ogDescription ogImage twitterTitle twitterDescription twitterImage imageAltText robotsIndex robotsFollow category authorName publishedAt seoUpdatedAt sections createdAt updatedAt")
+      .populate("country", "name code slug")
+      .select("title slug customSlug image summary body articleTitle articleTitleColor articleHeadingColor articleBodyColor articleHeadings articleBodies titleColor ctaText ctaUrl youtubeUrl featured published seoTitle metaDescription focusKeyword seoKeywords canonicalUrl ogTitle ogDescription ogImage twitterTitle twitterDescription twitterImage imageAltText robotsIndex robotsFollow category country authorName publishedAt seoUpdatedAt sections createdAt updatedAt")
       .lean()
   );
 
@@ -350,7 +374,7 @@ const getHomePageContent = asyncHandler(async (req, res) => {
     universities,
     testimonials,
     recognitions,
-    services,
+    services: services.map(normalizeOurService),
     faqs,
   });
 });

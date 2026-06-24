@@ -1,20 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { Seo } from "../components/seo/Seo";
 import { contentService } from "../services/contentService";
-import type { Faq } from "../types";
+import type { Country, Faq } from "../types";
 import { useLanguage } from "../hooks/useLanguage";
 import { SITE_NAME, seoText } from "../seo/site";
 import { getPaginatedItems } from "../utils/pagination";
 
 export const FaqPage = () => {
-  const { t, language } = useLanguage();
+  const { t, language, tv } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+  const selectedCountryId = searchParams.get("country") || "";
+  const selectedCountry = useMemo(
+    () => countries.find((country) => country._id === selectedCountryId),
+    [countries, selectedCountryId]
+  );
 
   useEffect(() => {
-    contentService.getFaqs({ paginate: false }).then((data) => setFaqs(getPaginatedItems(data)));
-  }, []);
+    Promise.all([
+      contentService.getFaqs({ paginate: false, ...(selectedCountryId ? { country: selectedCountryId } : {}) }),
+      contentService.getCountries(),
+    ]).then(([faqsData, countriesData]) => {
+      setFaqs(getPaginatedItems(faqsData));
+      setCountries(getPaginatedItems(countriesData));
+    });
+  }, [selectedCountryId]);
+
+  const handleCountryFilter = (countryId: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (countryId) {
+      nextParams.set("country", countryId);
+    } else {
+      nextParams.delete("country");
+    }
+
+    setSearchParams(nextParams);
+    setOpenFaqId(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -31,6 +58,42 @@ export const FaqPage = () => {
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-700">{t("faqEyebrow")}</p>
         <h1 className="mt-3 text-4xl font-semibold text-slate-900">{t("faqTitle")}</h1>
         <p className="mt-4 max-w-3xl text-slate-600">{t("faqBody")}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => handleCountryFilter("")}
+            className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+              !selectedCountryId
+                ? "bg-brand-900 text-white shadow-soft"
+                : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+            }`}
+          >
+            {t("allCountries")}
+          </button>
+          {countries.map((country) => {
+            const isActive = selectedCountryId === country._id;
+
+            return (
+              <button
+                key={country._id}
+                type="button"
+                onClick={() => handleCountryFilter(country._id)}
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                  isActive
+                    ? "bg-brand-900 text-white shadow-soft"
+                    : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+                }`}
+              >
+                {tv(country.name)}
+              </button>
+            );
+          })}
+        </div>
+        {selectedCountry ? (
+          <p className="mt-4 text-sm font-semibold text-slate-600">
+            {language === "ar" ? `عرض الأسئلة الشائعة الخاصة بـ ${tv(selectedCountry.name)}` : `Showing FAQs for ${tv(selectedCountry.name)}`}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-4">
@@ -54,6 +117,11 @@ export const FaqPage = () => {
           );
         })}
       </div>
+      {!faqs.length ? (
+        <div className="panel p-8 text-sm text-slate-500">
+          {language === "ar" ? "لا توجد أسئلة شائعة لهذه الدولة حاليًا." : "No FAQs are available for this country yet."}
+        </div>
+      ) : null}
     </div>
   );
 };

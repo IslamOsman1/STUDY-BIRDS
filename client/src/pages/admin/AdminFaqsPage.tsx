@@ -1,28 +1,33 @@
-import { useEffect, useState, type FormEvent } from "react";
+﻿import { useEffect, useState, type FormEvent } from "react";
 import { MessageSquare, PencilLine, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../../hooks/useLanguage";
 import { adminService } from "../../services/adminService";
-import type { Faq } from "../../types";
+import type { Country, Faq } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
 import { dt } from "../../utils/dashboardTranslations";
+
+const countryLabel = (country: Country) => country.name;
 
 const emptyFaqForm = {
   question: "",
   answer: "",
   featured: true,
   sortOrder: "0",
+  country: "",
 };
 
 export const AdminFaqsPage = () => {
   const { language } = useLanguage();
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [faqForm, setFaqForm] = useState(emptyFaqForm);
   const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
   const [formError, setFormError] = useState("");
 
   const loadData = async () => {
-    const faqsData = await adminService.getFaqs();
+    const [faqsData, countriesData] = await Promise.all([adminService.getFaqs(), adminService.getCountries()]);
     setFaqs(faqsData);
+    setCountries(countriesData);
   };
 
   useEffect(() => {
@@ -43,6 +48,7 @@ export const AdminFaqsPage = () => {
       answer: faqForm.answer,
       featured: faqForm.featured,
       sortOrder: Number(faqForm.sortOrder || 0),
+      country: faqForm.country || null,
     };
 
     try {
@@ -95,6 +101,21 @@ export const AdminFaqsPage = () => {
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
               />
             </label>
+            <label className="block md:col-span-2">
+              <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "الدولة" : "Country"}</span>
+              <select
+                value={faqForm.country}
+                onChange={(event) => setFaqForm((current) => ({ ...current, country: event.target.value }))}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+              >
+                <option value="">{language === "ar" ? "سؤال عام لكل الدول" : "General question for all countries"}</option>
+                {countries.map((country) => (
+                  <option key={country._id} value={country._id}>
+                    {countryLabel(country)}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <label className="block">
@@ -136,6 +157,15 @@ export const AdminFaqsPage = () => {
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                     {language === "ar" ? `ترتيب ${faq.sortOrder || 0}` : `Order ${faq.sortOrder || 0}`}
                   </span>
+                  {faq.country && typeof faq.country !== "string" ? (
+                    <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+                      {countryLabel(faq.country)}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                      {language === "ar" ? "عام" : "General"}
+                    </span>
+                  )}
                 </div>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{faq.answer}</p>
               </div>
@@ -148,6 +178,7 @@ export const AdminFaqsPage = () => {
                       answer: faq.answer,
                       featured: Boolean(faq.featured),
                       sortOrder: String(faq.sortOrder || 0),
+                      country: faq.country && typeof faq.country !== "string" ? faq.country._id : typeof faq.country === "string" ? faq.country : "",
                     });
                   }}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-700"
@@ -167,3 +198,5 @@ export const AdminFaqsPage = () => {
     </div>
   );
 };
+
+

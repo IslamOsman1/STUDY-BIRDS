@@ -132,6 +132,8 @@ export const StudentProfilePage = () => {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  const accountTypeLabel =
+    user?.role === "partner" ? t("partner") : user?.role === "admin" ? t("admin") : t("student");
 
   return (
     <div className="grid gap-6 xl:grid-cols-[340px_1fr]">
@@ -146,6 +148,9 @@ export const StudentProfilePage = () => {
               <p className="text-sm text-slate-500">{dt(language, "profileNote")}</p>
               <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
                 <span className="font-semibold">{t("email")}:</span> {user?.email || profile?.user?.email}
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
+                <span className="font-semibold">{t("role")}:</span> {accountTypeLabel}
               </div>
               {!isPartner ? (
                 <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">

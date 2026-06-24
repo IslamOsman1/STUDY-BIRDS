@@ -1,20 +1,38 @@
-import { ArrowRight, Award, Compass } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+﻿import { ArrowRight, Award, Compass } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Seo } from "../components/seo/Seo";
 import { useLanguage } from "../hooks/useLanguage";
 import { getApiAssetUrl } from "../lib/api";
 import { SITE_NAME, seoText } from "../seo/site";
 import { contentService } from "../services/contentService";
-import type { OurService } from "../types";
+import type { Country, OurService } from "../types";
 import { getErrorMessage } from "../utils/errors";
 import { getPaginatedItems } from "../utils/pagination";
+import { repairMojibake } from "../utils/textCodec";
 
 export const ServicesPage = () => {
-  const { language, t } = useLanguage();
+  const { language, t, tv } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [services, setServices] = useState<OurService[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const selectedCountryId = searchParams.get("country") || "";
+  const selectedCountry = useMemo(
+    () => countries.find((country) => country._id === selectedCountryId),
+    [countries, selectedCountryId]
+  );
+  const normalizedServices = useMemo(
+    () =>
+      services.map((service) => ({
+        ...service,
+        title: repairMojibake(service.title),
+        detailTitle: repairMojibake(service.detailTitle),
+        detailBody: repairMojibake(service.detailBody),
+      })),
+    [services]
+  );
 
   useEffect(() => {
     const loadServices = async () => {
@@ -22,8 +40,19 @@ export const ServicesPage = () => {
       setError("");
 
       try {
-        const servicesData = await contentService.getOurServices({ page: 1, limit: 12, paginate: true, featuredOnly: true });
+        const [servicesData, countriesData] = await Promise.all([
+          contentService.getOurServices({
+            page: 1,
+            limit: 12,
+            paginate: true,
+            featuredOnly: true,
+            ...(selectedCountryId ? { country: selectedCountryId } : {}),
+          }),
+          contentService.getCountries(),
+        ]);
+
         setServices(getPaginatedItems(servicesData).filter((service) => service.featured !== false));
+        setCountries(getPaginatedItems(countriesData));
       } catch (loadError) {
         setError(
           getErrorMessage(
@@ -37,7 +66,19 @@ export const ServicesPage = () => {
     };
 
     loadServices();
-  }, [language]);
+  }, [language, selectedCountryId]);
+
+  const handleCountryFilter = (countryId: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (countryId) {
+      nextParams.set("country", countryId);
+    } else {
+      nextParams.delete("country");
+    }
+
+    setSearchParams(nextParams);
+  };
 
   return (
     <div className="space-y-8">
@@ -71,7 +112,7 @@ export const ServicesPage = () => {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
               <p className="text-sm text-brand-100">{language === "ar" ? "إجمالي الخدمات" : "Total services"}</p>
-              <p className="mt-3 text-4xl font-semibold">{services.length}</p>
+              <p className="mt-3 text-4xl font-semibold">{normalizedServices.length}</p>
             </div>
             <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
               <p className="text-sm text-brand-100">{language === "ar" ? "دعم مخصص للطلاب" : "Student-focused support"}</p>
@@ -83,13 +124,57 @@ export const ServicesPage = () => {
         </div>
       </section>
 
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => handleCountryFilter("")}
+          className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+            !selectedCountryId
+              ? "bg-brand-900 text-white shadow-soft"
+              : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+          }`}
+        >
+          {t("allCountries")}
+        </button>
+        {countries.map((country) => {
+          const isActive = selectedCountryId === country._id;
+
+          return (
+            <button
+              key={country._id}
+              type="button"
+              onClick={() => handleCountryFilter(country._id)}
+              className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-brand-900 text-white shadow-soft"
+                  : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+              }`}
+            >
+              {tv(country.name)}
+            </button>
+          );
+        })}
+      </div>
+
+      {selectedCountry ? (
+        <p className="text-sm font-semibold text-slate-600">
+          {language === "ar" ? `عرض الخدمات الخاصة بـ ${tv(selectedCountry.name)}` : `Showing services for ${tv(selectedCountry.name)}`}
+        </p>
+      ) : null}
+
       {loading ? <div className="panel p-8 text-sm text-slate-500">{language === "ar" ? "جارٍ تحميل الخدمات..." : "Loading services..."}</div> : null}
       {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
 
-      {!loading && !error && services.length === 0 ? (
+      {!loading && !error && normalizedServices.length === 0 ? (
         <div className="panel p-10 text-center">
           <h2 className="text-2xl font-semibold text-slate-900">
-            {language === "ar" ? "لا توجد خدمات منشورة حاليًا" : "No services are published yet"}
+            {selectedCountryId
+              ? language === "ar"
+                ? "لا توجد خدمات منشورة لهذه الدولة حاليًا"
+                : "No services are published for this country yet"
+              : language === "ar"
+                ? "لا توجد خدمات منشورة حاليًا"
+                : "No services are published yet"}
           </h2>
           <p className="mt-3 text-slate-600">
             {language === "ar"
@@ -100,7 +185,7 @@ export const ServicesPage = () => {
       ) : null}
 
       <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {services.map((service, index) => {
+        {normalizedServices.map((service, index) => {
           const imageUrl = service.image ? getApiAssetUrl(service.image) : "";
 
           return (

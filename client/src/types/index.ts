@@ -275,6 +275,7 @@ export interface OurService {
   detailImage?: string;
   featured?: boolean;
   sortOrder?: number;
+  country?: Country | string | null;
   createdAt?: string;
 }
 
@@ -336,6 +337,7 @@ export interface Faq {
   answer: string;
   featured?: boolean;
   sortOrder?: number;
+  country?: Country | string | null;
   createdAt?: string;
 }
 
@@ -368,6 +370,7 @@ export interface ExhibitionArticle extends ArticleContent {
   robotsIndex?: "index" | "noindex";
   robotsFollow?: "follow" | "nofollow";
   category?: string;
+  country?: Country | string | null;
   authorName?: string;
   publishedAt?: string | null;
   seoUpdatedAt?: string | null;
