@@ -16,6 +16,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const mongoose = require("mongoose");
 const { buildPaginationMeta, parsePagination } = require("../utils/queryUtils");
 const { timedOperation } = require("../utils/perf");
+const { DEFAULT_CONTACT_TO, isMailerConfigured, sendContactEmail } = require("../utils/mailer");
 const {
   attachResolvedSeo,
   buildRobotsTxt,
@@ -277,6 +278,77 @@ const createEventRegistration = asyncHandler(async (req, res) => {
   });
 });
 
+const createContactMessage = asyncHandler(async (req, res) => {
+  const name = String(req.body.name || "").trim();
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const subject = String(req.body.subject || "").trim();
+  const message = String(req.body.message || "").trim();
+  const phone = String(req.body.phone || "").trim();
+
+  if (!name || !email || !subject || !message) {
+    res.status(400);
+    throw new Error("Name, email, subject, and message are required");
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(email)) {
+    res.status(400);
+    throw new Error("A valid email address is required");
+  }
+
+  const siteSettings = await timedOperation("SiteSettings.contactTarget", () =>
+    SiteSettings.findOne().sort({ createdAt: -1 }).select("contactEmail").lean()
+  );
+  const recipient = String(siteSettings?.contactEmail || DEFAULT_CONTACT_TO || "").trim();
+
+  if (!recipient) {
+    res.status(500);
+    throw new Error("Contact email is not configured");
+  }
+
+  if (!isMailerConfigured()) {
+    res.status(500);
+    throw new Error("SMTP settings are not configured on the server");
+  }
+
+  const textBody = [
+    `Name: ${name}`,
+    `Email: ${email}`,
+    phone ? `Phone: ${phone}` : null,
+    `Subject: ${subject}`,
+    "",
+    message,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #0f172a;">
+      <h2>New contact form message</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ""}
+      <p><strong>Subject:</strong> ${subject}</p>
+      <p><strong>Message:</strong></p>
+      <div style="white-space: pre-wrap;">${message}</div>
+    </div>
+  `;
+
+  await timedOperation("contact.sendEmail", () =>
+    sendContactEmail({
+      to: recipient,
+      replyTo: email,
+      subject: `[Study Birds] ${subject}`,
+      text: textBody,
+      html: htmlBody,
+    })
+  );
+
+  res.status(201).json({
+    message: "Contact message sent successfully",
+  });
+});
+
 const getExhibitionArticles = asyncHandler(async (req, res) => {
   const query = { published: true };
 
@@ -434,6 +506,7 @@ module.exports = {
   getUpcomingEvent,
   getPastEvents,
   createEventRegistration,
+  createContactMessage,
   getFaqs,
   getExhibitionArticles,
   getExhibitionArticleBySlug,

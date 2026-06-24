@@ -14,6 +14,7 @@ const {
   getUpcomingEvent,
   getPastEvents,
   createEventRegistration,
+  createContactMessage,
   getSiteSettings,
   getStudyFields,
   getTestimonials,
@@ -37,6 +38,7 @@ router.get("/our-story", cacheRoute(120_000), getOurStory);
 router.get("/upcoming-event", cacheRoute(60_000), getUpcomingEvent);
 router.get("/past-events", cacheRoute(60_000), getPastEvents);
 router.post("/event-registrations", createEventRegistration);
+router.post("/contact-messages", createContactMessage);
 router.get("/faqs", cacheRoute(60_000), getFaqs);
 router.get("/blog/categories", cacheRoute(60_000), getBlogCategories);
 router.get("/blog", cacheRoute(60_000), getExhibitionArticles);
