@@ -114,8 +114,9 @@ const clipText = (value: string, maxLength: number) => {
 
 const slugifyValue = (value: string) =>
   value
+    .normalize("NFKC")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "");
 
 const toDatetimeLocalValue = (value?: string | null) => {

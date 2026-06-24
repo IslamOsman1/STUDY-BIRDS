@@ -1,5 +1,12 @@
 const mongoose = require("mongoose");
-const slugify = require("slugify");
+
+const normalizeSlugInput = (value) =>
+  String(value || "")
+    .trim()
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
 
 const exhibitionSectionSchema = new mongoose.Schema(
   {
@@ -222,7 +229,7 @@ const exhibitionArticleSchema = new mongoose.Schema(
 
 exhibitionArticleSchema.pre("validate", function setSlug(next) {
   if (!this.slug && this.title) {
-    this.slug = slugify(this.title, { lower: true, strict: true });
+    this.slug = normalizeSlugInput(this.title);
   }
   next();
 });

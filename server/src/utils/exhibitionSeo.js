@@ -1,4 +1,3 @@
-const slugify = require("slugify");
 const ExhibitionArticle = require("../models/ExhibitionArticle");
 
 const SITE_NAME = process.env.SITE_NAME || "Study Birds";
@@ -45,10 +44,12 @@ const normalizeKeywords = (value) => {
 };
 
 const normalizeSlugInput = (value) =>
-  slugify(String(value || "").trim(), {
-    lower: true,
-    strict: true,
-  });
+  String(value || "")
+    .trim()
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
 
 const buildUniqueSlug = async (title, currentId, preferredSlug) => {
   const candidate = normalizeSlugInput(preferredSlug || title || "blog");
@@ -69,8 +70,10 @@ const buildUniqueSlug = async (title, currentId, preferredSlug) => {
   return slug;
 };
 
-const buildArticleUrl = (slug) => `${getSiteUrl()}/blog/${slug}`;
-const buildCategoryUrl = (categorySlug) => `${getSiteUrl()}/blog/category/${categorySlug}`;
+const encodePathSegment = (value) => encodeURIComponent(String(value || "").trim());
+
+const buildArticleUrl = (slug) => `${getSiteUrl()}/blog/${encodePathSegment(slug)}`;
+const buildCategoryUrl = (categorySlug) => `${getSiteUrl()}/blog/category/${encodePathSegment(categorySlug)}`;
 
 const resolveExhibitionSeo = (article) => {
   const slug = String(article.slug || "").trim();
