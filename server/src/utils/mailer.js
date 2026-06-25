@@ -5,9 +5,6 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_USER = String(process.env.SMTP_USER || "").trim();
 const SMTP_PASS = String(process.env.SMTP_PASS || "").trim();
 const SMTP_FROM = String(process.env.SMTP_FROM || SMTP_USER || "").trim();
-const DEFAULT_CONTACT_TO = String(
-  process.env.CONTACT_FORM_TO || process.env.VITE_CONTACT_EMAIL || process.env.CONTACT_EMAIL || ""
-).trim();
 
 let transporterPromise = null;
 
@@ -40,7 +37,7 @@ const sendContactEmail = async ({ to, replyTo, subject, text, html }) => {
 
   return transporter.sendMail({
     from: SMTP_FROM,
-    to: to || DEFAULT_CONTACT_TO,
+    to,
     replyTo,
     subject,
     text,
@@ -49,7 +46,6 @@ const sendContactEmail = async ({ to, replyTo, subject, text, html }) => {
 };
 
 module.exports = {
-  DEFAULT_CONTACT_TO,
   isMailerConfigured,
   sendContactEmail,
 };

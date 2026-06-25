@@ -16,7 +16,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const mongoose = require("mongoose");
 const { buildPaginationMeta, parsePagination } = require("../utils/queryUtils");
 const { timedOperation } = require("../utils/perf");
-const { DEFAULT_CONTACT_TO, isMailerConfigured, sendContactEmail } = require("../utils/mailer");
+const { isMailerConfigured, sendContactEmail } = require("../utils/mailer");
 const {
   attachResolvedSeo,
   buildRobotsTxt,
@@ -296,14 +296,11 @@ const createContactMessage = asyncHandler(async (req, res) => {
     throw new Error("A valid email address is required");
   }
 
-  const siteSettings = await timedOperation("SiteSettings.contactTarget", () =>
-    SiteSettings.findOne().sort({ createdAt: -1 }).select("contactEmail").lean()
-  );
-  const recipient = String(siteSettings?.contactEmail || DEFAULT_CONTACT_TO || "").trim();
-
+  const recipient = String(process.env.CONTACT_FORM_TO || "").trim();
   if (!recipient) {
     res.status(500);
-    throw new Error("Contact email is not configured");
+    console.error("CONTACT_FORM_TO is not configured");
+    throw new Error("CONTACT_FORM_TO is not configured");
   }
 
   if (!isMailerConfigured()) {
@@ -334,15 +331,24 @@ const createContactMessage = asyncHandler(async (req, res) => {
     </div>
   `;
 
-  await timedOperation("contact.sendEmail", () =>
-    sendContactEmail({
-      to: recipient,
-      replyTo: email,
-      subject: `[Study Birds] ${subject}`,
-      text: textBody,
-      html: htmlBody,
-    })
-  );
+  console.log("Sending contact email to:", process.env.CONTACT_FORM_TO);
+  console.log("SMTP_FROM:", process.env.SMTP_FROM);
+
+  try {
+    await timedOperation("contact.sendEmail", () =>
+      sendContactEmail({
+        to: process.env.CONTACT_FORM_TO,
+        replyTo: email,
+        subject: `[Study Birds] ${subject || name}`,
+        text: textBody,
+        html: htmlBody,
+      })
+    );
+  } catch (error) {
+    console.error("Failed to send contact email:", error);
+    res.status(500);
+    throw new Error("Failed to send contact email");
+  }
 
   res.status(201).json({
     message: "Contact message sent successfully",
