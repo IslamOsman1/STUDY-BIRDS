@@ -161,9 +161,31 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
   res.json(await hydrateApplicationsWithStudentProfiles(populated));
 });
 
+const deleteApplication = asyncHandler(async (req, res) => {
+  const application = await Application.findById(req.params.id).populate("program");
+
+  if (!application) {
+    res.status(404);
+    throw new Error("Application not found");
+  }
+
+  await Application.deleteOne({ _id: application._id });
+
+  await Notification.create({
+    user: application.student,
+    title: "Application removed",
+    message: `Your application for ${application.program?.title || "the selected program"} has been removed by the admissions team.`,
+    type: "warning",
+    link: "/student/applications",
+  });
+
+  res.json({ message: "Application deleted successfully", id: req.params.id });
+});
+
 module.exports = {
   createApplication,
   getApplications,
   getApplicationById,
   updateApplicationStatus,
+  deleteApplication,
 };

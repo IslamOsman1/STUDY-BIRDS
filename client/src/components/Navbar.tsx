@@ -41,7 +41,7 @@ export const Navbar = () => {
   const becomeAgentText = becomeAgentLabel[language];
   const aboutMenuActive = aboutMenuItems.some((item) => location.pathname === item.href);
   const showBecomeAgentLink = !user || user.role === "student";
-  const profileHref = user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner/profile" : "/student";
+  const profileHref = user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner/dashboard" : "/student";
   const profileLabel = user?.role === "partner" ? dt(language, "profileHub") : t("dashboard");
   const initials = user?.name
     ?.split(" ")
@@ -194,7 +194,7 @@ export const Navbar = () => {
             <NavLink
               to="/become-agent"
               className={({ isActive }) =>
-                `text-sm font-medium ${isActive ? "text-brand-700" : "text-blue-600 hover:text-blue-700"}`
+                `text-sm font-bold ${isActive ? "text-orange-600" : "text-orange-500 hover:text-orange-600"}`
               }
             >
               {becomeAgentText}
@@ -249,7 +249,7 @@ export const Navbar = () => {
               ) : null}
             </div>
             {showBecomeAgentLink ? (
-              <Link to="/become-agent" className="text-sm font-medium text-blue-600" onClick={() => setOpen(false)}>
+              <Link to="/become-agent" className="text-sm font-bold text-orange-500 hover:text-orange-600" onClick={() => setOpen(false)}>
                 {becomeAgentText}
               </Link>
             ) : null}

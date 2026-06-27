@@ -1,5 +1,6 @@
 import { LanguageRouteSync } from "../components/seo/LanguageRouteSync";
 import { FloatingAssistant } from "../components/FloatingAssistant";
+import { LeadCapturePrompt } from "../components/LeadCapturePrompt";
 import { AppRoutes } from "../routes/AppRoutes";
 
 export default function App() {
@@ -7,6 +8,7 @@ export default function App() {
     <>
       <LanguageRouteSync />
       <AppRoutes />
+      <LeadCapturePrompt />
       <FloatingAssistant />
     </>
   );

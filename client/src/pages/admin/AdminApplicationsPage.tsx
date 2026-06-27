@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Filter, Inbox, SendHorizontal } from "lucide-react";
+import { Filter, Inbox, SendHorizontal, Trash2 } from "lucide-react";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
 import { downloadApiAsset } from "../../lib/api";
 import { adminService } from "../../services/adminService";
@@ -9,6 +9,9 @@ import { getErrorMessage } from "../../utils/errors";
 import { formatDate } from "../../utils/format";
 import { useLanguage } from "../../hooks/useLanguage";
 import { dt } from "../../utils/dashboardTranslations";
+import { AdminConfirmationModal } from "../../components/admin/AdminConfirmationModal";
+import { AdminToastViewport } from "../../components/admin/AdminToastViewport";
+import { useAdminToasts } from "../../hooks/useAdminToasts";
 
 export const AdminApplicationsPage = () => {
   const { language, t } = useLanguage();
@@ -17,6 +20,9 @@ export const AdminApplicationsPage = () => {
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [downloadingDocumentId, setDownloadingDocumentId] = useState("");
   const [formError, setFormError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Application | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { toasts, pushToast, dismissToast } = useAdminToasts();
 
   useEffect(() => {
     adminService.getApplications().then(setApplications).catch((error) => setFormError(getErrorMessage(error, "Unable to load applications.")));
@@ -82,6 +88,28 @@ export const AdminApplicationsPage = () => {
       setFormError(getErrorMessage(error, language === "ar" ? "تعذر تحميل الملف." : "Unable to download file."));
     } finally {
       setDownloadingDocumentId("");
+    }
+  };
+
+  const handleDeleteApplication = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    setDeleting(true);
+    setFormError("");
+
+    try {
+      await applicationService.remove(deleteTarget._id);
+      setApplications((current) => current.filter((item) => item._id !== deleteTarget._id));
+      pushToast(language === "ar" ? "تم حذف الطلب بنجاح." : "Application deleted successfully.", "success");
+      setDeleteTarget(null);
+    } catch (error) {
+      const message = getErrorMessage(error, language === "ar" ? "تعذر حذف الطلب." : "Unable to delete application.");
+      setFormError(message);
+      pushToast(message, "error");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -276,6 +304,15 @@ export const AdminApplicationsPage = () => {
                     <SendHorizontal className="h-4 w-4" />
                     {dt(language, "saveNoteOnly")}
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(application)}
+                    className="mt-3 inline-flex items-center gap-2 rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {language === "ar" ? "حذف الطلب" : "Delete Application"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -284,6 +321,26 @@ export const AdminApplicationsPage = () => {
 
         {filteredApplications.length === 0 ? <div className="panel p-10 text-center text-sm text-slate-500">{dt(language, "noApplicationsMatch")}</div> : null}
       </section>
+
+      <AdminConfirmationModal
+        open={Boolean(deleteTarget)}
+        title={language === "ar" ? "تأكيد حذف الطلب" : "Confirm Application Deletion"}
+        description={
+          deleteTarget
+            ? language === "ar"
+              ? `سيتم حذف طلب ${deleteTarget.program?.title || "الطالب"} نهائيًا من لوحة الطلبات.`
+              : `This will permanently remove the application for ${deleteTarget.program?.title || "this student"}.`
+            : ""
+        }
+        confirmLabel={language === "ar" ? "حذف الطلب" : "Delete Application"}
+        cancelLabel={language === "ar" ? "إلغاء" : "Cancel"}
+        tone="danger"
+        loading={deleting}
+        onConfirm={handleDeleteApplication}
+        onClose={() => !deleting && setDeleteTarget(null)}
+      />
+
+      <AdminToastViewport items={toasts} onDismiss={dismissToast} />
     </div>
   );
 };

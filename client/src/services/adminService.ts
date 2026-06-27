@@ -1,21 +1,38 @@
 import { api } from "../lib/api";
 import type {
   AdminOverview,
+  AdminPartnerDetails,
+  AdminPartnerItem,
+  AdminStudentDetails,
+  AdminStudentItem,
+  ArrivalServiceRequestItem,
   AgencyRequest,
+  AgentStudentItem,
   Application,
+  DocumentItem,
   Country,
   EventRegistration,
   ExhibitionArticle,
+  FavoriteItem,
   Faq,
+  InvoiceItem,
+  KnowledgeBaseItem,
+  MarketingAssetItem,
+  NotificationItem,
+  OrientationTestResultItem,
   OurService,
   OurStory,
   PastEvent,
+  PaymentProofItem,
+  PayoutRequestItem,
   Recognition,
   SiteSettings,
   StudyField,
+  SupportTicketItem,
   Testimonial,
   UpcomingEvent,
   User,
+  VerificationDocumentItem,
 } from "../types";
 
 export const adminService = {
@@ -28,7 +45,19 @@ export const adminService = {
     return data;
   },
   getStudents: async () => {
-    const { data } = await api.get<User[]>("/admin/students");
+    const { data } = await api.get<AdminStudentItem[]>("/admin/students");
+    return data;
+  },
+  getStudentDetails: async (id: string) => {
+    const { data } = await api.get<AdminStudentDetails>(`/admin/students/${id}`);
+    return data;
+  },
+  getStudentDocuments: async () => {
+    const { data } = await api.get<DocumentItem[]>("/admin/student-documents");
+    return data;
+  },
+  getStudentNotifications: async () => {
+    const { data } = await api.get<NotificationItem[]>("/admin/student-notifications");
     return data;
   },
   getUsers: async () => {
@@ -47,8 +76,120 @@ export const adminService = {
     const { data } = await api.get<AgencyRequest[]>("/admin/agency-requests");
     return data;
   },
+  getPartners: async () => {
+    const { data } = await api.get<AdminPartnerItem[]>("/admin/partners");
+    return data;
+  },
+  getPartnerStudents: async (id: string) => {
+    const { data } = await api.get<AgentStudentItem[]>(`/admin/partners/${id}/students`);
+    return data;
+  },
+  getPartnerDetails: async (id: string) => {
+    const { data } = await api.get<AdminPartnerDetails>(`/admin/partners/${id}`);
+    return data;
+  },
   updateAgencyRequestStatus: async (id: string, payload: { status: AgencyRequest["status"]; adminNote?: string }) => {
     const { data } = await api.patch<AgencyRequest>(`/admin/agency-requests/${id}`, payload);
+    return data;
+  },
+  getPayoutRequests: async () => {
+    const { data } = await api.get<PayoutRequestItem[]>("/admin/payout-requests");
+    return data;
+  },
+  updatePayoutRequestStatus: async (id: string, payload: { status: PayoutRequestItem["status"]; reviewNote?: string }) => {
+    const { data } = await api.patch<PayoutRequestItem>(`/admin/payout-requests/${id}`, payload);
+    return data;
+  },
+  getMarketingAssets: async () => {
+    const { data } = await api.get<MarketingAssetItem[]>("/admin/marketing-assets");
+    return data;
+  },
+  createMarketingAsset: async (payload: { title: string; description?: string; type: string; file: File; published?: boolean }) => {
+    const formData = new FormData();
+    formData.append("title", payload.title);
+    formData.append("description", payload.description || "");
+    formData.append("type", payload.type);
+    formData.append("published", String(payload.published ?? true));
+    formData.append("file", payload.file);
+    const { data } = await api.post<MarketingAssetItem>("/admin/marketing-assets", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+  updateMarketingAsset: async (id: string, payload: Partial<MarketingAssetItem>) => {
+    const { data } = await api.put<MarketingAssetItem>(`/admin/marketing-assets/${id}`, payload);
+    return data;
+  },
+  removeMarketingAsset: async (id: string) => {
+    const { data } = await api.delete(`/admin/marketing-assets/${id}`);
+    return data;
+  },
+  getVerificationDocuments: async () => {
+    const { data } = await api.get<VerificationDocumentItem[]>("/admin/verification-documents");
+    return data;
+  },
+  reviewVerificationDocument: async (id: string, payload: { status: VerificationDocumentItem["status"]; reviewNote?: string }) => {
+    const { data } = await api.patch<VerificationDocumentItem>(`/admin/verification-documents/${id}`, payload);
+    return data;
+  },
+  getSupportTickets: async () => {
+    const { data } = await api.get<SupportTicketItem[]>("/admin/support-tickets");
+    return data;
+  },
+  replySupportTicket: async (id: string, payload: { message: string; status?: SupportTicketItem["status"] }) => {
+    const { data } = await api.patch<SupportTicketItem>(`/admin/support-tickets/${id}/reply`, payload);
+    return data;
+  },
+  getKnowledgeBase: async () => {
+    const { data } = await api.get<KnowledgeBaseItem[]>("/admin/knowledge-base");
+    return data;
+  },
+  createKnowledgeBaseItem: async (payload: Partial<KnowledgeBaseItem>) => {
+    const { data } = await api.post<KnowledgeBaseItem>("/admin/knowledge-base", payload);
+    return data;
+  },
+  updateKnowledgeBaseItem: async (id: string, payload: Partial<KnowledgeBaseItem>) => {
+    const { data } = await api.put<KnowledgeBaseItem>(`/admin/knowledge-base/${id}`, payload);
+    return data;
+  },
+  removeKnowledgeBaseItem: async (id: string) => {
+    const { data } = await api.delete(`/admin/knowledge-base/${id}`);
+    return data;
+  },
+  getStudentFinancials: async () => {
+    const { data } = await api.get<{ invoices: InvoiceItem[]; paymentProofs: PaymentProofItem[] }>("/admin/student-financials");
+    return data;
+  },
+  createStudentInvoice: async (payload: Partial<InvoiceItem> & { studentId: string }) => {
+    const { data } = await api.post<InvoiceItem>("/admin/student-financials/invoices", payload);
+    return data;
+  },
+  updateStudentInvoice: async (id: string, payload: Partial<InvoiceItem>) => {
+    const { data } = await api.patch<InvoiceItem>(`/admin/student-financials/invoices/${id}`, payload);
+    return data;
+  },
+  reviewPaymentProof: async (id: string, payload: { status: PaymentProofItem["status"]; reviewNote?: string }) => {
+    const { data } = await api.patch<PaymentProofItem>(`/admin/student-financials/payment-proofs/${id}`, payload);
+    return data;
+  },
+  getArrivalRequests: async () => {
+    const { data } = await api.get<ArrivalServiceRequestItem[]>("/admin/student-arrival-requests");
+    return data;
+  },
+  updateArrivalRequest: async (id: string, payload: Partial<ArrivalServiceRequestItem>) => {
+    const { data } = await api.patch<ArrivalServiceRequestItem>(`/admin/student-arrival-requests/${id}`, payload);
+    return data;
+  },
+  getStudentFavorites: async () => {
+    const { data } = await api.get<FavoriteItem[]>("/admin/student-favorites");
+    return data;
+  },
+  getOrientationResults: async () => {
+    const { data } = await api.get<OrientationTestResultItem[]>("/admin/student-orientation-results");
+    return data;
+  },
+  updateOrientationResult: async (id: string, payload: Partial<OrientationTestResultItem>) => {
+    const { data } = await api.patch<OrientationTestResultItem>(`/admin/student-orientation-results/${id}`, payload);
     return data;
   },
   getCountries: async () => {

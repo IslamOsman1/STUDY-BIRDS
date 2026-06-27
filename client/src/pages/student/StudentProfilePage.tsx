@@ -6,6 +6,7 @@ import { PhoneNumberField } from "../../components/forms/PhoneNumberField";
 import { useAuth } from "../../hooks/useAuth";
 import { useLanguage } from "../../hooks/useLanguage";
 import { authService } from "../../services/authService";
+import { partnerService } from "../../services/partnerService";
 import { studentService } from "../../services/studentService";
 import type { StudentProfile } from "../../types";
 import { dt } from "../../utils/dashboardTranslations";
@@ -18,6 +19,10 @@ type ProfileFormValues = StudentProfile & {
   englishExam?: string;
   englishScore?: string;
   targetCountriesText?: string;
+  companyName?: string;
+  website?: string;
+  location?: string;
+  taxId?: string;
 };
 
 export const StudentProfilePage = () => {
@@ -46,7 +51,9 @@ export const StudentProfilePage = () => {
   const dateOfBirthValue = watch("dateOfBirth");
 
   useEffect(() => {
-    studentService.getProfile().then((data) =>
+    const loadProfile = isPartner ? partnerService.getProfile : studentService.getProfile;
+
+    loadProfile().then((data) =>
       {
         const { dialCode, phoneNumber: savedPhoneNumber } = splitPhoneNumber(data.phone);
         setPhoneDialCode(savedPhoneNumber ? dialCode : DEFAULT_PHONE_DIAL_CODE);
@@ -60,10 +67,18 @@ export const StudentProfilePage = () => {
           englishScore: data.englishTest?.score || "",
           targetCountriesText: data.targetCountries?.join(", ") || "",
           dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().slice(0, 10) : "",
+          companyName: data.companyName || "",
+          website: data.website || "",
+          location: data.location || "",
+          taxId: data.taxId || "",
+          englishFullName: data.englishFullName || "",
+          passportNumber: data.passportNumber || "",
+          currentEducationLevel: data.currentEducationLevel || "",
+          currentResidenceCountry: data.currentResidenceCountry || "",
         });
       }
     );
-  }, [reset]);
+  }, [isPartner, reset]);
 
   const onSubmit = async (values: ProfileFormValues) => {
     setFormError("");
@@ -72,7 +87,9 @@ export const StudentProfilePage = () => {
     try {
       const formattedPhoneNumber = buildPhoneNumber(phoneDialCode, phoneNumber);
 
-      await studentService.updateProfile({
+      const updateProfile = isPartner ? partnerService.updateProfile : studentService.updateProfile;
+
+      await updateProfile({
         name: values.name,
         email: values.email,
         phone: formattedPhoneNumber,
@@ -94,7 +111,19 @@ export const StudentProfilePage = () => {
                 exam: values.englishExam,
                 score: values.englishScore,
               },
+              englishFullName: values.englishFullName,
+              passportNumber: values.passportNumber,
+              currentEducationLevel: values.currentEducationLevel,
+              currentResidenceCountry: values.currentResidenceCountry,
             }),
+        ...(isPartner
+          ? {
+              companyName: values.companyName,
+              website: values.website,
+              location: values.location,
+              taxId: values.taxId,
+            }
+          : {}),
       } as Partial<StudentProfile> & { name: string; email: string });
 
       await refreshSession();
@@ -143,7 +172,13 @@ export const StudentProfilePage = () => {
             {initials || "SB"}
           </div>
           <h1 className="mt-5 text-3xl font-semibold text-slate-900">{dt(language, "profilePageTitle")}</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-500">{dt(language, "profilePageSubtitle")}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-500">
+            {isPartner
+              ? dt(language, "profilePageSubtitle")
+              : language === "ar"
+                ? "مرحباً بك في لوحة تحكم Study Birds، تتبع حالة قبولك الجامعي، أدر مستنداتك، وابدأ رحلتك التعليمية معنا."
+                : "Welcome to the Study Birds dashboard. Track your admission progress, manage your documents, and continue your study journey with us."}
+          </p>
             <div className="mt-6 space-y-3 rounded-3xl bg-slate-50 p-5">
               <p className="text-sm text-slate-500">{dt(language, "profileNote")}</p>
               <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
@@ -152,6 +187,12 @@ export const StudentProfilePage = () => {
               <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
                 <span className="font-semibold">{t("role")}:</span> {accountTypeLabel}
               </div>
+              {isPartner ? (
+                <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
+                  <span className="font-semibold">{language === "ar" ? "حالة التوثيق" : "Verification status"}:</span>{" "}
+                  {profile?.verificationStatus || "pending"}
+                </div>
+              ) : null}
               {!isPartner ? (
                 <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
                   <span className="font-semibold">{t("studentProfile")}:</span> {profile?.currentEducation || dt(language, "notAvailable")}
@@ -172,6 +213,8 @@ export const StudentProfilePage = () => {
               <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <FormInput label={dt(language, "fullName")} {...register("name")} />
                 <FormInput label={t("email")} type="email" {...register("email")} />
+                {!isPartner ? <FormInput label={language === "ar" ? "الاسم باللغة الإنجليزية كما في جواز السفر" : "English Full Name (as in passport)"} {...register("englishFullName", { required: !isPartner })} /> : null}
+                {!isPartner ? <FormInput label={language === "ar" ? "رقم جواز السفر أو الهوية" : "Passport / ID Number"} {...register("passportNumber")} /> : null}
                 <PhoneNumberField
                   label={t("phone")}
                   dialCode={phoneDialCode}
@@ -195,11 +238,39 @@ export const StudentProfilePage = () => {
               </div>
             </div>
 
+            {isPartner ? (
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-900">{language === "ar" ? "بيانات الشركة أو المكتب" : "Company Details"}</h2>
+                <div className="mt-5 grid gap-5 md:grid-cols-2">
+                  <FormInput label={language === "ar" ? "اسم الشركة أو المكتب" : "Company Name"} {...register("companyName")} />
+                  <FormInput label={language === "ar" ? "الموقع الإلكتروني" : "Website"} {...register("website")} />
+                  <FormInput label={language === "ar" ? "المدينة أو مقر العمل" : "Location / City"} {...register("location")} />
+                  <FormInput label={language === "ar" ? "الرقم الضريبي أو السجل التجاري" : "Tax / Commercial ID"} {...register("taxId")} />
+                </div>
+                {profile?.verificationReason ? (
+                  <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {profile.verificationReason}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             {!isPartner ? (
               <div>
                 <h2 className="text-2xl font-semibold text-slate-900">{dt(language, "academicDetails")}</h2>
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                   <FormInput label={t("currentEducation")} {...register("currentEducation")} />
+                  <label>
+                    <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "المرحلة الدراسية الحالية" : "Current Education Level"}</span>
+                    <select {...register("currentEducationLevel")} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none ring-brand-300 focus:ring">
+                      <option value="">{language === "ar" ? "اختر المرحلة" : "Select level"}</option>
+                      <option value="high-school">{language === "ar" ? "ثانوية عامة" : "High School"}</option>
+                      <option value="bachelor">{language === "ar" ? "بكالوريوس" : "Bachelor"}</option>
+                      <option value="master">{language === "ar" ? "ماستر" : "Master"}</option>
+                      <option value="phd">{language === "ar" ? "دكتوراه" : "PhD"}</option>
+                    </select>
+                  </label>
+                  <FormInput label={language === "ar" ? "البلد المقيم فيه حالياً" : "Current Country of Residence"} {...register("currentResidenceCountry")} />
                   <FormInput label={t("gpa")} {...register("gpa")} />
                   <FormInput label={t("preferredIntake")} {...register("intake")} />
                   <FormInput label={dt(language, "targetCountries")} {...register("targetCountriesText")} placeholder="Turkey, Canada, Germany" />

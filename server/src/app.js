@@ -5,6 +5,7 @@ const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const partnerRoutes = require("./routes/partnerRoutes");
 const universityRoutes = require("./routes/universityRoutes");
 const programRoutes = require("./routes/programRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
@@ -105,6 +106,7 @@ app.get("/sitemap.xml", requireDatabaseConnection, async (req, res, next) => {
 
 app.use("/api/auth", requireDatabaseConnection, authRoutes);
 app.use("/api/students", requireDatabaseConnection, studentRoutes);
+app.use("/api/partners", requireDatabaseConnection, partnerRoutes);
 app.use("/api/universities", requireDatabaseConnection, universityRoutes);
 app.use("/api/programs", requireDatabaseConnection, programRoutes);
 app.use("/api/applications", requireDatabaseConnection, applicationRoutes);

@@ -10,6 +10,7 @@ import { getErrorMessage } from "../../utils/errors";
 
 export const StudentDocumentsPage = () => {
   const { t, language } = useLanguage();
+  const isArabic = language === "ar";
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [formError, setFormError] = useState("");
 
@@ -31,12 +32,15 @@ export const StudentDocumentsPage = () => {
   };
 
   const documentTypeLabels: Record<string, string> = {
-    passport: dt(language, "passportFile"),
+    passport: isArabic ? "صورة جواز السفر" : "Passport Copy",
     "biometric-photo": dt(language, "biometricPhoto"),
-    "latest-qualification": dt(language, "latestQualification"),
+    "latest-qualification": isArabic ? "الشهادة الثانوية أو الجامعية" : "High School / University Certificate",
     transcript: dt(language, "transcriptDocument"),
     "english-test": dt(language, "englishTestDocument"),
     resume: dt(language, "resumeDocument"),
+    "personal-photos": isArabic ? "صور شخصية" : "Personal Photos",
+    "language-certificates": isArabic ? "شهادات اللغة" : "Language Certificates",
+    "other-documents": isArabic ? "مستندات أخرى" : "Other Documents",
   };
 
   const statusLabels: Record<string, string> = {
@@ -56,9 +60,17 @@ export const StudentDocumentsPage = () => {
           <div className="mt-6 space-y-4">
             {documents.map((document) => (
               <div key={document._id} className="rounded-3xl bg-slate-50 p-5">
-                <p className="font-semibold">{document.fileName}</p>
-                <p className="text-sm text-slate-500">{documentTypeLabels[document.type] || document.type}</p>
-                <p className="mt-2 text-xs text-slate-500">{statusLabels[document.status] || document.status}</p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words font-semibold">{document.fileName}</p>
+                    <p className="text-sm text-slate-500">{documentTypeLabels[document.type] || document.type}</p>
+                    <p className="mt-2 text-xs text-slate-500">{statusLabels[document.status] || document.status}</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${document.status === "verified" ? "bg-emerald-100 text-emerald-700" : document.status === "rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>
+                    {statusLabels[document.status] || document.status}
+                  </span>
+                </div>
+                {document.reviewNote ? <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">{document.reviewNote}</p> : null}
                 <a href={getApiAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-semibold text-brand-700">
                   {dt(language, "viewFile")}
                 </a>

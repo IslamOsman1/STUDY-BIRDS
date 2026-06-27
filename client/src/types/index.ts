@@ -143,6 +143,16 @@ export interface University extends ArticleContent {
   createdAt?: string;
 }
 
+export interface FavoriteItem {
+  _id: string;
+  itemType: "university" | "program";
+  student?: Pick<User, "_id" | "name" | "email">;
+  university?: University | null;
+  program?: Program | null;
+  notes?: string;
+  createdAt?: string;
+}
+
 export interface Program extends ArticleContent {
   _id: string;
   title: string;
@@ -167,10 +177,16 @@ export interface Program extends ArticleContent {
 
 export interface DocumentItem {
   _id: string;
+  student?: Pick<User, "_id" | "name" | "email">;
   type: string;
   fileName: string;
   filePath: string;
   status: "pending" | "verified" | "rejected";
+  mimeType?: string;
+  size?: number;
+  reviewNote?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ApplicantProfileSnapshot {
@@ -213,9 +229,13 @@ export interface StudentProfile {
   _id?: string;
   user?: User;
   phone?: string;
+  englishFullName?: string;
+  passportNumber?: string;
   dateOfBirth?: string;
   nationality?: string;
   currentEducation?: string;
+  currentEducationLevel?: "high-school" | "bachelor" | "master" | "phd" | "";
+  currentResidenceCountry?: string;
   gpa?: string;
   intake?: string;
   bio?: string;
@@ -224,6 +244,214 @@ export interface StudentProfile {
   englishTest?: {
     exam?: string;
     score?: string;
+  };
+  companyName?: string;
+  website?: string;
+  location?: string;
+  taxId?: string;
+  verificationStatus?: "pending" | "verified" | "rejected";
+  verificationReason?: string;
+  referralCode?: string;
+  applicationStage?:
+    | "file-received"
+    | "applying"
+    | "preliminary-accepted"
+    | "first-payment"
+    | "final-accepted"
+    | "travel-and-settlement";
+}
+
+export interface AgentStudentDocument {
+  _id?: string;
+  label: string;
+  fileName: string;
+  filePath: string;
+  mimeType?: string;
+  size?: number;
+  uploadedAt?: string;
+}
+
+export interface AgentStudentItem {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  passportNumber?: string;
+  studyPreferences?: string;
+  desiredUniversity?: string;
+  desiredProgram?: string;
+  notes?: string;
+  applicationStatus: "under-review" | "preliminary-accepted" | "final-accepted" | "rejected";
+  documents?: AgentStudentDocument[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AgentWalletEntry {
+  _id: string;
+  direction: "credit" | "debit";
+  kind: "commission" | "payout" | "adjustment";
+  amount: number;
+  status: "pending" | "approved" | "rejected" | "paid";
+  method?: string;
+  details?: string;
+  notes?: string;
+  createdAt?: string;
+  paidAt?: string;
+}
+
+export interface PayoutRequestItem {
+  _id: string;
+  amount: number;
+  method: "bank-account" | "usdt" | "wise" | "other";
+  payoutDetails: string;
+  notes?: string;
+  status: "pending" | "approved" | "rejected" | "paid";
+  reviewNote?: string;
+  reviewedAt?: string;
+  createdAt?: string;
+  agent?: Pick<User, "_id" | "name" | "email">;
+  reviewedBy?: Pick<User, "_id" | "name" | "email">;
+}
+
+export interface ReferralSummary {
+  referralCode: string;
+  referralLink: string;
+  summary: {
+    clicks: number;
+    signups: number;
+    acceptedStudents: number;
+    generatedCommissions: number;
+  };
+}
+
+export interface MarketingAssetItem {
+  _id: string;
+  title: string;
+  description?: string;
+  type: string;
+  fileName: string;
+  fileUrl: string;
+  published?: boolean;
+  createdAt?: string;
+}
+
+export interface AdminPartnerItem extends User {
+  profile?: StudentProfile | null;
+}
+
+export interface AdminStudentItem extends User {
+  profile?: StudentProfile | null;
+}
+
+export interface VerificationDocumentItem {
+  _id: string;
+  type: "identity" | "commercial-license" | "supporting-document";
+  fileName: string;
+  filePath: string;
+  mimeType?: string;
+  size?: number;
+  status: "pending" | "approved" | "rejected";
+  reviewNote?: string;
+  createdAt?: string;
+  agent?: Pick<User, "_id" | "name" | "email">;
+  reviewedBy?: Pick<User, "_id" | "name" | "email">;
+}
+
+export interface VerificationOverview {
+  status: "pending" | "verified" | "rejected";
+  reason?: string;
+  documents: VerificationDocumentItem[];
+}
+
+export interface SupportTicketReply {
+  _id?: string;
+  message: string;
+  fromRole: "student" | "partner" | "admin";
+  user?: Pick<User, "_id" | "name" | "email" | "role">;
+  createdAt?: string;
+}
+
+export interface SupportTicketItem {
+  _id: string;
+  subject: string;
+  message: string;
+  category: "documents" | "application-status" | "payment" | "arrival-services" | "student-application" | "commission" | "technical-issue" | "other";
+  status: "open" | "in-progress" | "answered" | "closed";
+  attachment?: {
+    fileName?: string;
+    filePath?: string;
+  };
+  replies?: SupportTicketReply[];
+  requesterRole?: "student" | "partner";
+  user?: Pick<User, "_id" | "name" | "email" | "role">;
+  createdAt?: string;
+  updatedAt?: string;
+  agent?: Pick<User, "_id" | "name" | "email">;
+}
+
+export interface ActivityLogItem {
+  _id: string;
+  action: string;
+  description?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt?: string;
+}
+
+export interface KnowledgeBaseItem {
+  _id: string;
+  title: string;
+  body: string;
+  summary?: string;
+  category?: string;
+  resourceType?: "article" | "pdf" | "video" | "link";
+  fileUrl?: string;
+  videoUrl?: string;
+  targetRole?: "all" | "student" | "partner";
+  sortOrder?: number;
+  published?: boolean;
+  createdAt?: string;
+}
+
+export interface StudentDashboardOverview {
+  profile: StudentProfile | null;
+  progress: {
+    currentStage: NonNullable<StudentProfile["applicationStage"]>;
+    stages: Array<{
+      key: NonNullable<StudentProfile["applicationStage"]>;
+      titleAr: string;
+      titleEn: string;
+      descriptionAr: string;
+      descriptionEn: string;
+      status: "completed" | "current" | "upcoming";
+    }>;
+  };
+  stats: {
+    currentApplications: number;
+    acceptedDocuments: number;
+    rejectedDocuments: number;
+    pendingPayments: number;
+    unreadNotifications: number;
+  };
+  latestNotification: NotificationItem | null;
+  recentApplications: Application[];
+  recentDocuments: DocumentItem[];
+}
+
+export interface PartnerOverview {
+  stats: {
+    totalStudents: number;
+    acceptedStudents: number;
+    totalReceivedEarnings: number;
+    pendingEarnings: number;
+    verificationStatus: "pending" | "verified" | "rejected";
+  };
+  recent: {
+    latestStudent: AgentStudentItem | null;
+    latestStudentStatusUpdate: AgentStudentItem | null;
+    latestPayoutRequest: PayoutRequestItem | null;
+    latestNotification: NotificationItem | null;
   };
 }
 
@@ -410,10 +638,100 @@ export interface ExhibitionArticle extends ArticleContent {
 
 export interface NotificationItem {
   _id: string;
+  user?: Pick<User, "_id" | "name" | "email" | "role">;
   title: string;
   message: string;
   type: string;
   isRead: boolean;
+  createdAt?: string;
+}
+
+export interface InvoiceItem {
+  _id: string;
+  student?: Pick<User, "_id" | "name" | "email">;
+  application?: Pick<Application, "_id" | "status"> | null;
+  invoiceNumber: string;
+  description: string;
+  amount: number;
+  dueDate?: string;
+  status: "unpaid" | "pending-confirmation" | "paid" | "rejected";
+  invoiceUrl?: string;
+  category?: "application-fee" | "tuition" | "service" | "housing" | "other";
+  adminNote?: string;
+  reviewedAt?: string;
+  reviewedBy?: Pick<User, "_id" | "name" | "email">;
+  createdAt?: string;
+}
+
+export interface PaymentProofItem {
+  _id: string;
+  student?: Pick<User, "_id" | "name" | "email">;
+  invoice?: InvoiceItem | null;
+  fileName: string;
+  filePath: string;
+  mimeType?: string;
+  size?: number;
+  amount?: number;
+  note?: string;
+  status: "pending" | "approved" | "rejected";
+  reviewNote?: string;
+  reviewedAt?: string;
+  reviewedBy?: Pick<User, "_id" | "name" | "email">;
+  createdAt?: string;
+}
+
+export interface StudentFinancialsResponse {
+  summary: {
+    outstandingAmount: number;
+    pendingConfirmationAmount: number;
+    paidAmount: number;
+    invoiceCount: number;
+  };
+  invoices: InvoiceItem[];
+  paymentProofs: PaymentProofItem[];
+}
+
+export interface ArrivalServiceRequestItem {
+  _id: string;
+  student?: Pick<User, "_id" | "name" | "email">;
+  arrivalDate?: string | null;
+  arrivalTime?: string;
+  flightNumber?: string;
+  airport?: string;
+  notes?: string;
+  services: {
+    airportPickup: boolean;
+    studentHousing: boolean;
+    residencePermitSupport: boolean;
+    visaSupport: boolean;
+  };
+  status: "draft" | "submitted" | "in-progress" | "completed";
+  adminNote?: string;
+  updatedBy?: Pick<User, "_id" | "name" | "email">;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OrientationTestResultItem {
+  _id: string;
+  student?: Pick<User, "_id" | "name" | "email">;
+  answers: {
+    favoriteSubjects: string[];
+    interestedFields: string[];
+    studyStyle?: string;
+    preferredLanguage?: string;
+    preferredCountry?: string;
+    approximateBudget?: string;
+    desiredDegreeLevel?: string;
+    avoidFields: string[];
+  };
+  recommendationSummary?: string;
+  suggestedFields?: string[];
+  suggestedCountries?: string[];
+  adminNote?: string;
+  reviewedBy?: Pick<User, "_id" | "name" | "email">;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface HomePageContent {
@@ -447,4 +765,27 @@ export interface AdminOverview {
   recentApplications: Application[];
   recentUsers: User[];
   applicationsByStatus: Record<string, number>;
+}
+
+export interface AdminPartnerDetails {
+  partner: AdminPartnerItem;
+  students: AgentStudentItem[];
+  payoutRequests: PayoutRequestItem[];
+  supportTickets: SupportTicketItem[];
+  verificationDocuments: VerificationDocumentItem[];
+  walletEntries: AgentWalletEntry[];
+  notifications: NotificationItem[];
+}
+
+export interface AdminStudentDetails {
+  student: AdminStudentItem;
+  applications: Application[];
+  documents: DocumentItem[];
+  invoices: InvoiceItem[];
+  paymentProofs: PaymentProofItem[];
+  arrivalRequest: ArrivalServiceRequestItem | null;
+  favorites: FavoriteItem[];
+  orientationResult: OrientationTestResultItem | null;
+  supportTickets: SupportTicketItem[];
+  notifications: NotificationItem[];
 }

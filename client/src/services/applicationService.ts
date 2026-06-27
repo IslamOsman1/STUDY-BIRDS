@@ -18,4 +18,8 @@ export const applicationService = {
     const { data } = await api.put<Application>(`/applications/${id}/status`, payload);
     return data;
   },
+  remove: async (id: string) => {
+    const { data } = await api.delete<{ message: string; id: string }>(`/applications/${id}`);
+    return data;
+  },
 };

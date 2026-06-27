@@ -162,7 +162,7 @@ const googleLogin = asyncHandler(async (req, res) => {
 
 const me = asyncHandler(async (req, res) => {
   const profile =
-    req.user.role === "student"
+    req.user.role === "student" || req.user.role === "partner"
       ? await StudentProfile.findOne({ user: req.user._id })
       : null;
 

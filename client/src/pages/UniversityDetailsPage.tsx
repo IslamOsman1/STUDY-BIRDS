@@ -3,9 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Seo } from "../components/seo/Seo";
+import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { getApiAssetUrl } from "../lib/api";
 import { seoText } from "../seo/site";
+import { studentService } from "../services/studentService";
 import { universityService } from "../services/universityService";
 import type { University } from "../types";
 import { dt } from "../utils/dashboardTranslations";
@@ -14,10 +16,13 @@ import { formatCurrency } from "../utils/format";
 
 export const UniversityDetailsPage = () => {
   const { t, tv, language } = useLanguage();
+  const { user } = useAuth();
   const { id = "" } = useParams();
   const [university, setUniversity] = useState<University | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [favoriteMessage, setFavoriteMessage] = useState("");
 
   useEffect(() => {
     const loadUniversity = async () => {
@@ -96,6 +101,20 @@ export const UniversityDetailsPage = () => {
     },
   };
 
+  const handleFavorite = async () => {
+    if (user?.role !== "student" || !university) return;
+    setFavoriteLoading(true);
+    setFavoriteMessage("");
+    try {
+      const result = await studentService.toggleFavorite({ itemType: "university", universityId: university._id });
+      setFavoriteMessage("removed" in result ? (language === "ar" ? "تم حذف الجامعة من المفضلة." : "University removed from favorites.") : language === "ar" ? "تمت إضافة الجامعة إلى المفضلة." : "University added to favorites.");
+    } catch (error) {
+      setFavoriteMessage(getErrorMessage(error, language === "ar" ? "تعذر تحديث المفضلة." : "Unable to update favorites."));
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Seo
@@ -145,6 +164,12 @@ export const UniversityDetailsPage = () => {
             <Link to={`/programs?university=${university._id}`} className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950">
               {dt(language, "browsePrograms")}
             </Link>
+            {user?.role === "student" ? (
+              <button type="button" onClick={handleFavorite} disabled={favoriteLoading} className="mt-3 inline-flex rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white">
+                {favoriteLoading ? (language === "ar" ? "جارٍ الحفظ..." : "Saving...") : language === "ar" ? "أضف إلى المفضلة" : "Add to Favorites"}
+              </button>
+            ) : null}
+            {favoriteMessage ? <p className="mt-3 text-sm text-slate-300">{favoriteMessage}</p> : null}
           </div>
         </div>
       </section>

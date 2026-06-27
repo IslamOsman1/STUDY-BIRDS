@@ -59,6 +59,39 @@ const {
   deleteStudyField,
   uploadStudyFieldImage,
 } = require("../controllers/studyFieldController");
+const {
+  getPartnersAdmin,
+  getPartnerStudentsAdmin,
+  getPartnerDetailsAdmin,
+  getPayoutRequestsAdmin,
+  updatePayoutRequestStatusAdmin,
+  getMarketingAssetsAdmin,
+  createMarketingAssetAdmin,
+  updateMarketingAssetAdmin,
+  deleteMarketingAssetAdmin,
+  getVerificationQueueAdmin,
+  reviewVerificationDocumentAdmin,
+  getSupportTicketsAdmin,
+  replySupportTicketAdmin,
+  getKnowledgeBaseAdmin,
+  createKnowledgeBaseItemAdmin,
+  updateKnowledgeBaseItemAdmin,
+  deleteKnowledgeBaseItemAdmin,
+} = require("../controllers/adminAgentController");
+const {
+  getStudentDetailsAdmin,
+  getStudentDocumentsAdmin,
+  getStudentNotificationsAdmin,
+  getStudentFinancialsAdmin,
+  createStudentInvoiceAdmin,
+  updateStudentInvoiceAdmin,
+  reviewPaymentProofAdmin,
+  getArrivalRequestsAdmin,
+  updateArrivalRequestAdmin,
+  getStudentFavoritesAdmin,
+  getOrientationResultsAdmin,
+  updateOrientationResultAdmin,
+} = require("../controllers/adminStudentModulesController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -116,6 +149,35 @@ router.delete("/past-events/:id", deletePastEvent);
 router.get("/event-registrations", getEventRegistrationsAdmin);
 router.get("/agency-requests", getAgencyRequestsAdmin);
 router.patch("/agency-requests/:id", updateAgencyRequestStatus);
+router.get("/partners", getPartnersAdmin);
+router.get("/partners/:id/students", getPartnerStudentsAdmin);
+router.get("/partners/:id", getPartnerDetailsAdmin);
+router.get("/payout-requests", getPayoutRequestsAdmin);
+router.patch("/payout-requests/:id", updatePayoutRequestStatusAdmin);
+router.get("/marketing-assets", getMarketingAssetsAdmin);
+router.post("/marketing-assets", upload.single("file"), createMarketingAssetAdmin);
+router.put("/marketing-assets/:id", updateMarketingAssetAdmin);
+router.delete("/marketing-assets/:id", deleteMarketingAssetAdmin);
+router.get("/verification-documents", getVerificationQueueAdmin);
+router.patch("/verification-documents/:id", reviewVerificationDocumentAdmin);
+router.get("/support-tickets", getSupportTicketsAdmin);
+router.patch("/support-tickets/:id/reply", replySupportTicketAdmin);
+router.get("/knowledge-base", getKnowledgeBaseAdmin);
+router.post("/knowledge-base", createKnowledgeBaseItemAdmin);
+router.put("/knowledge-base/:id", updateKnowledgeBaseItemAdmin);
+router.delete("/knowledge-base/:id", deleteKnowledgeBaseItemAdmin);
+router.get("/student-financials", getStudentFinancialsAdmin);
+router.get("/students/:id", getStudentDetailsAdmin);
+router.get("/student-documents", getStudentDocumentsAdmin);
+router.get("/student-notifications", getStudentNotificationsAdmin);
+router.post("/student-financials/invoices", createStudentInvoiceAdmin);
+router.patch("/student-financials/invoices/:id", updateStudentInvoiceAdmin);
+router.patch("/student-financials/payment-proofs/:id", reviewPaymentProofAdmin);
+router.get("/student-arrival-requests", getArrivalRequestsAdmin);
+router.patch("/student-arrival-requests/:id", updateArrivalRequestAdmin);
+router.get("/student-favorites", getStudentFavoritesAdmin);
+router.get("/student-orientation-results", getOrientationResultsAdmin);
+router.patch("/student-orientation-results/:id", updateOrientationResultAdmin);
 router.get("/exhibitions", getExhibitionArticlesAdmin);
 router.post("/exhibitions/upload-image", upload.single("file"), uploadExhibitionImage);
 router.post("/exhibitions", createExhibitionArticle);

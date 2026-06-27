@@ -25,14 +25,18 @@ export const FileUpload = ({
   return (
     <form onSubmit={handleSubmit} className="panel space-y-4 p-6">
       <select value={type} onChange={(event) => setType(event.target.value)} className="w-full rounded-2xl border border-slate-200 px-4 py-3">
-        <option value="passport">{dt(language, "passportFile")}</option>
-        <option value="latest-qualification">{dt(language, "latestQualification")}</option>
-        <option value="transcript">{dt(language, "transcriptDocument")}</option>
+        <option value="passport">{language === "ar" ? "صورة جواز السفر" : "Passport Copy"}</option>
+        <option value="latest-qualification">{language === "ar" ? "الشهادة الثانوية أو الجامعية" : "High School / University Certificate"}</option>
+        <option value="transcript">{language === "ar" ? "بيان الدرجات" : "Transcript"}</option>
+        <option value="personal-photos">{language === "ar" ? "صور شخصية" : "Personal Photos"}</option>
+        <option value="language-certificates">{language === "ar" ? "شهادات اللغة" : "Language Certificates"}</option>
         <option value="english-test">{dt(language, "englishTestDocument")}</option>
         <option value="resume">{dt(language, "resumeDocument")}</option>
+        <option value="other-documents">{language === "ar" ? "مستندات أخرى" : "Other Documents"}</option>
         <option value="biometric-photo">{dt(language, "biometricPhoto")}</option>
       </select>
       <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] || null)} className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6" />
+      <p className="text-xs text-slate-500">{language === "ar" ? "الأنواع المسموحة: PDF, JPG, PNG, WEBP بحد أقصى 5MB." : "Allowed types: PDF, JPG, PNG, WEBP up to 5MB."}</p>
       <button type="submit" disabled={!file} className="rounded-full bg-brand-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300">
         {t("uploadDocument")}
       </button>

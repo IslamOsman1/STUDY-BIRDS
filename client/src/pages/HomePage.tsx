@@ -61,7 +61,7 @@ export const HomePage = () => {
       : user.role === "admin"
         ? "/admin"
         : user.role === "partner"
-          ? "/partner/profile"
+          ? "/partner/dashboard"
           : "/student";
 
   const primaryLabel =

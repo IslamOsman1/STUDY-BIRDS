@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const StudentProfile = require("../models/StudentProfile");
 const Application = require("../models/Application");
 const University = require("../models/University");
 const Program = require("../models/Program");
@@ -341,8 +342,16 @@ const getStats = asyncHandler(async (req, res) => {
 });
 
 const getStudents = asyncHandler(async (req, res) => {
-  const students = await User.find({ role: "student" }).select("-password").sort({ createdAt: -1 });
-  res.json(students);
+  const students = await User.find({ role: "student" }).select("-password").sort({ createdAt: -1 }).lean();
+  const profiles = await StudentProfile.find({ user: { $in: students.map((student) => student._id) } }).lean();
+  const profileMap = new Map(profiles.map((profile) => [String(profile.user), profile]));
+
+  res.json(
+    students.map((student) => ({
+      ...student,
+      profile: profileMap.get(String(student._id)) || null,
+    }))
+  );
 });
 
 const getAdminApplications = asyncHandler(async (req, res) => {

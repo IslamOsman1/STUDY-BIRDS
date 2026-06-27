@@ -140,7 +140,7 @@ export const BecomeAgentPage = () => {
                 <ArrowLeft className="h-4 w-4" />
               </button>
             ) : (
-              <Link to="/partner/profile" className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-6 py-3 font-semibold text-white">
+              <Link to="/partner/dashboard" className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-6 py-3 font-semibold text-white">
                 {isArabic ? "افتح لوحة الوكيل" : "Open partner profile"}
                 <ArrowLeft className="h-4 w-4" />
               </Link>

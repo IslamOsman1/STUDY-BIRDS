@@ -4,6 +4,7 @@ const {
   getApplications,
   getApplicationById,
   updateApplicationStatus,
+  deleteApplication,
 } = require("../controllers/applicationController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -14,5 +15,6 @@ router.post("/", authorize("student"), createApplication);
 router.get("/", getApplications);
 router.get("/:id", getApplicationById);
 router.put("/:id/status", authorize("admin"), updateApplicationStatus);
+router.delete("/:id", authorize("admin"), deleteApplication);
 
 module.exports = router;

@@ -34,7 +34,7 @@ export const RegisterPage = () => {
 
   useEffect(() => {
     if (user) {
-      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/profile" : "/student", {
+      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/dashboard" : "/student", {
         replace: true,
       });
     }
@@ -44,7 +44,7 @@ export const RegisterPage = () => {
     setFormError("");
     try {
       const user = await registerUser(values);
-      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/profile" : "/student");
+      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/dashboard" : "/student");
     } catch (error) {
       setFormError(getErrorMessage(error, t("authFailed")));
     }
@@ -56,7 +56,7 @@ export const RegisterPage = () => {
 
     try {
       const user = await googleLogin(credential);
-      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/profile" : "/student");
+      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/dashboard" : "/student");
     } catch (error) {
       setFormError(
         getErrorMessage(

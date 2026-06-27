@@ -60,6 +60,8 @@ export const ProgramDetailsPage = () => {
   const [biometricPhoto, setBiometricPhoto] = useState<File | null>(null);
   const [passportFile, setPassportFile] = useState<File | null>(null);
   const [latestQualificationFile, setLatestQualificationFile] = useState<File | null>(null);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [favoriteMessage, setFavoriteMessage] = useState("");
   const biometricInputRef = useRef<HTMLInputElement | null>(null);
   const passportInputRef = useRef<HTMLInputElement | null>(null);
   const latestQualificationInputRef = useRef<HTMLInputElement | null>(null);
@@ -265,6 +267,20 @@ export const ProgramDetailsPage = () => {
     },
   };
 
+  const handleFavorite = async () => {
+    if (user?.role !== "student" || !program) return;
+    setFavoriteLoading(true);
+    setFavoriteMessage("");
+    try {
+      const result = await studentService.toggleFavorite({ itemType: "program", programId: program._id });
+      setFavoriteMessage("removed" in result ? (language === "ar" ? "تم حذف البرنامج من المفضلة." : "Program removed from favorites.") : language === "ar" ? "تمت إضافة البرنامج إلى المفضلة." : "Program added to favorites.");
+    } catch (error) {
+      setFavoriteMessage(getErrorMessage(error, language === "ar" ? "تعذر تحديث المفضلة." : "Unable to update favorites."));
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
       <Seo
@@ -326,6 +342,14 @@ export const ProgramDetailsPage = () => {
           </div>
 
           <div className="mt-8">
+            {user?.role === "student" ? (
+              <div className="mb-6">
+                <button type="button" onClick={handleFavorite} disabled={favoriteLoading} className="rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">
+                  {favoriteLoading ? (language === "ar" ? "جارٍ الحفظ..." : "Saving...") : language === "ar" ? "أضف إلى المفضلة" : "Add to Favorites"}
+                </button>
+                {favoriteMessage ? <p className="mt-3 text-sm text-slate-500">{favoriteMessage}</p> : null}
+              </div>
+            ) : null}
             <h2 className="text-xl font-semibold text-slate-900">{t("requirements")}</h2>
             {program.requirements?.length ? (
               <ul className="mt-4 list-disc space-y-2 pl-5 text-slate-600">
