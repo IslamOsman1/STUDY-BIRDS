@@ -25,7 +25,6 @@ const buildUploadOptions = (file, folder) => {
 
 const buildDeliveryUrl = (result, file) => {
   const isImage = file.mimetype.startsWith("image/");
-  const extension = path.extname(file.originalname || "").replace(/^\./, "");
 
   if (isImage) {
     return result.secure_url;
@@ -37,7 +36,6 @@ const buildDeliveryUrl = (result, file) => {
     type: "upload",
     secure: true,
     sign_url: true,
-    format: extension || undefined,
   });
 };
 
