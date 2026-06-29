@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { EmptyState } from "../../components/EmptyState";
+import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
 import { partnerService } from "../../services/partnerService";
 import type { SupportTicketItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -72,7 +73,8 @@ export const PartnerSupportTicketsPage = () => {
           </label>
           <label className="md:col-span-2">
             <span className="mb-2 block text-sm font-medium text-slate-700">{isArabic ? "مرفق اختياري" : "Optional Attachment"}</span>
-            <input type="file" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+            <input type="file" accept={DOCUMENT_UPLOAD_ACCEPT} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+            <p className="mt-2 text-xs text-slate-500">{isArabic ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</p>
           </label>
           <button type="submit" disabled={submitting} className="w-fit rounded-full bg-brand-900 px-6 py-3 font-semibold text-white">
             {submitting ? (isArabic ? "جارٍ الإرسال..." : "Submitting...") : isArabic ? "فتح تذكرة جديدة" : "Open New Ticket"}

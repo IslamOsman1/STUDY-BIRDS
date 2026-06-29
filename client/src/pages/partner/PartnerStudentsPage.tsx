@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, UploadCloud } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
+import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
 import { partnerService } from "../../services/partnerService";
 import type { AgentStudentItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -161,9 +162,11 @@ export const PartnerStudentsPage = () => {
                   <span className="mt-3 block text-sm font-medium text-slate-700">{label}</span>
                   <input
                     type="file"
+                    accept={DOCUMENT_UPLOAD_ACCEPT}
                     className="mt-3 w-full text-xs"
                     onChange={(event) => setFiles((current) => ({ ...current, [key]: event.target.files?.[0] || null }))}
                   />
+                  <span className="mt-2 block text-[11px] text-slate-400">{isArabic ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</span>
                 </label>
               ))}
             </div>

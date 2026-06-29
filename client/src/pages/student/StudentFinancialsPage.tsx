@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Download, Upload } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
+import { DOCUMENT_UPLOAD_ACCEPT } from "../../constants/upload";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getApiAssetUrl } from "../../lib/api";
 import { studentService } from "../../services/studentService";
@@ -97,7 +98,7 @@ export const StudentFinancialsPage = () => {
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white">
                     <Upload className="h-4 w-4" />
                     {uploadingId === invoice._id ? (isArabic ? "جارٍ الرفع..." : "Uploading...") : isArabic ? "رفع إثبات الدفع" : "Upload Proof"}
-                    <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => handleProofUpload(invoice._id, event.target.files?.[0] || null)} />
+                    <input type="file" accept={DOCUMENT_UPLOAD_ACCEPT} className="hidden" onChange={(event) => handleProofUpload(invoice._id, event.target.files?.[0] || null)} />
                   </label>
                 </div>
               </article>

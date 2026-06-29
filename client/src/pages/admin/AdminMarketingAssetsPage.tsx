@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Download, PencilLine, Plus, Trash2 } from "lucide-react";
 import { adminService } from "../../services/adminService";
+import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
 import type { MarketingAssetItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -90,7 +91,8 @@ export const AdminMarketingAssetsPage = () => {
           {!editingId ? (
             <label className="md:col-span-2">
               <span className="mb-2 block text-sm font-medium text-slate-700">{isArabic ? "الملف" : "File"}</span>
-              <input type="file" onChange={(event) => setFile(event.target.files?.[0] || null)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring" />
+              <input type="file" accept={DOCUMENT_UPLOAD_ACCEPT} onChange={(event) => setFile(event.target.files?.[0] || null)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring" />
+              <p className="mt-2 text-xs text-slate-500">{isArabic ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</p>
             </label>
           ) : null}
           <label className="flex items-center gap-3 md:col-span-2">

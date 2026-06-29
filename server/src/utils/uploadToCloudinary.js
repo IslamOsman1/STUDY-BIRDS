@@ -23,6 +23,24 @@ const buildUploadOptions = (file, folder) => {
   };
 };
 
+const buildDeliveryUrl = (result, file) => {
+  const isImage = file.mimetype.startsWith("image/");
+  const extension = path.extname(file.originalname || "").replace(/^\./, "");
+
+  if (isImage) {
+    return result.secure_url;
+  }
+
+  // Signed raw delivery avoids Cloudinary 401 issues for PDFs and office docs.
+  return cloudinary.url(result.public_id, {
+    resource_type: result.resource_type || "raw",
+    type: "upload",
+    secure: true,
+    sign_url: true,
+    format: extension || undefined,
+  });
+};
+
 const uploadFileToCloudinary = (file, folder) =>
   new Promise((resolve, reject) => {
     ensureCloudinaryConfigured();
@@ -36,7 +54,7 @@ const uploadFileToCloudinary = (file, folder) =>
         }
 
         resolve({
-          url: result.secure_url,
+          url: buildDeliveryUrl(result, file),
           publicId: result.public_id,
           originalName: file.originalname,
           bytes: result.bytes,

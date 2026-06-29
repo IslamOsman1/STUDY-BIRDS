@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useLanguage } from "../../hooks/useLanguage";
+import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
 import { dt } from "../../utils/dashboardTranslations";
 
 export const FileUpload = ({
@@ -35,8 +36,8 @@ export const FileUpload = ({
         <option value="other-documents">{language === "ar" ? "مستندات أخرى" : "Other Documents"}</option>
         <option value="biometric-photo">{dt(language, "biometricPhoto")}</option>
       </select>
-      <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] || null)} className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6" />
-      <p className="text-xs text-slate-500">{language === "ar" ? "الأنواع المسموحة: PDF, JPG, PNG, WEBP بحد أقصى 5MB." : "Allowed types: PDF, JPG, PNG, WEBP up to 5MB."}</p>
+      <input type="file" accept={DOCUMENT_UPLOAD_ACCEPT} onChange={(event) => setFile(event.target.files?.[0] || null)} className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6" />
+      <p className="text-xs text-slate-500">{language === "ar" ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</p>
       <button type="submit" disabled={!file} className="rounded-full bg-brand-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300">
         {t("uploadDocument")}
       </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { UploadCloud } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
+import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
 import { partnerService } from "../../services/partnerService";
 import type { VerificationOverview } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -77,7 +78,8 @@ export const PartnerVerificationPage = () => {
             <div className="mt-2 text-xs text-slate-500">
               {uploadingType === type ? (isArabic ? "جارٍ الرفع..." : "Uploading...") : isArabic ? "اختر ملفًا للرفع" : "Choose a file to upload"}
             </div>
-            <input type="file" className="mt-4 w-full text-xs" onChange={(event) => handleUpload(type, event.target.files?.[0] || null)} />
+            <input type="file" accept={DOCUMENT_UPLOAD_ACCEPT} className="mt-4 w-full text-xs" onChange={(event) => handleUpload(type, event.target.files?.[0] || null)} />
+            <div className="mt-2 text-[11px] text-slate-400">{isArabic ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</div>
           </label>
         ))}
       </div>

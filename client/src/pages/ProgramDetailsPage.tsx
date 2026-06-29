@@ -5,6 +5,7 @@ import { FormInput } from "../components/forms/FormInput";
 import { PhoneNumberField } from "../components/forms/PhoneNumberField";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Seo } from "../components/seo/Seo";
+import { DOCUMENT_UPLOAD_ACCEPT } from "../constants/upload";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { getApiAssetUrl } from "../lib/api";
@@ -467,7 +468,7 @@ export const ProgramDetailsPage = () => {
               <input
                 ref={passportInputRef}
                 type="file"
-                accept=".pdf,image/jpeg,image/png,image/webp"
+                accept={DOCUMENT_UPLOAD_ACCEPT}
                 required
                 onChange={(event) => setPassportFile(event.target.files?.[0] || null)}
                 className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm"
@@ -481,7 +482,7 @@ export const ProgramDetailsPage = () => {
               <input
                 ref={latestQualificationInputRef}
                 type="file"
-                accept=".pdf,image/jpeg,image/png,image/webp"
+                accept={DOCUMENT_UPLOAD_ACCEPT}
                 required
                 onChange={(event) => setLatestQualificationFile(event.target.files?.[0] || null)}
                 className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm"
