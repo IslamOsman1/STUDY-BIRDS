@@ -9,14 +9,17 @@ const sanitizePublicId = (value) =>
     .replace(/^-|-$/g, "")
     .slice(0, 80) || "file";
 
+const isPdfFile = (file) => String(file?.mimetype || "").toLowerCase() === "application/pdf";
+
 const buildUploadOptions = (file, folder) => {
   const extension = path.extname(file.originalname || "");
   const isImage = file.mimetype.startsWith("image/");
+  const isPdf = isPdfFile(file);
 
   return {
     folder,
     public_id: `${Date.now()}-${sanitizePublicId(file.originalname)}`,
-    resource_type: isImage ? "image" : "raw",
+    resource_type: isImage || isPdf ? "image" : "raw",
     use_filename: false,
     unique_filename: false,
     format: isImage ? undefined : extension.replace(/^\./, "") || undefined,
@@ -25,8 +28,9 @@ const buildUploadOptions = (file, folder) => {
 
 const buildDeliveryUrl = (result, file) => {
   const isImage = file.mimetype.startsWith("image/");
+  const isPdf = isPdfFile(file);
 
-  if (isImage) {
+  if (isImage || isPdf) {
     return result.secure_url;
   }
 
