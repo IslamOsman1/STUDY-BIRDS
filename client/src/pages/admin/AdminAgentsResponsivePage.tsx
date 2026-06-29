@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, Mail, Phone, Search, ShieldCheck, Users } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { adminService } from "../../services/adminService";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import type { AdminPartnerDetails, AdminPartnerItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -442,7 +443,7 @@ export const AdminAgentsResponsivePage = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">{document.status}</span>
-                        <a href={document.filePath} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-700 hover:underline">
+                        <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-700 hover:underline">
                           <ExternalLink className="h-4 w-4" />
                           {isArabic ? "فتح" : "Open"}
                         </a>

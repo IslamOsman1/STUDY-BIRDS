@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, Search, XCircle } from "lucide-react";
 import { adminService } from "../../services/adminService";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import type { AdminPartnerItem, VerificationDocumentItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -275,7 +276,7 @@ export const AdminVerificationQueueTablePage = () => {
                     <td className="px-4 py-4 text-slate-600">{item.type === "not-uploaded" ? (isArabic ? "لم يرفع بعد" : "Not uploaded") : item.type}</td>
                     <td className="px-4 py-4">
                       {item.filePath ? (
-                        <a href={item.filePath} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">
+                        <a href={getDownloadableAssetUrl(item.filePath)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">
                           {item.fileName}
                         </a>
                       ) : (

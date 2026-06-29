@@ -6,7 +6,7 @@ import { AdminPagination } from "../../components/admin/AdminPagination";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
 import { formatDate } from "../../utils/format";
-import { getApiAssetUrl } from "../../lib/api";
+import { getDownloadableAssetUrl } from "../../lib/api";
 
 const PAGE_SIZE = 8;
 
@@ -108,7 +108,7 @@ export const AdminStudentDocumentsPage = () => {
                   </td>
                   <td className="px-4 py-4 text-slate-600">{formatDate(item.createdAt)}</td>
                   <td className="px-4 py-4">
-                    <a href={getApiAssetUrl(item.filePath)} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-700">
+                    <a href={getDownloadableAssetUrl(item.filePath)} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-700">
                       {isArabic ? "عرض الملف" : "View file"}
                     </a>
                   </td>

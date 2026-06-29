@@ -5,6 +5,7 @@ import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_E
 import { partnerService } from "../../services/partnerService";
 import type { VerificationOverview } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import { getErrorMessage } from "../../utils/errors";
 
 export const PartnerVerificationPage = () => {
@@ -102,7 +103,7 @@ export const PartnerVerificationPage = () => {
                   <tr key={document._id} className="border-t border-slate-100">
                     <td className="px-5 py-4 text-slate-600">{document.type}</td>
                     <td className="px-5 py-4">
-                      <a href={document.filePath} target="_blank" rel="noreferrer" className="font-semibold text-brand-700 hover:underline">
+                      <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="font-semibold text-brand-700 hover:underline">
                         {document.fileName}
                       </a>
                     </td>

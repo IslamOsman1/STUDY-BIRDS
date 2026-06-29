@@ -19,6 +19,7 @@ const {
   getStudyFields,
   getTestimonials,
   getNotifications,
+  openCloudinaryDocument,
   getRobotsTxt,
   getSitemapXml,
 } = require("../controllers/contentController");
@@ -48,6 +49,7 @@ router.get("/exhibitions/:slug", getExhibitionArticleBySlug);
 router.get("/site-settings", cacheRoute(300_000), getSiteSettings);
 router.get("/study-fields", cacheRoute(120_000), getStudyFields);
 router.get("/notifications", protect, getNotifications);
+router.get("/file-open", openCloudinaryDocument);
 router.get("/seo/sitemap.xml", cacheRoute(120_000), getSitemapXml);
 router.get("/seo/robots.txt", cacheRoute(300_000), getRobotsTxt);
 

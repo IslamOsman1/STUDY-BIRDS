@@ -50,8 +50,24 @@ export const getApiAssetUrl = (path?: string) => {
   return `${API_ORIGIN}${resolvedPath.startsWith("/") ? resolvedPath : `/${resolvedPath}`}`;
 };
 
-export const downloadApiAsset = async (path?: string, fileName?: string) => {
+const CLOUDINARY_DOCUMENT_PATTERN = /^https?:\/\/res\.cloudinary\.com\/.+\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|zip)(?:[?#].*)?$/i;
+
+export const getDownloadableAssetUrl = (path?: string) => {
   const assetUrl = getApiAssetUrl(path);
+
+  if (!assetUrl) {
+    return "";
+  }
+
+  if (CLOUDINARY_DOCUMENT_PATTERN.test(assetUrl)) {
+    return `${API_URL}/content/file-open?url=${encodeURIComponent(assetUrl)}`;
+  }
+
+  return assetUrl;
+};
+
+export const downloadApiAsset = async (path?: string, fileName?: string) => {
+  const assetUrl = getDownloadableAssetUrl(path);
 
   if (!assetUrl) {
     throw new Error("File URL is missing");

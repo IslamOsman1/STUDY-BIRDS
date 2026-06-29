@@ -12,11 +12,13 @@ const Faq = require("../models/Faq");
 const UpcomingEvent = require("../models/UpcomingEvent");
 const PastEvent = require("../models/PastEvent");
 const EventRegistration = require("../models/EventRegistration");
+const path = require("path");
 const asyncHandler = require("../utils/asyncHandler");
 const mongoose = require("mongoose");
 const { buildPaginationMeta, parsePagination } = require("../utils/queryUtils");
 const { timedOperation } = require("../utils/perf");
 const { isMailerConfigured, sendContactEmail } = require("../utils/mailer");
+const { cloudinary, ensureCloudinaryConfigured } = require("../config/cloudinary");
 const {
   attachResolvedSeo,
   buildRobotsTxt,
@@ -70,6 +72,39 @@ const defaultUpcomingEventPayload = {
   ctaText: "",
   backgroundImage: "",
   isPublished: false,
+};
+
+const CLOUDINARY_DOCUMENT_EXTENSIONS = new Set(["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "zip"]);
+
+const extractCloudinaryDescriptor = (assetUrl) => {
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(assetUrl);
+  } catch (error) {
+    throw new Error("Invalid file URL");
+  }
+
+  if (!/^res\.cloudinary\.com$/i.test(parsedUrl.hostname)) {
+    throw new Error("Unsupported file host");
+  }
+
+  const segments = parsedUrl.pathname.split("/").filter(Boolean);
+  const versionIndex = segments.findIndex((segment, index) => index >= 3 && /^v\d+$/.test(segment));
+
+  if (segments.length < 5 || versionIndex === -1 || versionIndex === segments.length - 1) {
+    throw new Error("Unsupported Cloudinary asset URL");
+  }
+
+  const fileName = decodeURIComponent(segments.slice(versionIndex + 1).join("/"));
+  const extension = path.extname(fileName).replace(/^\./, "").toLowerCase();
+  const publicId = extension ? fileName.slice(0, -(extension.length + 1)) : fileName;
+
+  return {
+    type: segments[2] || "upload",
+    extension,
+    publicId,
+  };
 };
 
 const paginateResponse = async ({ req, res, model, query, select, sort, transform, defaultLimit = 12 }) => {
@@ -355,6 +390,32 @@ const createContactMessage = asyncHandler(async (req, res) => {
   });
 });
 
+const openCloudinaryDocument = asyncHandler(async (req, res) => {
+  const assetUrl = String(req.query.url || "").trim();
+
+  if (!assetUrl) {
+    res.status(400);
+    throw new Error("File URL is required");
+  }
+
+  ensureCloudinaryConfigured();
+
+  const { type, extension, publicId } = extractCloudinaryDescriptor(assetUrl);
+
+  if (!extension || !CLOUDINARY_DOCUMENT_EXTENSIONS.has(extension)) {
+    return res.redirect(assetUrl);
+  }
+
+  const signedDownloadUrl = cloudinary.utils.private_download_url(publicId, extension, {
+    secure: true,
+    type,
+    attachment: false,
+    expires_at: Math.floor(Date.now() / 1000) + 60 * 10,
+  });
+
+  return res.redirect(signedDownloadUrl);
+});
+
 const getExhibitionArticles = asyncHandler(async (req, res) => {
   const query = { published: true };
 
@@ -523,4 +584,5 @@ module.exports = {
   getSitemapXml,
   getSiteSettings,
   getStudyFields,
+  openCloudinaryDocument,
 };

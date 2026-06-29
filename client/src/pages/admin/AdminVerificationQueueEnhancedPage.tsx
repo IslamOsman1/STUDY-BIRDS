@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, Search, XCircle } from "lucide-react";
 import { adminService } from "../../services/adminService";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import type { VerificationDocumentItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -128,7 +129,7 @@ export const AdminVerificationQueueEnhancedPage = () => {
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{item.status}</span>
                 </div>
                 <p className="mt-2 text-sm text-slate-500">{item.agent?.email || "--"}</p>
-                <a href={item.filePath} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-700">
+                <a href={getDownloadableAssetUrl(item.filePath)} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-700">
                   {isArabic ? "فتح المستند" : "Open Document"}
                 </a>
               </div>

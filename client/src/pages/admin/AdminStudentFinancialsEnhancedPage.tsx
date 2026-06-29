@@ -5,6 +5,7 @@ import { ConfirmationModal } from "../../components/ConfirmationModal";
 import { AdminPagination } from "../../components/admin/AdminPagination";
 import { ToastViewport } from "../../components/ToastViewport";
 import { useLanguage } from "../../hooks/useLanguage";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import { useToasts } from "../../hooks/useToasts";
 import { getErrorMessage } from "../../utils/errors";
 import { formatCurrency, formatDate } from "../../utils/format";
@@ -327,7 +328,7 @@ export const AdminStudentFinancialsEnhancedPage = () => {
               </div>
               {proof.reviewNote ? <p className="mt-3 text-sm text-slate-600">{proof.reviewNote}</p> : null}
               <div className="mt-4 flex flex-wrap gap-3">
-                <a href={proof.filePath} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">
+                <a href={getDownloadableAssetUrl(proof.filePath)} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">
                   {isArabic ? "عرض الملف" : "View file"}
                 </a>
                 <button

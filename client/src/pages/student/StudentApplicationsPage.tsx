@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
 import { EmptyState } from "../../components/EmptyState";
-import { getApiAssetUrl } from "../../lib/api";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import { useLanguage } from "../../hooks/useLanguage";
 import { studentService } from "../../services/studentService";
 import type { Application } from "../../types";
@@ -78,7 +78,7 @@ export const StudentApplicationsPage = () => {
                               <p className="font-medium text-slate-900">{documentTypeLabels[document.type] || document.type}</p>
                               <p className="text-xs text-slate-500">{document.fileName}</p>
                             </div>
-                            <a href={getApiAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="font-semibold text-brand-700">
+                            <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="font-semibold text-brand-700">
                               {dt(language, "viewFile")}
                             </a>
                           </div>

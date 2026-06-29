@@ -7,7 +7,7 @@ import { AdminPagination } from "../../components/admin/AdminPagination";
 import { DOCUMENT_UPLOAD_ACCEPT } from "../../constants/upload";
 import { useLanguage } from "../../hooks/useLanguage";
 import { useToasts } from "../../hooks/useToasts";
-import { getApiAssetUrl } from "../../lib/api";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import { studentService } from "../../services/studentService";
 import type { InvoiceItem, StudentFinancialsResponse } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
@@ -205,7 +205,7 @@ export const StudentFinancialsEnhancedPage = () => {
                 {invoice.adminNote ? <p className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">{invoice.adminNote}</p> : null}
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   {invoice.invoiceUrl ? (
-                    <a href={invoice.invoiceUrl.startsWith("http") ? invoice.invoiceUrl : getApiAssetUrl(invoice.invoiceUrl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">
+                    <a href={getDownloadableAssetUrl(invoice.invoiceUrl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">
                       <Download className="h-4 w-4" />
                       {isArabic ? "تحميل الفاتورة" : "Download Invoice"}
                     </a>

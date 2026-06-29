@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Download, ExternalLink, PlayCircle, Search } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import { useLanguage } from "../../hooks/useLanguage";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import { studentService } from "../../services/studentService";
 import type { KnowledgeBaseItem } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
@@ -68,7 +69,7 @@ export const StudentResourcesPage = () => {
 
       <section className="grid gap-4 lg:grid-cols-2">
         {filteredItems.map((item) => {
-          const href = item.fileUrl || item.videoUrl || undefined;
+          const href = item.fileUrl ? getDownloadableAssetUrl(item.fileUrl) : item.videoUrl || undefined;
           const isVideo = item.resourceType === "video";
 
           return (

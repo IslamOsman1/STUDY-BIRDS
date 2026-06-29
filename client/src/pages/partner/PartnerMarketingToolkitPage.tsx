@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Download, FileArchive } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import { partnerService } from "../../services/partnerService";
 import type { MarketingAssetItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -51,7 +52,7 @@ export const PartnerMarketingToolkitPage = () => {
                 {asset.createdAt ? new Date(asset.createdAt).toLocaleDateString() : "--"}
               </span>
             </div>
-            <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white">
+            <a href={getDownloadableAssetUrl(asset.fileUrl)} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white">
               <Download className="h-4 w-4" />
               {isArabic ? "تنزيل" : "Download"}
             </a>

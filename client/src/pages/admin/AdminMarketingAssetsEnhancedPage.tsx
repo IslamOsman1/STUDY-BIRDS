@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Download, PencilLine, Plus, Search, Trash2 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
+import { getDownloadableAssetUrl } from "../../lib/api";
 import type { MarketingAssetItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -195,7 +196,7 @@ export const AdminMarketingAssetsEnhancedPage = () => {
                 <div className="mt-3 text-xs text-slate-500">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "--"}</div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <a href={item.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-700">
+                <a href={getDownloadableAssetUrl(item.fileUrl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-medium text-slate-700">
                   <Download className="h-4 w-4" />
                   {isArabic ? "فتح" : "Open"}
                 </a>
