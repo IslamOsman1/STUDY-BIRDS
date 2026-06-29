@@ -41,7 +41,7 @@ const StudentFavoritesPage = lazy(() => import("../pages/student/StudentFavorite
 const StudentOrientationTestPage = lazy(() => import("../pages/student/StudentOrientationTestEnhancedPage").then((module) => ({ default: module.StudentOrientationTestEnhancedPage })));
 const StudentBecomeAgentPage = lazy(() => import("../pages/student/StudentBecomeAgentPage").then((module) => ({ default: module.StudentBecomeAgentPage })));
 const PartnerDashboardPage = lazy(() => import("../pages/partner/PartnerDashboardPage").then((module) => ({ default: module.PartnerDashboardPage })));
-const PartnerStudentsPage = lazy(() => import("../pages/partner/PartnerStudentsPage").then((module) => ({ default: module.PartnerStudentsPage })));
+const PartnerStudentsPage = lazy(() => import("../pages/partner/PartnerStudentsManagePage").then((module) => ({ default: module.PartnerStudentsManagePage })));
 const PartnerWalletPage = lazy(() => import("../pages/partner/PartnerWalletPage").then((module) => ({ default: module.PartnerWalletPage })));
 const PartnerReferralPage = lazy(() => import("../pages/partner/PartnerReferralPage").then((module) => ({ default: module.PartnerReferralPage })));
 const PartnerMarketingToolkitPage = lazy(() => import("../pages/partner/PartnerMarketingToolkitPage").then((module) => ({ default: module.PartnerMarketingToolkitPage })));

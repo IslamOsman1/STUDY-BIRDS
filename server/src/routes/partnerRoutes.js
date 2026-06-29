@@ -5,6 +5,8 @@ const {
   getPartnerOverview,
   getAgentStudents,
   createAgentStudent,
+  updateAgentStudent,
+  deleteAgentStudent,
   uploadAgentStudentDocument,
   getPartnerWallet,
   requestPayout,
@@ -30,6 +32,8 @@ router.get("/profile", getPartnerProfile);
 router.put("/profile", updatePartnerProfile);
 router.get("/students", getAgentStudents);
 router.post("/students", createAgentStudent);
+router.put("/students/:id", updateAgentStudent);
+router.delete("/students/:id", deleteAgentStudent);
 router.post("/students/:id/documents", upload.single("file"), uploadAgentStudentDocument);
 router.get("/wallet", getPartnerWallet);
 router.post("/wallet/payout-requests", requestPayout);

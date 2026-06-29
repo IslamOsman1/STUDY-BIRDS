@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { PencilLine, Plus, UploadCloud } from "lucide-react";
+import { PencilLine, Plus, Trash2, UploadCloud } from "lucide-react";
+import { ConfirmationModal } from "../../components/ConfirmationModal";
 import { EmptyState } from "../../components/EmptyState";
+import { ToastViewport } from "../../components/ToastViewport";
 import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
+import { useToasts } from "../../hooks/useToasts";
 import { partnerService } from "../../services/partnerService";
 import type { AgentStudentItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -15,55 +18,44 @@ const statusLabel = (status: AgentStudentItem["applicationStatus"], isArabic: bo
     rejected: isArabic ? "مرفوض" : "Rejected",
   })[status];
 
-export const PartnerStudentsPage = () => {
+const emptyForm = {
+  name: "",
+  email: "",
+  phone: "",
+  passportNumber: "",
+  studyPreferences: "",
+  desiredUniversity: "",
+  desiredProgram: "",
+  notes: "",
+};
+
+const createEmptyFiles = (): Record<string, File | null> => ({
+  passport: null,
+  certificates: null,
+  transcript: null,
+  other: null,
+});
+
+export const PartnerStudentsEditablePage = () => {
   const { language } = useLanguage();
   const isArabic = language === "ar";
   const [students, setStudents] = useState<AgentStudentItem[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState("");
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    passportNumber: "",
-    studyPreferences: "",
-    desiredUniversity: "",
-    desiredProgram: "",
-    notes: "",
-  });
-  const [files, setFiles] = useState<Record<string, File | null>>({
-    passport: null,
-    certificates: null,
-    transcript: null,
-    other: null,
-  });
-
-  const resetForm = () => {
-    setForm({
-      name: "",
-      email: "",
-      phone: "",
-      passportNumber: "",
-      studyPreferences: "",
-      desiredUniversity: "",
-      desiredProgram: "",
-      notes: "",
-    });
-    setFiles({ passport: null, certificates: null, transcript: null, other: null });
-    setEditingId("");
-    setShowForm(false);
-  };
+  const [deleting, setDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AgentStudentItem | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [files, setFiles] = useState<Record<string, File | null>>(createEmptyFiles);
+  const { toasts, pushToast, dismissToast } = useToasts();
 
   const fetchStudents = () =>
     partnerService
       .getStudents()
       .then(setStudents)
-      .catch((issue) =>
-        setError(getErrorMessage(issue, isArabic ? "تعذر تحميل الطلاب." : "Unable to load students."))
-      );
+      .catch((issue) => setError(getErrorMessage(issue, isArabic ? "تعذر تحميل الطلاب." : "Unable to load students.")));
 
   useEffect(() => {
     fetchStudents();
@@ -78,42 +70,115 @@ export const PartnerStudentsPage = () => {
     [students]
   );
 
+  const resetForm = () => {
+    setForm(emptyForm);
+    setFiles(createEmptyFiles());
+    setEditingId("");
+    setShowForm(false);
+  };
+
+  const openCreateForm = () => {
+    setError("");
+    setSuccess("");
+    setForm(emptyForm);
+    setFiles(createEmptyFiles());
+    setEditingId("");
+    setShowForm((current) => (editingId ? true : !current));
+  };
+
+  const startEditing = (student: AgentStudentItem) => {
+    setEditingId(student._id);
+    setForm({
+      name: student.name || "",
+      email: student.email || "",
+      phone: student.phone || "",
+      passportNumber: student.passportNumber || "",
+      studyPreferences: student.studyPreferences || "",
+      desiredUniversity: student.desiredUniversity || "",
+      desiredProgram: student.desiredProgram || "",
+      notes: student.notes || "",
+    });
+    setFiles(createEmptyFiles());
+    setError("");
+    setSuccess("");
+    setShowForm(true);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
     setSuccess("");
-    setCreating(true);
+    setSubmitting(true);
 
     try {
       if (editingId) {
         await partnerService.updateStudent(editingId, form);
-        resetForm();
         setSuccess(isArabic ? "تم تحديث بيانات الطالب بنجاح." : "Student updated successfully.");
-        await fetchStudents();
-        return;
-      }
+      } else {
+        const created = await partnerService.createStudent(form);
+        const uploads = Object.entries(files).filter(([, file]) => file);
 
-      const created = await partnerService.createStudent(form);
-      const uploads = Object.entries(files).filter(([, file]) => file);
-
-      for (const [label, file] of uploads) {
-        if (file) {
-          await partnerService.uploadStudentDocument(created._id, file, label);
+        for (const [label, file] of uploads) {
+          if (file) {
+            await partnerService.uploadStudentDocument(created._id, file, label);
+          }
         }
+
+        setSuccess(isArabic ? "تمت إضافة الطالب بنجاح." : "Student added successfully.");
       }
 
       resetForm();
-      setSuccess(isArabic ? "تمت إضافة الطالب بنجاح." : "Student added successfully.");
       await fetchStudents();
     } catch (issue) {
-      setError(getErrorMessage(issue, isArabic ? "تعذر إضافة الطالب." : "Unable to add student."));
+      setError(
+        getErrorMessage(
+          issue,
+          editingId
+            ? isArabic
+              ? "تعذر تحديث بيانات الطالب."
+              : "Unable to update student."
+            : isArabic
+              ? "تعذر إضافة الطالب."
+              : "Unable to add student."
+        )
+      );
     } finally {
-      setCreating(false);
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    setDeleting(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await partnerService.removeStudent(deleteTarget._id);
+
+      if (editingId === deleteTarget._id) {
+        resetForm();
+      }
+
+      await fetchStudents();
+      pushToast(isArabic ? "تم حذف الطالب بنجاح." : "Student deleted successfully.", "success");
+      setDeleteTarget(null);
+    } catch (issue) {
+      const message = getErrorMessage(issue, isArabic ? "تعذر حذف الطالب." : "Unable to delete student.");
+      setError(message);
+      pushToast(message, "error");
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      <ToastViewport items={toasts} onDismiss={dismissToast} />
+
       <section className="panel p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -122,19 +187,7 @@ export const PartnerStudentsPage = () => {
               {isArabic ? "أدر الطلاب والطلبات المرتبطة بك من مكان واحد." : "Manage your students and their applications from one place."}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              if (showForm && !editingId) {
-                setShowForm(false);
-                return;
-              }
-
-              resetForm();
-              setShowForm(true);
-            }}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-5 py-3 text-sm font-semibold text-white"
-          >
+          <button type="button" onClick={openCreateForm} className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-5 py-3 text-sm font-semibold text-white">
             <Plus className="h-4 w-4" />
             {isArabic ? "إضافة طالب جديد" : "Add New Student"}
           </button>
@@ -172,29 +225,36 @@ export const PartnerStudentsPage = () => {
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:ring"
               />
             </label>
-            <div className="grid gap-4 md:col-span-2 md:grid-cols-2 xl:grid-cols-4">
-              {[
-                ["passport", isArabic ? "جواز السفر" : "Passport"],
-                ["certificates", isArabic ? "الشهادات" : "Certificates"],
-                ["transcript", isArabic ? "كشف الدرجات" : "Transcript"],
-                ["other", isArabic ? "مستندات أخرى" : "Other Documents"],
-              ].map(([key, label]) => (
-                <label key={key} className="rounded-3xl border border-dashed border-slate-300 bg-white px-4 py-5 text-center">
-                  <UploadCloud className="mx-auto h-5 w-5 text-slate-400" />
-                  <span className="mt-3 block text-sm font-medium text-slate-700">{label}</span>
-                  <input
-                    type="file"
-                    accept={DOCUMENT_UPLOAD_ACCEPT}
-                    className="mt-3 w-full text-xs"
-                    onChange={(event) => setFiles((current) => ({ ...current, [key]: event.target.files?.[0] || null }))}
-                  />
-                  <span className="mt-2 block text-[11px] text-slate-400">{isArabic ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</span>
-                </label>
-              ))}
+            {!editingId ? (
+              <div className="grid gap-4 md:col-span-2 md:grid-cols-2 xl:grid-cols-4">
+                {[
+                  ["passport", isArabic ? "جواز السفر" : "Passport"],
+                  ["certificates", isArabic ? "الشهادات" : "Certificates"],
+                  ["transcript", isArabic ? "كشف الدرجات" : "Transcript"],
+                  ["other", isArabic ? "مستندات أخرى" : "Other Documents"],
+                ].map(([key, label]) => (
+                  <label key={key} className="rounded-3xl border border-dashed border-slate-300 bg-white px-4 py-5 text-center">
+                    <UploadCloud className="mx-auto h-5 w-5 text-slate-400" />
+                    <span className="mt-3 block text-sm font-medium text-slate-700">{label}</span>
+                    <input
+                      type="file"
+                      accept={DOCUMENT_UPLOAD_ACCEPT}
+                      className="mt-3 w-full text-xs"
+                      onChange={(event) => setFiles((current) => ({ ...current, [key]: event.target.files?.[0] || null }))}
+                    />
+                    <span className="mt-2 block text-[11px] text-slate-400">{isArabic ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+            <div className="flex flex-wrap gap-3 md:col-span-2">
+              <button type="submit" disabled={submitting} className="w-fit rounded-full bg-slate-950 px-6 py-3 font-semibold text-white">
+                {submitting ? (isArabic ? "جارٍ الحفظ..." : "Saving...") : editingId ? (isArabic ? "تحديث بيانات الطالب" : "Update Student") : isArabic ? "حفظ الطالب" : "Save Student"}
+              </button>
+              <button type="button" onClick={resetForm} className="rounded-full border border-slate-200 px-6 py-3 font-semibold text-slate-700">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
             </div>
-            <button type="submit" disabled={creating} className="w-fit rounded-full bg-slate-950 px-6 py-3 font-semibold text-white md:col-span-2">
-              {creating ? (isArabic ? "جارٍ الحفظ..." : "Saving...") : isArabic ? "حفظ الطالب" : "Save Student"}
-            </button>
           </form>
         ) : null}
       </section>
@@ -210,6 +270,7 @@ export const PartnerStudentsPage = () => {
                     isArabic ? "الجامعة / التخصص" : "Program / University",
                     isArabic ? "تاريخ التقديم" : "Application Date",
                     isArabic ? "الحالة" : "Status",
+                    isArabic ? "الإجراءات" : "Actions",
                   ].map((header) => (
                     <th key={header} className="px-5 py-4 text-start font-semibold">
                       {header}
@@ -233,6 +294,16 @@ export const PartnerStudentsPage = () => {
                       <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                         {statusLabel(student.applicationStatus, isArabic)}
                       </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <button
+                        type="button"
+                        onClick={() => startEditing(student)}
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                      >
+                        <PencilLine className="h-4 w-4" />
+                        {isArabic ? "تعديل" : "Edit"}
+                      </button>
                     </td>
                   </tr>
                 ))}

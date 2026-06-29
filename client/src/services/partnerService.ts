@@ -36,6 +36,14 @@ export const partnerService = {
     const { data } = await api.post<AgentStudentItem>("/partners/students", payload);
     return data;
   },
+  updateStudent: async (studentId: string, payload: Partial<AgentStudentItem>) => {
+    const { data } = await api.put<AgentStudentItem>(`/partners/students/${studentId}`, payload);
+    return data;
+  },
+  removeStudent: async (studentId: string) => {
+    const { data } = await api.delete<{ message: string }>(`/partners/students/${studentId}`);
+    return data;
+  },
   uploadStudentDocument: async (studentId: string, file: File, label: string) => {
     const formData = new FormData();
     formData.append("file", file);

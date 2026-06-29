@@ -186,6 +186,49 @@ const createAgentStudent = asyncHandler(async (req, res) => {
   res.status(201).json(student);
 });
 
+const updateAgentStudent = asyncHandler(async (req, res) => {
+  const payload = req.body;
+  const student = await AgentStudent.findOne({ _id: req.params.id, agent: req.user._id });
+
+  if (!student) {
+    res.status(404);
+    throw new Error("Student not found");
+  }
+
+  if (!String(payload.name || "").trim() || !String(payload.email || "").trim() || !String(payload.phone || "").trim()) {
+    res.status(400);
+    throw new Error("Name, email, and phone are required");
+  }
+
+  student.name = String(payload.name || "").trim();
+  student.email = String(payload.email || "").trim().toLowerCase();
+  student.phone = String(payload.phone || "").trim();
+  student.passportNumber = String(payload.passportNumber || "").trim();
+  student.studyPreferences = String(payload.studyPreferences || "").trim();
+  student.desiredUniversity = String(payload.desiredUniversity || "").trim();
+  student.desiredProgram = String(payload.desiredProgram || "").trim();
+  student.notes = String(payload.notes || "").trim();
+
+  await student.save();
+
+  await logActivity(req, req.user._id, "student.updated", `Updated student ${student.name}`, { studentId: student._id });
+
+  res.json(student);
+});
+
+const deleteAgentStudent = asyncHandler(async (req, res) => {
+  const student = await AgentStudent.findOneAndDelete({ _id: req.params.id, agent: req.user._id });
+
+  if (!student) {
+    res.status(404);
+    throw new Error("Student not found");
+  }
+
+  await logActivity(req, req.user._id, "student.deleted", `Deleted student ${student.name}`, { studentId: student._id });
+
+  res.json({ message: "Student deleted successfully" });
+});
+
 const uploadAgentStudentDocument = asyncHandler(async (req, res) => {
   if (!req.file) {
     res.status(400);
@@ -444,6 +487,8 @@ module.exports = {
   getPartnerOverview,
   getAgentStudents,
   createAgentStudent,
+  updateAgentStudent,
+  deleteAgentStudent,
   uploadAgentStudentDocument,
   getPartnerWallet,
   requestPayout,
