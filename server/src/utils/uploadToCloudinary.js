@@ -29,9 +29,20 @@ const buildUploadOptions = (file, folder) => {
 const buildDeliveryUrl = (result, file) => {
   const isImage = file.mimetype.startsWith("image/");
   const isPdf = isPdfFile(file);
+  const extension = path.extname(file.originalname || "").replace(/^\./, "");
 
-  if (isImage || isPdf) {
+  if (isImage) {
     return result.secure_url;
+  }
+
+  if (isPdf) {
+    return cloudinary.url(result.public_id, {
+      resource_type: "image",
+      type: "upload",
+      secure: true,
+      sign_url: true,
+      format: extension || "pdf",
+    });
   }
 
   // Signed raw delivery avoids Cloudinary 401 issues for PDFs and office docs.
