@@ -273,6 +273,7 @@ export interface AgentStudentDocument {
 
 export interface AgentStudentItem {
   _id: string;
+  agent?: Pick<User, "_id" | "name" | "email">;
   name: string;
   email: string;
   phone: string;

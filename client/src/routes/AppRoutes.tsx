@@ -67,6 +67,7 @@ const AdminTestimonialsPage = lazy(() => import("../pages/admin/AdminTestimonial
 const AdminSiteSettingsPage = lazy(() => import("../pages/admin/AdminSiteSettingsPage").then((module) => ({ default: module.AdminSiteSettingsPage })));
 const AdminAgencyRequestsPage = lazy(() => import("../pages/admin/AdminAgencyRequestsPage").then((module) => ({ default: module.AdminAgencyRequestsPage })));
 const AdminAgentsPage = lazy(() => import("../pages/admin/AdminAgentsResponsivePage").then((module) => ({ default: module.AdminAgentsResponsivePage })));
+const AdminPartnerStudentsPage = lazy(() => import("../pages/admin/AdminPartnerStudentsPage").then((module) => ({ default: module.AdminPartnerStudentsPage })));
 const AdminMarketingAssetsPage = lazy(() => import("../pages/admin/AdminMarketingAssetsEnhancedPage").then((module) => ({ default: module.AdminMarketingAssetsEnhancedPage })));
 const AdminVerificationQueuePage = lazy(() => import("../pages/admin/AdminVerificationQueueTablePage").then((module) => ({ default: module.AdminVerificationQueueTablePage })));
 const AdminPayoutRequestsPage = lazy(() => import("../pages/admin/AdminPayoutRequestsTablePage").then((module) => ({ default: module.AdminPayoutRequestsTablePage })));
@@ -171,6 +172,7 @@ export const AppRoutes = () => (
           <Route path="/admin/agency-requests" element={<AdminAgencyRequestsPage />} />
           <Route path="/admin/agents" element={<AdminAgentsPage />} />
           <Route path="/admin/agents/:id" element={<AdminAgentsPage />} />
+          <Route path="/admin/partner-students" element={<AdminPartnerStudentsPage />} />
           <Route path="/admin/marketing-assets" element={<AdminMarketingAssetsPage />} />
           <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage />} />
           <Route path="/admin/payout-requests" element={<AdminPayoutRequestsPage />} />

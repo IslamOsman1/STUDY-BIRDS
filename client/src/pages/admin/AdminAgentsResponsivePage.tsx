@@ -42,6 +42,8 @@ export const AdminAgentsResponsivePage = () => {
   const [bulkAction, setBulkAction] = useState<"activate" | "deactivate" | "clear">("activate");
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [studentStatusDrafts, setStudentStatusDrafts] = useState<Record<string, AdminPartnerDetails["students"][number]["applicationStatus"]>>({});
+  const [savingStudentId, setSavingStudentId] = useState("");
   const { toasts, pushToast, dismissToast } = useAdminToasts();
 
   useEffect(() => {
@@ -68,6 +70,20 @@ export const AdminAgentsResponsivePage = () => {
       })
       .finally(() => setLoadingDetails(false));
   }, [id, isArabic, pushToast]);
+
+  useEffect(() => {
+    if (!details) {
+      setStudentStatusDrafts({});
+      return;
+    }
+
+    setStudentStatusDrafts(
+      details.students.reduce<Record<string, AdminPartnerDetails["students"][number]["applicationStatus"]>>((accumulator, student) => {
+        accumulator[student._id] = student.applicationStatus;
+        return accumulator;
+      }, {})
+    );
+  }, [details]);
 
   const filteredAgents = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -155,6 +171,46 @@ export const AdminAgentsResponsivePage = () => {
       pushToast(message, "error");
     } finally {
       setBulkLoading(false);
+    }
+  };
+
+  const savePartnerStudentStatus = async (studentId: string) => {
+    if (!details) {
+      return;
+    }
+
+    const student = details.students.find((item) => item._id === studentId);
+    const nextStatus = studentStatusDrafts[studentId];
+
+    if (!student || !nextStatus || nextStatus === student.applicationStatus) {
+      return;
+    }
+
+    setSavingStudentId(studentId);
+    setError("");
+
+    try {
+      const updated = await adminService.updatePartnerStudentStatus(studentId, {
+        applicationStatus: nextStatus,
+        notes: student.notes,
+      });
+
+      setDetails((current) =>
+        current
+          ? {
+              ...current,
+              students: current.students.map((item) => (item._id === studentId ? updated : item)),
+            }
+          : current
+      );
+
+      pushToast(isArabic ? "تم تحديث حالة ملف الطالب." : "Student file status updated.", "success");
+    } catch (issue) {
+      const message = getErrorMessage(issue, isArabic ? "تعذر تحديث حالة ملف الطالب." : "Unable to update student file status.");
+      setError(message);
+      pushToast(message, "error");
+    } finally {
+      setSavingStudentId("");
     }
   };
 

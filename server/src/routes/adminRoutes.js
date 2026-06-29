@@ -61,7 +61,9 @@ const {
 } = require("../controllers/studyFieldController");
 const {
   getPartnersAdmin,
+  getAllPartnerStudentsAdmin,
   getPartnerStudentsAdmin,
+  updatePartnerStudentStatusAdmin,
   getPartnerDetailsAdmin,
   getPayoutRequestsAdmin,
   updatePayoutRequestStatusAdmin,
@@ -150,7 +152,9 @@ router.get("/event-registrations", getEventRegistrationsAdmin);
 router.get("/agency-requests", getAgencyRequestsAdmin);
 router.patch("/agency-requests/:id", updateAgencyRequestStatus);
 router.get("/partners", getPartnersAdmin);
+router.get("/partner-students", getAllPartnerStudentsAdmin);
 router.get("/partners/:id/students", getPartnerStudentsAdmin);
+router.patch("/partner-students/:studentId", updatePartnerStudentStatusAdmin);
 router.get("/partners/:id", getPartnerDetailsAdmin);
 router.get("/payout-requests", getPayoutRequestsAdmin);
 router.patch("/payout-requests/:id", updatePayoutRequestStatusAdmin);

@@ -88,6 +88,7 @@ export const DashboardLayout = () => {
     { label: dt(language, "faqsNav"), href: "/admin/faqs", icon: MessageSquare, description: dt(language, "faqsNavDesc") },
     { label: dt(language, "agencyRequestsNav"), href: "/admin/agency-requests", icon: BriefcaseBusiness, description: dt(language, "agencyRequestsNavDesc") },
     { label: language === "ar" ? "كل الوكلاء" : "All Agents", href: "/admin/agents", icon: Users, description: language === "ar" ? "عرض ملف كل وكيل وطلابه وبياناته التشغيلية." : "View each agent profile, students, and operational details." },
+    { label: language === "ar" ? "طلاب الوكلاء" : "Partner Students", href: "/admin/partner-students", icon: Users, description: language === "ar" ? "قراءة بيانات الطلاب الذين أضافهم الوكلاء وتغيير حالة ملفاتهم." : "Review agent-added students and update their file status." },
     { label: language === "ar" ? "المواد التسويقية" : "Marketing Assets", href: "/admin/marketing-assets", icon: Layers3, description: language === "ar" ? "رفع وإدارة ملفات التسويق الخاصة بالوكلاء." : "Manage files shown in the agent marketing toolkit." },
     { label: language === "ar" ? "توثيق الوكلاء" : "Verification Queue", href: "/admin/verification-queue", icon: ShieldCheck, description: language === "ar" ? "مراجعة مستندات توثيق الوكلاء." : "Review partner verification documents." },
     { label: language === "ar" ? "طلبات السحب" : "Payout Requests", href: "/admin/payout-requests", icon: CircleDollarSign, description: language === "ar" ? "اعتماد أو رفض طلبات سحب الأرباح." : "Review and update payout requests." },

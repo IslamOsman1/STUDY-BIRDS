@@ -29,6 +29,43 @@ const getPartnerStudentsAdmin = asyncHandler(async (req, res) => {
   res.json(students);
 });
 
+const getAllPartnerStudentsAdmin = asyncHandler(async (req, res) => {
+  const students = await AgentStudent.find()
+    .populate("agent", "name email")
+    .sort({ createdAt: -1 });
+  res.json(students);
+});
+
+const updatePartnerStudentStatusAdmin = asyncHandler(async (req, res) => {
+  const student = await AgentStudent.findById(req.params.studentId);
+
+  if (!student) {
+    res.status(404);
+    throw new Error("Agent student not found");
+  }
+
+  const nextStatus = String(req.body.applicationStatus || "").trim();
+  if (!["under-review", "preliminary-accepted", "final-accepted", "rejected"].includes(nextStatus)) {
+    res.status(400);
+    throw new Error("Invalid application status");
+  }
+
+  student.applicationStatus = nextStatus;
+  if (req.body.notes !== undefined) {
+    student.notes = String(req.body.notes || "").trim();
+  }
+  await student.save();
+
+  await Notification.create({
+    user: student.agent,
+    title: "Student file updated",
+    message: `${student.name}'s file status is now ${nextStatus}.`,
+    type: nextStatus === "rejected" ? "warning" : "info",
+  });
+
+  res.json(student);
+});
+
 const getPartnerDetailsAdmin = asyncHandler(async (req, res) => {
   const partner = await User.findOne({ _id: req.params.id, role: "partner" }).lean();
   if (!partner) {
@@ -311,7 +348,9 @@ const deleteKnowledgeBaseItemAdmin = asyncHandler(async (req, res) => {
 
 module.exports = {
   getPartnersAdmin,
+  getAllPartnerStudentsAdmin,
   getPartnerStudentsAdmin,
+  updatePartnerStudentStatusAdmin,
   getPartnerDetailsAdmin,
   getPayoutRequestsAdmin,
   updatePayoutRequestStatusAdmin,

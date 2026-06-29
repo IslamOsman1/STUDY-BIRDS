@@ -84,6 +84,14 @@ export const adminService = {
     const { data } = await api.get<AgentStudentItem[]>(`/admin/partners/${id}/students`);
     return data;
   },
+  getAllPartnerStudents: async () => {
+    const { data } = await api.get<AgentStudentItem[]>("/admin/partner-students");
+    return data;
+  },
+  updatePartnerStudentStatus: async (studentId: string, payload: { applicationStatus: AgentStudentItem["applicationStatus"]; notes?: string }) => {
+    const { data } = await api.patch<AgentStudentItem>(`/admin/partner-students/${studentId}`, payload);
+    return data;
+  },
   getPartnerDetails: async (id: string) => {
     const { data } = await api.get<AdminPartnerDetails>(`/admin/partners/${id}`);
     return data;
