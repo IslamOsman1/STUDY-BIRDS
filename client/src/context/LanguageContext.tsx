@@ -102,6 +102,11 @@ type TranslationKey =
   | "statusRejected"
   | "statusSubmitted"
   | "statusUnderReview"
+  | "statusPreliminaryAccepted"
+  | "statusPreliminaryAcceptedFirstPayment"
+  | "statusFinalAccepted"
+  | "statusFileCompletedAccepted"
+  | "statusFileCompletedRejected"
   | "step"
   | "student"
   | "studentStories"
@@ -277,6 +282,11 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     statusRejected: "Rejected",
     statusSubmitted: "Submitted",
     statusUnderReview: "Under review",
+    statusPreliminaryAccepted: "Preliminary acceptance completed",
+    statusPreliminaryAcceptedFirstPayment: "Preliminary acceptance completed and first expenses payment received",
+    statusFinalAccepted: "Final acceptance completed",
+    statusFileCompletedAccepted: "File completed and status accepted",
+    statusFileCompletedRejected: "File completed and status rejected",
     step: "Step",
     student: "Student",
     studentStories: "Student experiences",
@@ -460,6 +470,11 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     statusRejected: "مرفوض",
     statusSubmitted: "تم الإرسال",
     statusUnderReview: "قيد المراجعة",
+    statusPreliminaryAccepted: "?? ?????? ????????",
+    statusPreliminaryAcceptedFirstPayment: "?? ?????? ???????? ??????? ?????? ?????? ?? ?????????",
+    statusFinalAccepted: "?? ?????? ???????",
+    statusFileCompletedAccepted: "?? ???????? ?? ????? ??????? ?????",
+    statusFileCompletedRejected: "?? ???????? ?? ????? ??????? ?????",
     step: "خطوة",
     student: "طالب",
     studentStories: "تجارب الطلاب",

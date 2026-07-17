@@ -274,27 +274,32 @@ export const AdminApplicationsPage = () => {
                     />
                   </label>
 
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    {[
-                      ["under-review", dt(language, "moveToReview")],
-                      ["accepted", dt(language, "accept")],
-                      ["rejected", dt(language, "reject")],
-                      ["submitted", dt(language, "resetSubmitted")],
-                    ].map(([status, label]) => (
-                      <button
-                        key={status}
-                        onClick={() => handleStatusChange(application._id, status)}
-                        className={`rounded-2xl px-4 py-3 text-sm font-semibold ${
-                          status === "accepted"
-                            ? "bg-emerald-600 text-white"
-                            : status === "rejected"
-                              ? "bg-rose-600 text-white"
-                              : "border border-slate-200 text-slate-700"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                  <div className="mt-4">
+                    <select
+                      defaultValue=""
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        if (!value) {
+                          return;
+                        }
+                        void handleStatusChange(application._id, value);
+                        event.target.value = "";
+                      }}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring"
+                    >
+                      <option value="" disabled>
+                        {dt(language, "reviewActionSelect")}
+                      </option>
+                      <option value="under-review">{dt(language, "moveToReview")}</option>
+                      <option value="accepted">{dt(language, "accept")}</option>
+                      <option value="rejected">{dt(language, "reject")}</option>
+                      <option value="submitted">{dt(language, "resetSubmitted")}</option>
+                      <option value="preliminary-accepted">{dt(language, "preliminaryAccepted")}</option>
+                      <option value="preliminary-accepted-first-payment">{dt(language, "preliminaryAcceptedFirstPayment")}</option>
+                      <option value="final-accepted">{dt(language, "finalAccepted")}</option>
+                      <option value="file-completed-accepted">{dt(language, "fileCompletedAccepted")}</option>
+                      <option value="file-completed-rejected">{dt(language, "fileCompletedRejected")}</option>
+                    </select>
                   </div>
 
                   <button
