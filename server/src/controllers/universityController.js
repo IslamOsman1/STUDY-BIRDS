@@ -45,7 +45,9 @@ const getUniversities = asyncHandler(async (req, res) => {
   }
 
   const listQuery = University.find(query)
-    .select("name slug city language studentCount specialtyCount overview ranking tuitionRange logo featured isPartnerInstitution country createdAt")
+    .select(
+      "name slug city language studentCount specialtyCount overview ranking tuitionRange logo campusImages articleTitle articleTitleColor articleHeadingColor articleBodyColor articleHeadings articleBodies featured isPartnerInstitution country createdAt"
+    )
     .populate("country", "name slug code heroImage featured")
     .sort({ featured: -1, name: 1 });
 
