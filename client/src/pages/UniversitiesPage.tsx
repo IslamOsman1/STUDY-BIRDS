@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, MapPinned, ScrollText } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { UniversityCard } from "../components/marketing/UniversityCard";
 import { Seo } from "../components/seo/Seo";
@@ -15,6 +15,7 @@ import { getPaginatedItems, getPaginationMeta } from "../utils/pagination";
 export const UniversitiesPage = () => {
   const { t, language, tv } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
+  const universitiesSectionRef = useRef<HTMLDivElement | null>(null);
   const [universities, setUniversities] = useState<University[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
@@ -41,6 +42,10 @@ export const UniversitiesPage = () => {
 
     nextParams.delete("page");
     setSearchParams(nextParams);
+  };
+
+  const scrollToUniversitiesSection = () => {
+    universitiesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
@@ -158,9 +163,13 @@ export const UniversitiesPage = () => {
                 <span className="font-semibold">
                   {language === "ar" ? `عرض جامعات ${tv(selectedCountry.name)}` : `Showing universities in ${tv(selectedCountry.name)}`}
                 </span>
-                <Link to="/universities" className="rounded-full bg-slate-100 px-4 py-2 font-semibold text-accent-700 transition hover:bg-slate-200">
+                <button
+                  type="button"
+                  onClick={scrollToUniversitiesSection}
+                  className="rounded-full bg-slate-100 px-4 py-2 font-semibold text-accent-700 transition hover:bg-slate-200"
+                >
                   {language === "ar" ? "عرض كل الجامعات" : "View all universities"}
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -168,7 +177,7 @@ export const UniversitiesPage = () => {
       ) : null}
       {selectedCountry ? <ArticleContentSection article={selectedCountry} language={language} /> : null}
       {loading ? <div className="panel mt-8 p-8 text-sm text-slate-500">{language === "ar" ? "جاري تحميل الجامعات..." : "Loading universities..."}</div> : null}
-      <div className="mt-8 grid gap-5 lg:grid-cols-3">
+      <div ref={universitiesSectionRef} className="mt-8 grid gap-5 lg:grid-cols-3">
         {universities.map((university) => (
           <UniversityCard key={university._id} university={university} />
         ))}
