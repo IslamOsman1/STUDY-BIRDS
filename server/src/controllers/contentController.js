@@ -35,6 +35,7 @@ const defaultSiteSettingsPayload = {
   britishMembershipUrl: "",
   supportHours: "",
   officeLocations: "",
+  leadCapturePromptEnabled: true,
 };
 
 const defaultStoryPayload = {
@@ -287,8 +288,9 @@ const createEventRegistration = asyncHandler(async (req, res) => {
   const phone = String(req.body.phone || "").trim();
   const fieldOfInterest = String(req.body.fieldOfInterest || "").trim();
   const currentCountry = String(req.body.currentCountry || "").trim();
+  const desiredStudyCountry = String(req.body.desiredStudyCountry || "").trim();
 
-  if (!name || !phone || !fieldOfInterest || !currentCountry) {
+  if (!name || !phone || !fieldOfInterest || !currentCountry || !desiredStudyCountry) {
     res.status(400);
     throw new Error("All registration fields are required");
   }
@@ -303,6 +305,7 @@ const createEventRegistration = asyncHandler(async (req, res) => {
       phone,
       fieldOfInterest,
       currentCountry,
+      desiredStudyCountry,
       upcomingEvent: upcomingEvent?._id || null,
     })
   );
@@ -544,7 +547,7 @@ const getSiteSettings = asyncHandler(async (req, res) => {
   const settings = await timedOperation("SiteSettings.latest", () =>
     SiteSettings.findOne()
       .sort({ createdAt: -1 })
-      .select("contactEmail whatsappUrl facebookUrl instagramUrl tiktokUrl britishMembershipUrl supportHours officeLocations createdAt")
+      .select("contactEmail whatsappUrl facebookUrl instagramUrl tiktokUrl britishMembershipUrl supportHours officeLocations leadCapturePromptEnabled createdAt")
       .lean()
   );
   res.json(settings || defaultSiteSettingsPayload);

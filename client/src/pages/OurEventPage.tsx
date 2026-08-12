@@ -29,7 +29,7 @@ const getCountryFlag = (countryCode?: string) => {
 
 const getTimeLeft = (eventDate?: string | null) => {
   if (!eventDate) {
-    return { days: 0, hours: 0, minutes: 0 };
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   }
 
   const targetDate = new Date(eventDate).getTime();
@@ -40,6 +40,7 @@ const getTimeLeft = (eventDate?: string | null) => {
     days: Math.floor(difference / (1000 * 60 * 60 * 24)),
     hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
     minutes: Math.floor((difference / (1000 * 60)) % 60),
+    seconds: Math.floor((difference / 1000) % 60),
   };
 };
 
@@ -64,6 +65,7 @@ export const OurEventPage = () => {
     phoneNumber: "",
     fieldOfInterest: "",
     currentCountry: "",
+    desiredStudyCountry: "",
   });
   const [timeLeft, setTimeLeft] = useState(getTimeLeft(null));
 
@@ -159,6 +161,7 @@ export const OurEventPage = () => {
         phone: buildPhoneNumber(registrationForm.dialCode, registrationForm.phoneNumber),
         fieldOfInterest: registrationForm.fieldOfInterest.trim(),
         currentCountry: registrationForm.currentCountry.trim(),
+        desiredStudyCountry: registrationForm.desiredStudyCountry.trim(),
       });
 
       setRegistrationSuccess(
@@ -170,6 +173,7 @@ export const OurEventPage = () => {
         phoneNumber: "",
         fieldOfInterest: "",
         currentCountry: "",
+        desiredStudyCountry: "",
       });
     } catch (submitError) {
       setError(
@@ -252,21 +256,22 @@ export const OurEventPage = () => {
             </button>
           </div>
 
-          <div className="grid gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-md sm:grid-cols-3 xl:grid-cols-3">
+          <div className="grid grid-cols-4 gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-md">
             {[
               { key: "days", label: language === "ar" ? "يوم" : "Days", value: timeLeft.days },
               { key: "hours", label: language === "ar" ? "ساعة" : "Hours", value: timeLeft.hours },
               { key: "minutes", label: language === "ar" ? "دقيقة" : "Minutes", value: timeLeft.minutes },
+              { key: "seconds", label: language === "ar" ? "\u062b\u0627\u0646\u064a\u0629" : "Seconds", value: timeLeft.seconds },
             ].map((item) => (
               <motion.div
                 key={item.key}
                 initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="rounded-[1.6rem] border border-white/10 bg-slate-950/35 px-4 py-5 text-center shadow-2xl"
+                className="rounded-[1.6rem] border border-white/10 bg-slate-950/35 px-2 py-4 text-center shadow-2xl sm:px-4 sm:py-5"
               >
-                <div className="text-4xl font-semibold tracking-tight text-white">{formatTimeLabel(item.value)}</div>
-                <div className="mt-2 text-xs font-semibold uppercase tracking-[0.28em] text-orange-200">{item.label}</div>
+                <div className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">{formatTimeLabel(item.value)}</div>
+                <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-200 sm:text-xs sm:tracking-[0.28em]">{item.label}</div>
               </motion.div>
             ))}
           </div>
@@ -413,7 +418,7 @@ export const OurEventPage = () => {
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "الدولة الحالية" : "Current country"}</span>
+                    <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "\u0639\u0646\u0648\u0627\u0646\u0643 \u0627\u0644\u062d\u0627\u0644\u064a" : "Your current address"}</span>
                     <input
                       value={registrationForm.currentCountry}
                       required
@@ -432,6 +437,15 @@ export const OurEventPage = () => {
                   required
                 />
 
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "\u0627\u0644\u062f\u0648\u0644\u0629 \u0627\u0644\u0645\u0631\u0627\u062f \u0627\u0644\u062f\u0631\u0627\u0633\u0629 \u0628\u0647\u0627" : "Desired study country"}</span>
+                  <input
+                    value={registrationForm.desiredStudyCountry}
+                    required
+                    onChange={(event) => setRegistrationForm((current) => ({ ...current, desiredStudyCountry: event.target.value }))}
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
+                  />
+                </label>
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "التخصص المهتم به" : "Field of interest"}</span>
                   <input

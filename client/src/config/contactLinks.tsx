@@ -17,6 +17,7 @@ export const defaultSiteSettings: SiteSettings = {
   britishMembershipUrl: "",
   supportHours: "",
   officeLocations: "",
+  leadCapturePromptEnabled: true,
 };
 
 type ContactLink = {

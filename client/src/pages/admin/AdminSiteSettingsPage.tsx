@@ -15,6 +15,7 @@ const emptySiteSettingsForm: SiteSettings = {
   britishMembershipUrl: "",
   supportHours: "",
   officeLocations: "",
+  leadCapturePromptEnabled: true,
 };
 
 export const AdminSiteSettingsPage = () => {
@@ -43,6 +44,7 @@ export const AdminSiteSettingsPage = () => {
         britishMembershipUrl: siteSettingsForm.britishMembershipUrl?.trim() || "",
         supportHours: siteSettingsForm.supportHours?.trim() || "",
         officeLocations: siteSettingsForm.officeLocations?.trim() || "",
+        leadCapturePromptEnabled: Boolean(siteSettingsForm.leadCapturePromptEnabled),
       };
 
       const updatedSettings = await adminService.updateSiteSettings(payload);
@@ -121,6 +123,49 @@ export const AdminSiteSettingsPage = () => {
               placeholder="https://example.com/british-membership"
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring"
             />
+          </label>
+          <label className="block md:col-span-2">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "تفعيل نافذة التسجيل المنبثقة" : "Enable lead popup prompt"}</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={Boolean(siteSettingsForm.leadCapturePromptEnabled)}
+              onClick={() =>
+                setSiteSettingsForm((current) => ({
+                  ...current,
+                  leadCapturePromptEnabled: !current.leadCapturePromptEnabled,
+                }))
+              }
+              className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-start transition ${
+                siteSettingsForm.leadCapturePromptEnabled
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                  : "border-slate-200 bg-white text-slate-700"
+              }`}
+            >
+              <div>
+                <p className="font-medium">{language === "ar" ? "برومبت تسجيل بيانات الزوار" : "Visitor lead capture prompt"}</p>
+                <p className="mt-1 text-sm opacity-80">
+                  {siteSettingsForm.leadCapturePromptEnabled
+                    ? language === "ar"
+                      ? "مفعّل وسيظهر للزوار في الصفحات العامة."
+                      : "Enabled and visible on public pages."
+                    : language === "ar"
+                      ? "متوقف ولن يظهر للزوار."
+                      : "Disabled and hidden from visitors."}
+                </p>
+              </div>
+              <span
+                className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition ${
+                  siteSettingsForm.leadCapturePromptEnabled ? "bg-emerald-500" : "bg-slate-300"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${
+                    siteSettingsForm.leadCapturePromptEnabled ? "right-1" : "right-6"
+                  }`}
+                />
+              </span>
+            </button>
           </label>
           <label className="block md:col-span-2">
             <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "مواعيد العمل" : "Support hours"}</span>

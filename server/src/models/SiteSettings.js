@@ -10,6 +10,10 @@ const siteSettingsSchema = new mongoose.Schema(
     britishMembershipUrl: String,
     supportHours: String,
     officeLocations: String,
+    leadCapturePromptEnabled: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

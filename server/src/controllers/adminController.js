@@ -543,6 +543,7 @@ const getSiteSettingsAdmin = asyncHandler(async (req, res) => {
       britishMembershipUrl: "",
       supportHours: "",
       officeLocations: "",
+      leadCapturePromptEnabled: true,
     }
   );
 });
@@ -557,6 +558,7 @@ const updateSiteSettings = asyncHandler(async (req, res) => {
     britishMembershipUrl: req.body.britishMembershipUrl || "",
     supportHours: req.body.supportHours || "",
     officeLocations: req.body.officeLocations || "",
+    leadCapturePromptEnabled: typeof req.body.leadCapturePromptEnabled === "boolean" ? req.body.leadCapturePromptEnabled : true,
   };
 
   const existingSettings = await SiteSettings.findOne().sort({ createdAt: -1 });

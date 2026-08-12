@@ -175,12 +175,13 @@ export const AdminEventsPage = () => {
   };
 
   const exportRegistrations = () => {
-    const header = ["Name", "Phone", "Field of Interest", "Current Country", "Upcoming Event", "Created At"];
+    const header = ["Name", "Phone", "Field of Interest", "Current Address", "Desired Study Country", "Upcoming Event", "Created At"];
     const rows = registrations.map((item) => [
       item.name,
       item.phone,
       item.fieldOfInterest,
       item.currentCountry,
+      item.desiredStudyCountry || "",
       item.upcomingEvent?.title || "",
       item.createdAt || "",
     ]);
@@ -430,7 +431,8 @@ export const AdminEventsPage = () => {
                 <th className="px-3 py-3">{language === "ar" ? "الاسم" : "Name"}</th>
                 <th className="px-3 py-3">{language === "ar" ? "الهاتف" : "Phone"}</th>
                 <th className="px-3 py-3">{language === "ar" ? "التخصص" : "Field"}</th>
-                <th className="px-3 py-3">{language === "ar" ? "الدولة الحالية" : "Current country"}</th>
+                <th className="px-3 py-3">{language === "ar" ? "\u0639\u0646\u0648\u0627\u0646\u0643 \u0627\u0644\u062d\u0627\u0644\u064a" : "Current address"}</th>
+                <th className="px-3 py-3">{language === "ar" ? "\u0627\u0644\u062f\u0648\u0644\u0629 \u0627\u0644\u0645\u0631\u0627\u062f \u0627\u0644\u062f\u0631\u0627\u0633\u0629 \u0628\u0647\u0627" : "Desired study country"}</th>
                 <th className="px-3 py-3">{language === "ar" ? "الفعالية" : "Event"}</th>
               </tr>
             </thead>
@@ -441,6 +443,7 @@ export const AdminEventsPage = () => {
                   <td className="px-3 py-3 text-slate-700">{registration.phone}</td>
                   <td className="px-3 py-3 text-slate-700">{registration.fieldOfInterest}</td>
                   <td className="px-3 py-3 text-slate-700">{registration.currentCountry}</td>
+                                    <td className="px-3 py-3 text-slate-700">{registration.desiredStudyCountry || "-"}</td>
                   <td className="px-3 py-3 text-slate-700">{registration.upcomingEvent?.title || "-"}</td>
                 </tr>
               ))}

@@ -47,6 +47,7 @@ export interface SiteSettings {
   britishMembershipUrl?: string;
   supportHours?: string;
   officeLocations?: string;
+  leadCapturePromptEnabled?: boolean;
 }
 
 export interface PaginationMeta {
@@ -101,6 +102,7 @@ export interface EventRegistration {
   phone: string;
   fieldOfInterest: string;
   currentCountry: string;
+  desiredStudyCountry?: string;
   upcomingEvent?: {
     _id?: string;
     title?: string;

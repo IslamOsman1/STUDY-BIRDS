@@ -22,6 +22,11 @@ const eventRegistrationSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    desiredStudyCountry: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     upcomingEvent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "UpcomingEvent",

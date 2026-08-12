@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { BRAND_LOGO_PATH, SITE_NAME } from "../seo/site";
 import { useLanguage } from "../hooks/useLanguage";
+import { useSiteSettings } from "../hooks/useSiteSettings";
 import { contactService } from "../services/contactService";
 import { getErrorMessage } from "../utils/errors";
 
@@ -26,6 +27,7 @@ const emptyForm: PromptFormState = {
 export const LeadCapturePrompt = () => {
   const { language } = useLanguage();
   const location = useLocation();
+  const siteSettings = useSiteSettings();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -33,6 +35,7 @@ export const LeadCapturePrompt = () => {
   const [form, setForm] = useState<PromptFormState>(emptyForm);
 
   const isArabic = language === "ar";
+  const isEnabled = siteSettings.leadCapturePromptEnabled !== false;
   const isPublicPage = useMemo(() => {
     const path = location.pathname;
 
@@ -47,7 +50,8 @@ export const LeadCapturePrompt = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!isPublicPage) {
+    if (!isPublicPage || !isEnabled) {
+      setOpen(false);
       return;
     }
 
@@ -65,7 +69,7 @@ export const LeadCapturePrompt = () => {
     }, DELAY_MS);
 
     return () => window.clearTimeout(timer);
-  }, [isPublicPage]);
+  }, [isEnabled, isPublicPage]);
 
   const closePrompt = () => {
     setOpen(false);
@@ -121,7 +125,7 @@ export const LeadCapturePrompt = () => {
     }
   };
 
-  if (!open) {
+  if (!isEnabled || !open) {
     return null;
   }
 
