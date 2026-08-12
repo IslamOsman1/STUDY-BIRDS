@@ -51,6 +51,10 @@ type ListParams = {
 
 const buildParams = (params?: ListParams) => params;
 
+const clearCacheKey = (key: string) => {
+  responseCache.delete(key);
+};
+
 export const contentService = {
   getHomePageContent: async () =>
     withCache("content:home", async () => {
@@ -130,11 +134,18 @@ export const contentService = {
       const { data } = await api.get<string[]>("/content/blog/categories");
       return data;
     }),
-  getSiteSettings: async () =>
-    withCache("content:site-settings", async () => {
+  getSiteSettings: async (fresh = false) => {
+    if (fresh) {
+      clearCacheKey("content:site-settings");
       const { data } = await api.get<SiteSettings>("/content/site-settings");
       return data;
-    }, 300_000),
+    }
+
+    return withCache("content:site-settings", async () => {
+      const { data } = await api.get<SiteSettings>("/content/site-settings");
+      return data;
+    }, 300_000);
+  },
   getStudyFields: async (params?: ListParams) => {
     const { data } = await api.get<StudyField[] | PaginatedResponse<StudyField>>("/content/study-fields", {
       params: buildParams(params),

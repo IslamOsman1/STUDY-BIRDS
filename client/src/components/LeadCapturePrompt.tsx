@@ -50,7 +50,15 @@ export const LeadCapturePrompt = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!isPublicPage || !isEnabled) {
+    if (!isEnabled) {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem(STORAGE_KEY);
+      }
+      setOpen(false);
+      return;
+    }
+
+    if (!isPublicPage) {
       setOpen(false);
       return;
     }
