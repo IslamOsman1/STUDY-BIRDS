@@ -74,6 +74,7 @@ export const Footer = () => {
           <div className="mt-4 flex flex-col gap-3 text-sm text-brand-100">
             <Link to="/about">{language === "ar" ? "\u0645\u0646 \u0646\u062d\u0646" : "About Us"}</Link>
             <Link to="/contact">{t("contact")}</Link>
+            <Link to="/privacy-policy">{language === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
           </div>
           {countries.length ? (
             <div className="mt-6">

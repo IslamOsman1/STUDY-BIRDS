@@ -155,6 +155,7 @@ const publicRoutes = [
   "/our-story",
   "/our-event",
   "/contact",
+  "/privacy-policy",
   "/partner",
 ];
 
