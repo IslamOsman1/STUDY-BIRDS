@@ -73,6 +73,30 @@ const applicationSchema = new mongoose.Schema(
       enum: ["draft", "submitted", "under-review", "accepted", "rejected"],
       default: "submitted",
     },
+    // NEW — granular 12-value lifecycle used by the mobile app. `status`
+    // above is untouched and kept in sync automatically (see pre-save hook
+    // below), so the existing website admin table keeps filtering/rendering
+    // exactly as before with zero code changes there.
+    detailedStatus: {
+      type: String,
+      enum: [
+        "draft",
+        "documents-missing",
+        "ready-to-apply",
+        "submitted",
+        "under-review",
+        "additional-documents-required",
+        "conditional-admission",
+        "payment-required",
+        "payment-verification",
+        "final-admission",
+        "visa-preparation",
+        "completed",
+        "accepted",
+        "rejected",
+      ],
+      default: "submitted",
+    },
     statusTimeline: [timelineSchema],
     submittedAt: {
       type: Date,
@@ -88,8 +112,21 @@ const applicationSchema = new mongoose.Schema(
 
 applicationSchema.index({ student: 1, createdAt: -1 });
 applicationSchema.index({ status: 1, createdAt: -1 });
+applicationSchema.index({ detailedStatus: 1, createdAt: -1 });
 applicationSchema.index({ reviewedBy: 1, updatedAt: -1 });
 applicationSchema.index({ university: 1, createdAt: -1 });
 applicationSchema.index({ program: 1, createdAt: -1 });
+
+const { APPLICATION_DETAILED_TO_LEGACY_STATUS } = require("../constants/roles");
+
+applicationSchema.pre("save", function syncLegacyStatus(next) {
+  if (this.isModified("detailedStatus")) {
+    const legacyStatus = APPLICATION_DETAILED_TO_LEGACY_STATUS[this.detailedStatus];
+    if (legacyStatus) {
+      this.status = legacyStatus;
+    }
+  }
+  next();
+});
 
 module.exports = mongoose.model("Application", applicationSchema);

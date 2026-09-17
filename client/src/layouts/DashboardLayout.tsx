@@ -1,6 +1,7 @@
 ﻿import {
   Award,
   Bell,
+  BookUser,
   BriefcaseBusiness,
   Building2,
   CalendarClock,
@@ -9,15 +10,18 @@
   FileText,
   GraduationCap,
   HelpCircle,
+  IdCard,
   Layers3,
   LayoutDashboard,
   MessageSquare,
   NotebookText,
+  School,
   ScrollText,
   Settings2,
   Share2,
   ShieldCheck,
   Users,
+  Users2,
   Video,
 } from "lucide-react";
 import { Outlet } from "react-router-dom";
@@ -33,6 +37,8 @@ export const DashboardLayout = () => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const isPartner = user?.role === "partner";
+  const isParent = user?.role === "parent";
+  const isUniversity = user?.role === "university";
 
   const studentLinks = [
     { label: language === "ar" ? "لوحة الطالب" : "Student Dashboard", href: "/student", icon: LayoutDashboard, description: language === "ar" ? "ملخص شامل لحالة القبول والمستندات والإشعارات." : "Executive overview of your admission progress, documents, and alerts." },
@@ -63,6 +69,16 @@ export const DashboardLayout = () => {
     { label: language === "ar" ? "قاعدة المعرفة" : "Knowledge Base", href: "/partner/knowledge-base", icon: FileText, description: language === "ar" ? "شروحات ومواد تدريبية." : "Tutorials, guides, and FAQs." },
     { label: language === "ar" ? "الملف الشخصي" : "Profile", href: "/partner/profile", icon: Settings2, description: language === "ar" ? "بيانات المكتب أو الشركة." : "Company and account profile details." },
     { label: language === "ar" ? "الإعدادات" : "Settings", href: "/partner/settings", icon: Settings2, description: language === "ar" ? "إعدادات الأمان وكلمة المرور." : "Password and account security settings." },
+  ];
+
+  // NEW — Parent role navigation
+  const parentLinks = [
+    { label: language === "ar" ? "أبنائي" : "My Children", href: "/parent", icon: LayoutDashboard, description: language === "ar" ? "قائمة أبنائك الطلاب المرتبطين بحسابك." : "The list of your linked student children." },
+  ];
+
+  // NEW — University role navigation
+  const universityLinks = [
+    { label: language === "ar" ? "الطلبات الواردة" : "Incoming Applications", href: "/university", icon: School, description: language === "ar" ? "الطلبات المرسلة لجامعتكم فقط." : "Applications sent to your university only." },
   ];
 
   const adminLinks = [
@@ -112,34 +128,94 @@ export const DashboardLayout = () => {
       icon: Video,
       description: language === "ar" ? "إدارة المقالات وروابط فيديو يوتيوب." : "Manage articles and YouTube video links.",
     },
+    // NEW — role-management pages added alongside the existing admin nav.
+    {
+      label: language === "ar" ? "طلبات ربط أولياء الأمور" : "Parent Link Requests",
+      href: "/admin/parent-links",
+      icon: Users2,
+      description: language === "ar" ? "راجع طلبات أولياء الأمور لمتابعة أبنائهم." : "Review parent requests to follow their children.",
+    },
+    {
+      label: language === "ar" ? "حسابات الجامعات" : "University Accounts",
+      href: "/admin/university-accounts",
+      icon: Building2,
+      description: language === "ar" ? "أنشئ حسابات دخول للجامعات لمراجعة طلباتها." : "Create login accounts for universities to review their applications.",
+    },
+    {
+      label: language === "ar" ? "أدوار الموظفين" : "Employee Roles",
+      href: "/admin/employees",
+      icon: IdCard,
+      description: language === "ar" ? "حدد الدور الفرعي لكل موظف." : "Assign each employee's sub-role.",
+    },
   ];
+
+  const sidebarLinks = user?.role === "admin" ? adminLinks : isPartner ? partnerLinks : isParent ? parentLinks : isUniversity ? universityLinks : studentLinks;
+
+  const sidebarSectionLabel =
+    user?.role === "admin"
+      ? dt(language, "controlCenter")
+      : isPartner
+        ? (language === "ar" ? "بوابة الوكيل" : "Agent Hub")
+        : isParent
+          ? (language === "ar" ? "بوابة ولي الأمر" : "Parent Hub")
+          : isUniversity
+            ? (language === "ar" ? "بوابة الجامعة" : "University Hub")
+            : dt(language, "profileHub");
+
+  const sidebarTitle =
+    user?.role === "admin"
+      ? dt(language, "adminTitle")
+      : isPartner
+        ? (language === "ar" ? "لوحة الوكيل" : "Agent Dashboard")
+        : isParent
+          ? (language === "ar" ? "لوحة ولي الأمر" : "Parent Dashboard")
+          : isUniversity
+            ? (language === "ar" ? "لوحة الجامعة" : "University Dashboard")
+            : (language === "ar" ? "لوحة الطالب" : "Student Dashboard");
+
+  const sidebarSubtitle =
+    user?.role === "admin"
+      ? dt(language, "manageUsersContent")
+      : isPartner
+        ? (language === "ar" ? "إدارة الطلاب والعمولات والتوثيق من مكان واحد." : "Manage students, earnings, and verification from one workspace.")
+        : isParent
+          ? (language === "ar" ? "تابع رحلة أبنائك الدراسية من مكان واحد." : "Follow your children's study journey from one workspace.")
+          : isUniversity
+            ? (language === "ar" ? "راجع الطلبات المرسلة لجامعتكم وحدّث حالتها." : "Review applications sent to your university and update their status.")
+            : (language === "ar" ? "تابع التقديم والمستندات والإشعارات والدعم من مساحة واحدة." : "Track applications, documents, notifications, and support from one workspace.");
+
+  const seoTitle =
+    user?.role === "admin"
+      ? seoText(language, "Admin Dashboard", "لوحة الإدارة")
+      : isPartner
+        ? seoText(language, "Agent Dashboard", "لوحة وكيل Study Birds")
+        : isParent
+          ? seoText(language, "Parent Dashboard", "لوحة ولي الأمر")
+          : isUniversity
+            ? seoText(language, "University Dashboard", "لوحة الجامعة")
+            : seoText(language, "Student Dashboard", "لوحة الطالب");
+
+  const seoDescription =
+    user?.role === "admin"
+      ? seoText(language, "Private admin workspace for Study Birds.", "مساحة إدارية خاصة لمنصة Study Birds.")
+      : isPartner
+        ? seoText(language, "Private agent workspace for Study Birds.", "مساحة وكيل خاصة داخل Study Birds.")
+        : isParent
+          ? seoText(language, "Private parent workspace for Study Birds.", "مساحة خاصة لولي الأمر داخل Study Birds.")
+          : isUniversity
+            ? seoText(language, "Private university workspace for Study Birds.", "مساحة خاصة للجامعة داخل Study Birds.")
+            : seoText(language, "Private student workspace for Study Birds.", "مساحة خاصة للطالب داخل Study Birds.");
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#d8e1f1_0%,_#f6f8fc_40%,_#f8fafc_100%)]">
-      <Seo
-        title={
-          user?.role === "admin"
-            ? seoText(language, "Admin Dashboard", "لوحة الإدارة")
-            : isPartner
-              ? seoText(language, "Agent Dashboard", "لوحة وكيل Study Birds")
-              : seoText(language, "Student Dashboard", "لوحة الطالب")
-        }
-        description={
-          user?.role === "admin"
-            ? seoText(language, "Private admin workspace for Study Birds.", "مساحة إدارية خاصة لمنصة Study Birds.")
-            : isPartner
-              ? seoText(language, "Private agent workspace for Study Birds.", "مساحة وكيل خاصة داخل Study Birds.")
-              : seoText(language, "Private student workspace for Study Birds.", "مساحة خاصة للطالب داخل Study Birds.")
-        }
-        noIndex
-      />
+      <Seo title={seoTitle} description={seoDescription} noIndex />
       <Navbar />
       <main className="container-shell grid gap-6 py-8 lg:grid-cols-[320px_1fr]">
         <DashboardSidebar
-          links={user?.role === "admin" ? adminLinks : isPartner ? partnerLinks : studentLinks}
-          sectionLabel={user?.role === "admin" ? dt(language, "controlCenter") : isPartner ? (language === "ar" ? "بوابة الوكيل" : "Agent Hub") : dt(language, "profileHub")}
-          title={user?.role === "admin" ? dt(language, "adminTitle") : isPartner ? (language === "ar" ? "لوحة الوكيل" : "Agent Dashboard") : (language === "ar" ? "لوحة الطالب" : "Student Dashboard")}
-          subtitle={user?.role === "admin" ? dt(language, "manageUsersContent") : isPartner ? (language === "ar" ? "إدارة الطلاب والعمولات والتوثيق من مكان واحد." : "Manage students, earnings, and verification from one workspace.") : (language === "ar" ? "تابع التقديم والمستندات والإشعارات والدعم من مساحة واحدة." : "Track applications, documents, notifications, and support from one workspace.")}
+          links={sidebarLinks}
+          sectionLabel={sidebarSectionLabel}
+          title={sidebarTitle}
+          subtitle={sidebarSubtitle}
         />
         <Outlet />
       </main>

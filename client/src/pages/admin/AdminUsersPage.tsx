@@ -7,7 +7,7 @@ import { getErrorMessage } from "../../utils/errors";
 import { useLanguage } from "../../hooks/useLanguage";
 import { dt } from "../../utils/dashboardTranslations";
 
-const roleOptions: Role[] = ["student", "partner", "admin"];
+const roleOptions: Role[] = ["student", "partner", "admin", "parent", "university"];
 
 export const AdminUsersPage = () => {
   const { language } = useLanguage();

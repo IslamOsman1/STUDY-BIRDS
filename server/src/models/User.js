@@ -34,8 +34,48 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["student", "admin", "partner"],
+      enum: ["student", "admin", "partner", "parent", "university"],
       default: "student",
+    },
+    // NEW — only meaningful when role === "admin". Optional so every
+    // existing admin account (employeeRole: null) behaves exactly as before
+    // wherever code only checks role === "admin".
+    employeeRole: {
+      type: String,
+      enum: [
+        "educational_consultant",
+        "sales",
+        "admission",
+        "admission_manager",
+        "visa_officer",
+        "travel_coordinator",
+        "accommodation_officer",
+        "finance",
+        "customer_support",
+        "branch_manager",
+        "operations",
+        "marketing",
+        "university_relations",
+        "agent_manager",
+        "content_manager",
+        "super_admin",
+      ],
+      default: null,
+    },
+    // NEW — free-form permission keys for employeeRole-based authorization.
+    // Empty by default; existing admin accounts are unaffected until an
+    // admin explicitly assigns permissions to them.
+    permissions: {
+      type: [String],
+      default: [],
+    },
+    // NEW — only meaningful when role === "university". Links this login
+    // account to a catalog University document so the university portal
+    // can scope every query to `university: this field`.
+    linkedUniversity: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "University",
+      default: null,
     },
     avatar: String,
     isActive: {

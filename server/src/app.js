@@ -11,6 +11,10 @@ const programRoutes = require("./routes/programRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const contentRoutes = require("./routes/contentRoutes");
+// NEW — additive routers for the two new account roles (parent, university
+// portal). Neither touches any existing route file or path.
+const parentRoutes = require("./routes/parentRoutes");
+const universityPortalRoutes = require("./routes/universityPortalRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { isDatabaseReady } = require("./config/db");
 const {
@@ -112,6 +116,9 @@ app.use("/api/programs", requireDatabaseConnection, programRoutes);
 app.use("/api/applications", requireDatabaseConnection, applicationRoutes);
 app.use("/api/admin", requireDatabaseConnection, adminRoutes);
 app.use("/api/content", requireDatabaseConnection, contentRoutes);
+// NEW paths — brand new prefixes, cannot shadow or be shadowed by anything above.
+app.use("/api/parents", requireDatabaseConnection, parentRoutes);
+app.use("/api/university-portal", requireDatabaseConnection, universityPortalRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

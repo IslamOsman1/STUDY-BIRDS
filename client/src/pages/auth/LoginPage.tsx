@@ -10,6 +10,7 @@ import { Seo } from "../../components/seo/Seo";
 import { useAuth } from "../../hooks/useAuth";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
+import { getHomeRouteForRole } from "../../utils/roleHome";
 import { SITE_NAME, seoText } from "../../seo/site";
 
 const schema = z.object({
@@ -33,7 +34,7 @@ export const LoginPage = () => {
 
   useEffect(() => {
     if (user) {
-      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/dashboard" : "/student", {
+      navigate(getHomeRouteForRole(user.role), {
         replace: true,
       });
     }
@@ -43,7 +44,7 @@ export const LoginPage = () => {
     setFormError("");
     try {
       const user = await login(values.email, values.password);
-      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/dashboard" : "/student");
+      navigate(getHomeRouteForRole(user.role));
     } catch (error) {
       setFormError(getErrorMessage(error, t("authFailed")));
     }
@@ -55,7 +56,7 @@ export const LoginPage = () => {
 
     try {
       const user = await googleLogin(credential);
-      navigate(user.role === "admin" ? "/admin" : user.role === "partner" ? "/partner/dashboard" : "/student");
+      navigate(getHomeRouteForRole(user.role));
     } catch (error) {
       setFormError(
         getErrorMessage(

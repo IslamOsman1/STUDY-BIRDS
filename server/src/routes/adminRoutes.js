@@ -94,6 +94,16 @@ const {
   getOrientationResultsAdmin,
   updateOrientationResultAdmin,
 } = require("../controllers/adminStudentModulesController");
+// NEW — parent link approvals, university accounts, employee sub-roles.
+const {
+  getParentLinksAdmin,
+  updateParentLinkStatusAdmin,
+  getUniversityAccountsAdmin,
+  createUniversityAccountAdmin,
+  updateUniversityAccountAdmin,
+  getEmployeesAdmin,
+  updateEmployeeRoleAdmin,
+} = require("../controllers/adminRoleManagementController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -187,5 +197,15 @@ router.post("/exhibitions/upload-image", upload.single("file"), uploadExhibition
 router.post("/exhibitions", createExhibitionArticle);
 router.put("/exhibitions/:id", updateExhibitionArticle);
 router.delete("/exhibitions/:id", deleteExhibitionArticle);
+
+// NEW — parent links, university accounts, employee sub-roles. Appended
+// after every existing route; nothing above this line was changed.
+router.get("/parent-links", getParentLinksAdmin);
+router.patch("/parent-links/:id", updateParentLinkStatusAdmin);
+router.get("/university-accounts", getUniversityAccountsAdmin);
+router.post("/university-accounts", createUniversityAccountAdmin);
+router.patch("/university-accounts/:id", updateUniversityAccountAdmin);
+router.get("/employees", getEmployeesAdmin);
+router.patch("/employees/:id/role", updateEmployeeRoleAdmin);
 
 module.exports = router;

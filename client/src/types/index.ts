@@ -1,4 +1,22 @@
-export type Role = "student" | "admin" | "partner";
+export type Role = "student" | "admin" | "partner" | "parent" | "university";
+
+export type EmployeeRole =
+  | "educational_consultant"
+  | "sales"
+  | "admission"
+  | "admission_manager"
+  | "visa_officer"
+  | "travel_coordinator"
+  | "accommodation_officer"
+  | "finance"
+  | "customer_support"
+  | "branch_manager"
+  | "operations"
+  | "marketing"
+  | "university_relations"
+  | "agent_manager"
+  | "content_manager"
+  | "super_admin";
 
 export interface ArticleContent {
   articleTitle?: string;
@@ -20,6 +38,44 @@ export interface User {
   isActive?: boolean;
   createdAt?: string;
   lastLoginAt?: string;
+  // NEW — optional, only populated for the relevant role.
+  employeeRole?: EmployeeRole | null;
+  permissions?: string[];
+  linkedUniversity?: (University & { _id: string }) | string | null;
+}
+
+// NEW — mirrors AgencyRequest, for parent-student linking.
+export interface ParentLinkItem {
+  _id: string;
+  status: "pending" | "approved" | "rejected";
+  parent?: User;
+  student?: User;
+  relationship?: string;
+  parentNote?: string;
+  adminNote?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: User;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// NEW — read-only shape returned by /api/parents/children/:id/overview
+export interface ParentChildOverview {
+  student: User;
+  journeyStage: string | null;
+  applicationStage: string | null;
+  targetCountries: string[];
+  intake: string | null;
+  applications: Array<{
+    id: string;
+    status: string;
+    detailedStatus: string;
+    university?: { _id: string; name: string; city?: string };
+    program?: { _id: string; name: string };
+    submittedAt?: string;
+    timeline: Array<{ status: string; note?: string; changedAt?: string }>;
+  }>;
 }
 
 export interface Country extends ArticleContent {
@@ -210,6 +266,10 @@ export interface ApplicantProfileSnapshot {
 export interface Application {
   _id: string;
   status: string;
+  // NEW — already present in the API response; added here so the
+  // university portal pages can read it with full type safety.
+  detailedStatus?: string;
+  university?: { _id: string; name: string; city?: string } | string;
   notes?: string;
   submittedAt?: string;
   createdAt?: string;

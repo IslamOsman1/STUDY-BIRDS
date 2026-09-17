@@ -33,6 +33,9 @@ import type {
   UpcomingEvent,
   User,
   VerificationDocumentItem,
+  // NEW
+  ParentLinkItem,
+  EmployeeRole,
 } from "../types";
 
 export const adminService = {
@@ -426,6 +429,39 @@ export const adminService = {
   },
   removeExhibition: async (id: string) => {
     const { data } = await api.delete(`/admin/exhibitions/${id}`);
+    return data;
+  },
+  // NEW — parent link approvals
+  getParentLinks: async (status?: ParentLinkItem["status"] | "all") => {
+    const { data } = await api.get<ParentLinkItem[]>("/admin/parent-links", {
+      params: status && status !== "all" ? { status } : undefined,
+    });
+    return data;
+  },
+  updateParentLinkStatus: async (id: string, payload: { status: "approved" | "rejected"; adminNote?: string }) => {
+    const { data } = await api.patch<ParentLinkItem>(`/admin/parent-links/${id}`, payload);
+    return data;
+  },
+  // NEW — university accounts
+  getUniversityAccounts: async () => {
+    const { data } = await api.get<User[]>("/admin/university-accounts");
+    return data;
+  },
+  createUniversityAccount: async (payload: { name: string; email: string; password: string; universityId: string }) => {
+    const { data } = await api.post<User>("/admin/university-accounts", payload);
+    return data;
+  },
+  updateUniversityAccount: async (id: string, payload: { isActive?: boolean; linkedUniversity?: string }) => {
+    const { data } = await api.patch<User>(`/admin/university-accounts/${id}`, payload);
+    return data;
+  },
+  // NEW — employee sub-roles
+  getEmployees: async () => {
+    const { data } = await api.get<User[]>("/admin/employees");
+    return data;
+  },
+  updateEmployeeRole: async (id: string, payload: { employeeRole?: EmployeeRole; permissions?: string[] }) => {
+    const { data } = await api.patch<User>(`/admin/employees/${id}/role`, payload);
     return data;
   },
 };

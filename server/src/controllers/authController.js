@@ -14,6 +14,11 @@ const serializeUser = (user) => ({
   avatar: user.avatar,
   authProvider: user.authProvider,
   emailVerified: user.emailVerified,
+  // NEW — always present but null/empty for existing student/admin/partner
+  // accounts, so no existing consumer (website included) is affected.
+  employeeRole: user.employeeRole || null,
+  permissions: user.permissions || [],
+  linkedUniversity: user.linkedUniversity || null,
 });
 
 const ensureStudentProfile = async (userId) => {
@@ -166,9 +171,29 @@ const me = asyncHandler(async (req, res) => {
       ? await StudentProfile.findOne({ user: req.user._id })
       : null;
 
+  // NEW — additive extra context for the two new roles. Neither branch
+  // touches the student/partner path above.
+  let parentLinkedChildrenCount = null;
+  let university = null;
+
+  if (req.user.role === "parent") {
+    const ParentLink = require("../models/ParentLink");
+    parentLinkedChildrenCount = await ParentLink.countDocuments({
+      parent: req.user._id,
+      status: "approved",
+    });
+  }
+
+  if (req.user.role === "university" && req.user.linkedUniversity) {
+    const University = require("../models/University");
+    university = await University.findById(req.user.linkedUniversity).lean();
+  }
+
   res.json({
     user: req.user,
     profile,
+    parentLinkedChildrenCount,
+    university,
   });
 });
 

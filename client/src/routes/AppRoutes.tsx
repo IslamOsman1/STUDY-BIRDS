@@ -81,6 +81,14 @@ const AdminStudentOrientationResultsPage = lazy(() => import("../pages/admin/Adm
 const AdminExhibitionsPage = lazy(() => import("../pages/admin/AdminExhibitionsPage").then((module) => ({ default: module.AdminExhibitionsPage })));
 const AdminEventsPage = lazy(() => import("../pages/admin/AdminEventsPage").then((module) => ({ default: module.AdminEventsPage })));
 const AdminOurStoryPage = lazy(() => import("../pages/admin/AdminOurStoryPage").then((module) => ({ default: module.AdminOurStoryPage })));
+// NEW — parent/university portals + admin role-management pages
+const AdminParentLinksPage = lazy(() => import("../pages/admin/AdminParentLinksPage").then((module) => ({ default: module.AdminParentLinksPage })));
+const AdminUniversityAccountsPage = lazy(() => import("../pages/admin/AdminUniversityAccountsPage").then((module) => ({ default: module.AdminUniversityAccountsPage })));
+const AdminEmployeesPage = lazy(() => import("../pages/admin/AdminEmployeesPage").then((module) => ({ default: module.AdminEmployeesPage })));
+const ParentDashboardPage = lazy(() => import("../pages/parent/ParentDashboardPage").then((module) => ({ default: module.ParentDashboardPage })));
+const ParentChildOverviewPage = lazy(() => import("../pages/parent/ParentChildOverviewPage").then((module) => ({ default: module.ParentChildOverviewPage })));
+const UniversityApplicationsPage = lazy(() => import("../pages/university/UniversityApplicationsPage").then((module) => ({ default: module.UniversityApplicationsPage })));
+const UniversityApplicationDetailPage = lazy(() => import("../pages/university/UniversityApplicationDetailPage").then((module) => ({ default: module.UniversityApplicationDetailPage })));
 
 const RouteFallback = () => {
   const { language } = useLanguage();
@@ -187,6 +195,26 @@ export const AppRoutes = () => (
           <Route path="/admin/exhibitions" element={<AdminExhibitionsPage />} />
           <Route path="/admin/events" element={<AdminEventsPage />} />
           <Route path="/admin/our-story" element={<AdminOurStoryPage />} />
+          {/* NEW */}
+          <Route path="/admin/parent-links" element={<AdminParentLinksPage />} />
+          <Route path="/admin/university-accounts" element={<AdminUniversityAccountsPage />} />
+          <Route path="/admin/employees" element={<AdminEmployeesPage />} />
+        </Route>
+      </Route>
+
+      {/* NEW — Parent portal */}
+      <Route element={<ProtectedRoute roles={["parent"]} />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/parent" element={<ParentDashboardPage />} />
+          <Route path="/parent/children/:id" element={<ParentChildOverviewPage />} />
+        </Route>
+      </Route>
+
+      {/* NEW — University portal */}
+      <Route element={<ProtectedRoute roles={["university"]} />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/university" element={<UniversityApplicationsPage />} />
+          <Route path="/university/applications/:id" element={<UniversityApplicationDetailPage />} />
         </Route>
       </Route>
 
