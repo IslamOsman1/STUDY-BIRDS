@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Shield, UserCog } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import type { Role, User } from "../../types";
+import type { Role, University, User } from "../../types";
+import { universityService } from "../../services/universityService";
+import { getPaginatedItems } from "../../utils/pagination";
 import { formatDate } from "../../utils/format";
 import { getErrorMessage } from "../../utils/errors";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -15,6 +17,54 @@ export const AdminUsersPage = () => {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | Role>("all");
   const [formError, setFormError] = useState("");
+  const isArabic = language === "ar";
+  const universityDialog = useRef<HTMLDialogElement>(null);
+  const [universityUser, setUniversityUser] = useState<User | null>(null);
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [universityId, setUniversityId] = useState("");
+  const [loadingUniversities, setLoadingUniversities] = useState(false);
+  const [savingUniversity, setSavingUniversity] = useState(false);
+  const [universityError, setUniversityError] = useState("");
+
+  useEffect(() => {
+    if (!universityUser) {
+      universityDialog.current?.close();
+      return;
+    }
+    universityDialog.current?.showModal();
+    let cancelled = false;
+    setLoadingUniversities(true);
+    setUniversities([]);
+    universityService.getAll().then((data) => {
+      if (!cancelled) setUniversities(getPaginatedItems(data));
+    }).catch((error) => {
+      if (!cancelled) setUniversityError(getErrorMessage(error, isArabic ? "تعذر تحميل الجامعات. أغلق النافذة وحاول مجددًا." : "Unable to load universities. Close and try again."));
+    }).finally(() => {
+      if (!cancelled) setLoadingUniversities(false);
+    });
+    return () => { cancelled = true; };
+  }, [universityUser, isArabic]);
+
+  const openUniversityDialog = (user: User) => {
+    setUniversityId(typeof user.linkedUniversity === "string" ? user.linkedUniversity : user.linkedUniversity?._id || "");
+    setUniversityError("");
+    setUniversityUser(user);
+  };
+
+  const saveUniversity = async () => {
+    if (!universityUser || !universityId || savingUniversity) return;
+    setSavingUniversity(true);
+    setUniversityError("");
+    try {
+      const updated = await adminService.updateUser(universityUser._id, { role: "university", linkedUniversity: universityId });
+      setUsers((current) => current.map((user) => user._id === updated._id ? updated : user));
+      setUniversityUser(null);
+    } catch (error) {
+      setUniversityError(getErrorMessage(error, isArabic ? "تعذر ربط الحساب بالجامعة." : "Unable to link the university account."));
+    } finally {
+      setSavingUniversity(false);
+    }
+  };
 
   useEffect(() => {
     adminService.getUsers().then(setUsers).catch((error) => setFormError(getErrorMessage(error, "Unable to load users.")));
@@ -108,7 +158,10 @@ export const AdminUsersPage = () => {
                   <td className="px-6 py-5">
                     <select
                       value={user.role}
-                      onChange={(event) => handlePatch(user._id, { role: event.target.value as Role })}
+                      aria-label={isArabic ? `نوع حساب ${user.name}` : `Account role for ${user.name}`}
+                      onChange={(event) => event.target.value === "university"
+                        ? openUniversityDialog(user)
+                        : handlePatch(user._id, { role: event.target.value as Role })}
                       className="rounded-full border border-slate-200 px-3 py-2 capitalize outline-none"
                     >
                       {roleOptions.map((role) => (
@@ -117,6 +170,11 @@ export const AdminUsersPage = () => {
                         </option>
                       ))}
                     </select>
+                    {user.role === "university" ? (
+                      <button type="button" onClick={() => openUniversityDialog(user)} className="mt-2 block text-sm text-brand-700 underline">
+                        {isArabic ? "اختيار الجامعة المرتبطة" : "Choose linked university"}
+                      </button>
+                    ) : null}
                   </td>
                   <td className="px-6 py-5">
                     <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${user.isActive === false ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}`}>
@@ -148,6 +206,32 @@ export const AdminUsersPage = () => {
         </div>
         {filteredUsers.length === 0 ? <div className="px-6 py-10 text-center text-sm text-slate-500">{dt(language, "noUsersMatch")}</div> : null}
       </section>
+
+      <dialog ref={universityDialog} aria-labelledby="link-university-title" dir={isArabic ? "rtl" : "ltr"}
+        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/50"
+        onCancel={(event) => { event.preventDefault(); if (!savingUniversity) setUniversityUser(null); }}>
+        <form onSubmit={(event) => { event.preventDefault(); void saveUniversity(); }} className="space-y-5">
+          <h2 id="link-university-title" className="text-xl font-semibold">{isArabic ? "اختيار الجامعة المرتبطة" : "Choose linked university"}</h2>
+          <p className="text-sm text-slate-500">{universityUser?.name} — {universityUser?.email}</p>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium">{isArabic ? "الجامعة" : "University"}</span>
+            <select autoFocus required value={universityId} onChange={(event) => setUniversityId(event.target.value)}
+              disabled={loadingUniversities || savingUniversity} className="w-full rounded-xl border border-slate-200 px-3 py-3">
+              <option value="">{isArabic ? "اختر جامعة" : "Select a university"}</option>
+              {universities.map((university) => <option key={university._id} value={university._id}>{university.name}{university.city ? ` — ${university.city}` : ""}</option>)}
+            </select>
+          </label>
+          {loadingUniversities ? <p role="status">{isArabic ? "جارٍ تحميل الجامعات…" : "Loading universities…"}</p> : null}
+          {!loadingUniversities && !universityError && universities.length === 0 ? <p>{isArabic ? "لا توجد جامعات. أضف جامعة أولًا من إدارة الجامعات." : "No universities available. Add a university first."}</p> : null}
+          {universityError ? <p role="alert" className="text-sm text-rose-700">{universityError}</p> : null}
+          <div className="flex justify-end gap-3">
+            <button type="button" disabled={savingUniversity} onClick={() => setUniversityUser(null)} className="rounded-full border px-5 py-2 disabled:opacity-50">{isArabic ? "إلغاء" : "Cancel"}</button>
+            <button type="submit" disabled={savingUniversity || loadingUniversities || !universities.some((item) => item._id === universityId)} className="rounded-full bg-slate-950 px-5 py-2 text-white disabled:opacity-50">
+              {savingUniversity ? (isArabic ? "جارٍ الحفظ…" : "Saving…") : (isArabic ? "تأكيد وحفظ" : "Confirm and save")}
+            </button>
+          </div>
+        </form>
+      </dialog>
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="panel p-5">

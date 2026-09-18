@@ -445,7 +445,23 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  const { name, email, role, isActive } = req.body;
+  const { name, email, role, isActive, linkedUniversity } = req.body;
+
+  if (role === "university" || linkedUniversity !== undefined) {
+    const nextRole = typeof role === "string" ? role : user.role;
+    const universityId = linkedUniversity !== undefined ? linkedUniversity : user.linkedUniversity?.toString();
+    if (nextRole !== "university" || typeof universityId !== "string" || !/^[a-f\d]{24}$/i.test(universityId)) {
+      res.status(400);
+      throw new Error("A valid linked university is required for university accounts");
+    }
+    if (!(await University.exists({ _id: universityId }))) {
+      res.status(400);
+      throw new Error("Selected university does not exist");
+    }
+    user.linkedUniversity = universityId;
+  } else if (typeof role === "string" && role !== "university") {
+    user.linkedUniversity = null;
+  }
 
   if (typeof name === "string") {
     user.name = name;
