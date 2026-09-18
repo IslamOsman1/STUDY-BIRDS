@@ -71,6 +71,10 @@ export const adminService = {
     const { data } = await api.patch<User>(`/admin/users/${id}`, payload);
     return data;
   },
+  updateSectionAccountStatus: async (section: "students" | "partners", id: string, isActive: boolean) => {
+    const { data } = await api.patch<User>(`/admin/${section}/${id}/status`, { isActive });
+    return data;
+  },
   getApplications: async () => {
     const { data } = await api.get<Application[]>("/admin/applications");
     return data;

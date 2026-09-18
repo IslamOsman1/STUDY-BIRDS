@@ -6,6 +6,7 @@ const {
   getAdminApplications,
   getUsers,
   updateUser,
+  updateSectionAccountStatus,
   getCountriesAdmin,
   createCountry,
   uploadCountryHeroImage,
@@ -108,13 +109,16 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
+const { authorizeAdminSection } = require("../middleware/employeeAccess");
 
-router.use(protect, authorize("admin"));
+router.use(protect, authorizeAdminSection);
 router.get("/overview", getOverview);
 router.get("/stats", getStats);
 router.get("/students", getStudents);
 router.get("/users", getUsers);
 router.patch("/users/:id", updateUser);
+router.patch("/students/:id/status", updateSectionAccountStatus);
+router.patch("/partners/:id/status", updateSectionAccountStatus);
 router.get("/applications", getAdminApplications);
 router.get("/countries", getCountriesAdmin);
 router.post("/countries/upload-image", upload.single("file"), uploadCountryHeroImage);

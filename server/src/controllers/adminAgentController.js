@@ -12,7 +12,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 
 const getPartnersAdmin = asyncHandler(async (req, res) => {
-  const partners = await User.find({ role: "partner" }).sort({ createdAt: -1 }).lean();
+  const partners = await User.find({ role: "partner" }).select("-password").sort({ createdAt: -1 }).lean();
   const profiles = await StudentProfile.find({ user: { $in: partners.map((partner) => partner._id) } }).lean();
   const profileMap = new Map(profiles.map((profile) => [String(profile.user), profile]));
 
@@ -67,7 +67,7 @@ const updatePartnerStudentStatusAdmin = asyncHandler(async (req, res) => {
 });
 
 const getPartnerDetailsAdmin = asyncHandler(async (req, res) => {
-  const partner = await User.findOne({ _id: req.params.id, role: "partner" }).lean();
+  const partner = await User.findOne({ _id: req.params.id, role: "partner" }).select("-password").lean();
   if (!partner) {
     res.status(404);
     throw new Error("Partner not found");

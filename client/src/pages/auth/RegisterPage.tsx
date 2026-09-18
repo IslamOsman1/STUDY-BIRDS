@@ -35,7 +35,7 @@ export const RegisterPage = () => {
 
   useEffect(() => {
     if (user) {
-      navigate(getHomeRouteForRole(user.role), {
+      navigate(getHomeRouteForRole(user.role, user.permissions), {
         replace: true,
       });
     }
@@ -45,7 +45,7 @@ export const RegisterPage = () => {
     setFormError("");
     try {
       const user = await registerUser(values);
-      navigate(getHomeRouteForRole(user.role));
+      navigate(getHomeRouteForRole(user.role, user.permissions));
     } catch (error) {
       setFormError(getErrorMessage(error, t("authFailed")));
     }
@@ -57,7 +57,7 @@ export const RegisterPage = () => {
 
     try {
       const user = await googleLogin(credential);
-      navigate(getHomeRouteForRole(user.role));
+      navigate(getHomeRouteForRole(user.role, user.permissions));
     } catch (error) {
       setFormError(
         getErrorMessage(

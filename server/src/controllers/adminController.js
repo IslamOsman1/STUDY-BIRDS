@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { validPermissions, hasSection } = require("../middleware/employeeAccess");
 const StudentProfile = require("../models/StudentProfile");
 const Application = require("../models/Application");
 const University = require("../models/University");
@@ -342,6 +343,9 @@ const getStats = asyncHandler(async (req, res) => {
 });
 
 const getStudents = asyncHandler(async (req, res) => {
+  if (req.user.role === "employee" && !hasSection(req.user, "students")) {
+    return res.json(await User.find({ role: "student" }).select("name email").sort({ name: 1 }).lean());
+  }
   const students = await User.find({ role: "student" }).select("-password").sort({ createdAt: -1 }).lean();
   const profiles = await StudentProfile.find({ user: { $in: students.map((student) => student._id) } }).lean();
   const profileMap = new Map(profiles.map((profile) => [String(profile.user), profile]));
@@ -445,7 +449,21 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  const { name, email, role, isActive, linkedUniversity } = req.body;
+  const { name, email, role, isActive, linkedUniversity, permissions } = req.body;
+  if (role !== undefined && !User.schema.path("role").enumValues.includes(role)) {
+    res.status(400);
+    throw new Error("Invalid account role");
+  }
+  if (role === "employee" || permissions !== undefined) {
+    const nextRole = role || user.role;
+    if (nextRole !== "employee" || !validPermissions(permissions)) {
+      res.status(400);
+      throw new Error("Select valid employee sections");
+    }
+    user.permissions = [...new Set(permissions)];
+  } else if (role && role !== "employee") {
+    user.permissions = [];
+  }
 
   if (role === "university" || linkedUniversity !== undefined) {
     const nextRole = typeof role === "string" ? role : user.role;
@@ -482,6 +500,18 @@ const updateUser = asyncHandler(async (req, res) => {
   await user.save();
 
   res.json(await User.findById(user._id).select("-password"));
+});
+
+// Section-scoped account activation never accepts role or permission changes.
+const updateSectionAccountStatus = asyncHandler(async (req, res) => {
+  const role = req.path.startsWith("/students/") ? "student" : "partner";
+  if (typeof req.body.isActive !== "boolean" || Object.keys(req.body).some((key) => key !== "isActive")) {
+    res.status(400);
+    throw new Error("Only isActive can be updated here");
+  }
+  const user = await User.findOneAndUpdate({ _id: req.params.id, role }, { isActive: req.body.isActive }, { new: true }).select("-password");
+  if (!user) { res.status(404); throw new Error("Account not found in this section"); }
+  res.json(user);
 });
 
 const getCountriesAdmin = asyncHandler(async (req, res) => {
@@ -709,7 +739,7 @@ const updateAgencyRequestStatus = asyncHandler(async (req, res) => {
   agencyRequest.reviewedAt = nextStatus === "pending" ? undefined : new Date();
   agencyRequest.reviewedBy = nextStatus === "pending" ? undefined : req.user._id;
 
-  if (agencyRequest.student && typeof agencyRequest.student === "object") {
+  if (agencyRequest.student && ["student", "partner"].includes(agencyRequest.student.role)) {
     if (nextStatus === "approved") {
       agencyRequest.student.role = "partner";
       await agencyRequest.student.save();
@@ -1087,6 +1117,7 @@ const deletePastEvent = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  updateSectionAccountStatus,
   getOverview,
   getStats,
   getStudents,

@@ -1,3 +1,4 @@
+import { getHomeRouteForRole } from "../utils/roleHome";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Award, BookOpenCheck, Building2, ChevronDown, Globe2, UsersRound } from "lucide-react";
@@ -55,14 +56,7 @@ export const HomePage = () => {
   const servicesScrollerRef = useRef<HTMLDivElement | null>(null);
   const testimonialsScrollerRef = useRef<HTMLDivElement | null>(null);
 
-  const primaryHref =
-    !user
-      ? "/register"
-      : user.role === "admin"
-        ? "/admin"
-        : user.role === "partner"
-          ? "/partner/dashboard"
-          : "/student";
+  const primaryHref = user ? getHomeRouteForRole(user.role, user.permissions) : "/register";
 
   const primaryLabel =
     !user ? t("startJourney") : user.role === "student" ? t("studentProfile") : user.role === "partner" ? dt(language, "profileHub") : t("dashboard");

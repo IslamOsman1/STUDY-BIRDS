@@ -1,3 +1,4 @@
+import { getHomeRouteForRole } from "../utils/roleHome";
 ﻿import { ChevronDown, Languages, Menu, UserCircle2 } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
@@ -41,7 +42,7 @@ export const Navbar = () => {
   const becomeAgentText = becomeAgentLabel[language];
   const aboutMenuActive = aboutMenuItems.some((item) => location.pathname === item.href);
   const showBecomeAgentLink = !user || user.role === "student";
-  const profileHref = user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner/dashboard" : "/student";
+  const profileHref = user ? getHomeRouteForRole(user.role, user.permissions) : "/login";
   const profileLabel = user?.role === "partner" ? dt(language, "profileHub") : t("dashboard");
   const initials = user?.name
     ?.split(" ")

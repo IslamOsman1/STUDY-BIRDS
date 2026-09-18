@@ -1,3 +1,4 @@
+import { getHomeRouteForRole } from "../../utils/roleHome";
 import { motion } from "framer-motion";
 import { BookOpenCheck, FileCheck2, GraduationCap, PlaneTakeoff, Search, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -17,14 +18,7 @@ export const HeroSection = () => {
     { label: t("heroStep4"), icon: TrendingUp },
   ];
 
-  const primaryHref =
-    !user
-      ? "/register"
-      : user.role === "admin"
-        ? "/admin"
-        : user.role === "partner"
-          ? "/partner/dashboard"
-          : "/student";
+  const primaryHref = user ? getHomeRouteForRole(user.role, user.permissions) : "/register";
 
   const primaryLabel =
     !user ? t("startJourney") : user.role === "student" ? t("studentProfile") : user.role === "partner" ? dt(language, "profileHub") : t("dashboard");

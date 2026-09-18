@@ -12,6 +12,7 @@
 const ROLES = Object.freeze({
   STUDENT: "student",
   ADMIN: "admin",
+  EMPLOYEE: "employee",
   PARTNER: "partner", // existing "agent"-equivalent role
   PARENT: "parent", // NEW
   UNIVERSITY: "university", // NEW

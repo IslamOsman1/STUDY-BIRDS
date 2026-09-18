@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { IdCard } from "lucide-react";
 import { adminService } from "../../services/adminService";
+import { EmployeePermissionsDialog } from "../../components/admin/EmployeePermissionsDialog";
+import { employeeSections } from "../../utils/employeeAccess";
 import type { EmployeeRole, User } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -28,6 +30,7 @@ export const AdminEmployeesPage = () => {
   const { language } = useLanguage();
   const isArabic = language === "ar";
   const [employees, setEmployees] = useState<User[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   const [formError, setFormError] = useState("");
   const [savingId, setSavingId] = useState("");
 
@@ -71,6 +74,7 @@ export const AdminEmployeesPage = () => {
         {formError ? <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{formError}</div> : null}
       </section>
 
+      <EmployeePermissionsDialog user={selectedEmployee} onClose={() => setSelectedEmployee(null)} onSaved={(updated) => setEmployees((current) => current.map((item) => item._id === updated._id ? updated : item))} />
       <section className="panel overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
@@ -103,6 +107,8 @@ export const AdminEmployeesPage = () => {
                         </option>
                       ))}
                     </select>
+                    <p className="mt-2 text-sm text-slate-500">{employeeSections.filter((section) => employee.permissions?.includes(section.key)).map((section) => isArabic ? section.ar : section.en).join("، ") || (isArabic ? "لا توجد أقسام مسموحة" : "No allowed sections")}</p>
+                    <button type="button" onClick={() => setSelectedEmployee(employee)} className="mt-2 text-brand-700 underline">{isArabic ? "تعديل الصلاحيات" : "Edit permissions"}</button>
                   </td>
                 </tr>
               ))}

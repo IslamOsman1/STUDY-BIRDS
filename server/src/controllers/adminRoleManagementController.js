@@ -3,6 +3,7 @@ const ParentLink = require("../models/ParentLink");
 const User = require("../models/User");
 const University = require("../models/University");
 const { ALL_EMPLOYEE_ROLES } = require("../constants/roles");
+const { validPermissions } = require("../middleware/employeeAccess");
 
 // ---- Parent links -------------------------------------------------------
 
@@ -97,7 +98,7 @@ const updateUniversityAccountAdmin = asyncHandler(async (req, res) => {
 // ---- Employee sub-roles ---------------------------------------------------
 
 const getEmployeesAdmin = asyncHandler(async (req, res) => {
-  const employees = await User.find({ role: "admin" }).select("-password");
+  const employees = await User.find({ role: "employee" }).select("-password");
   res.json(employees);
 });
 
@@ -109,14 +110,18 @@ const updateEmployeeRoleAdmin = asyncHandler(async (req, res) => {
     throw new Error("Invalid employeeRole value");
   }
 
-  const employee = await User.findOne({ _id: req.params.id, role: "admin" });
+  if (permissions !== undefined && !validPermissions(permissions)) {
+    res.status(400);
+    throw new Error("Invalid employee sections");
+  }
+  const employee = await User.findOne({ _id: req.params.id, role: "employee" });
   if (!employee) {
     res.status(404);
     throw new Error("Employee account not found");
   }
 
   if (employeeRole !== undefined) employee.employeeRole = employeeRole;
-  if (Array.isArray(permissions)) employee.permissions = permissions;
+  if (Array.isArray(permissions)) employee.permissions = [...new Set(permissions)];
   await employee.save();
 
   res.json({ ...employee.toObject(), password: undefined });

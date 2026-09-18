@@ -151,7 +151,7 @@ export const AdminStudentsResponsivePage = () => {
 
     try {
       const shouldActivate = bulkAction === "activate";
-      const updatedStudents = await Promise.all(selectedIds.map((studentId) => adminService.updateUser(studentId, { isActive: shouldActivate })));
+      const updatedStudents = await Promise.all(selectedIds.map((studentId) => adminService.updateSectionAccountStatus("students", studentId, shouldActivate)));
       const map = new Map(updatedStudents.map((student) => [student._id, student]));
 
       setStudents((current) => current.map((student) => (map.has(student._id) ? ({ ...student, ...map.get(student._id) } as AdminStudentItem) : student)));

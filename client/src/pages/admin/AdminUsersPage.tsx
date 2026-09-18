@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Shield, UserCog } from "lucide-react";
 import { adminService } from "../../services/adminService";
+import { EmployeePermissionsDialog } from "../../components/admin/EmployeePermissionsDialog";
 import type { Role, University, User } from "../../types";
 import { universityService } from "../../services/universityService";
 import { getPaginatedItems } from "../../utils/pagination";
@@ -9,7 +10,7 @@ import { getErrorMessage } from "../../utils/errors";
 import { useLanguage } from "../../hooks/useLanguage";
 import { dt } from "../../utils/dashboardTranslations";
 
-const roleOptions: Role[] = ["student", "partner", "admin", "parent", "university"];
+const roleOptions: Role[] = ["student", "partner", "admin", "parent", "university", "employee"];
 
 export const AdminUsersPage = () => {
   const { language } = useLanguage();
@@ -17,6 +18,7 @@ export const AdminUsersPage = () => {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | Role>("all");
   const [formError, setFormError] = useState("");
+  const [employeeUser, setEmployeeUser] = useState<User | null>(null);
   const isArabic = language === "ar";
   const universityDialog = useRef<HTMLDialogElement>(null);
   const [universityUser, setUniversityUser] = useState<User | null>(null);
@@ -118,7 +120,7 @@ export const AdminUsersPage = () => {
                 <option value="all">{dt(language, "allRoles")}</option>
                 {roleOptions.map((role) => (
                   <option key={role} value={role}>
-                    {role}
+                    {role === "employee" ? (isArabic ? "موظف" : "Employee") : role}
                   </option>
                 ))}
               </select>
@@ -161,15 +163,17 @@ export const AdminUsersPage = () => {
                       aria-label={isArabic ? `نوع حساب ${user.name}` : `Account role for ${user.name}`}
                       onChange={(event) => event.target.value === "university"
                         ? openUniversityDialog(user)
+                        : event.target.value === "employee" ? setEmployeeUser(user)
                         : handlePatch(user._id, { role: event.target.value as Role })}
                       className="rounded-full border border-slate-200 px-3 py-2 capitalize outline-none"
                     >
                       {roleOptions.map((role) => (
                         <option key={role} value={role}>
-                          {role}
+                          {role === "employee" ? (isArabic ? "موظف" : "Employee") : role}
                         </option>
                       ))}
                     </select>
+                    {user.role === "employee" ? <button type="button" onClick={() => setEmployeeUser(user)} className="mt-2 block text-sm text-brand-700 underline">{isArabic ? "تعديل الصلاحيات" : "Edit permissions"}</button> : null}
                     {user.role === "university" ? (
                       <button type="button" onClick={() => openUniversityDialog(user)} className="mt-2 block text-sm text-brand-700 underline">
                         {isArabic ? "اختيار الجامعة المرتبطة" : "Choose linked university"}
@@ -233,6 +237,7 @@ export const AdminUsersPage = () => {
         </form>
       </dialog>
 
+      <EmployeePermissionsDialog user={employeeUser} onClose={() => setEmployeeUser(null)} onSaved={(updated) => setUsers((current) => current.map((user) => user._id === updated._id ? updated : user))} />
       <section className="grid gap-4 md:grid-cols-3">
         <div className="panel p-5">
           <div className="flex items-center gap-3">

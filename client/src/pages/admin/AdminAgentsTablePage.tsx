@@ -112,7 +112,7 @@ export const AdminAgentsTablePage = () => {
 
     try {
       const shouldActivate = bulkAction === "activate";
-      const updatedAgents = await Promise.all(selectedIds.map((agentId) => adminService.updateUser(agentId, { isActive: shouldActivate })));
+      const updatedAgents = await Promise.all(selectedIds.map((agentId) => adminService.updateSectionAccountStatus("partners", agentId, shouldActivate)));
       const map = new Map(updatedAgents.map((agent) => [agent._id, agent]));
       setAgents((current) => current.map((agent) => (map.has(agent._id) ? ({ ...agent, ...map.get(agent._id) } as AdminPartnerItem) : agent)));
       if (details && map.has(details.partner._id)) {

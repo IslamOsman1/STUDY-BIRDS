@@ -32,6 +32,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { seoText } from "../seo/site";
 import { dt } from "../utils/dashboardTranslations";
+import { employeeSections } from "../utils/employeeAccess";
 
 export const DashboardLayout = () => {
   const { user } = useAuth();
@@ -149,7 +150,11 @@ export const DashboardLayout = () => {
     },
   ];
 
-  const sidebarLinks = user?.role === "admin" ? adminLinks : isPartner ? partnerLinks : isParent ? parentLinks : isUniversity ? universityLinks : studentLinks;
+  const employeeLinks = employeeSections.filter((section) => user?.permissions?.includes(section.key)).flatMap((section) => {
+    const link = adminLinks.find((item) => item.href === `/admin/${section.pages[0]}`);
+    return link ? [{ ...link, label: language === "ar" ? section.ar : section.en, description: "" }] : [];
+  });
+  const sidebarLinks = user?.role === "employee" ? employeeLinks : user?.role === "admin" ? adminLinks : isPartner ? partnerLinks : isParent ? parentLinks : isUniversity ? universityLinks : studentLinks;
 
   const sidebarSectionLabel =
     user?.role === "admin"
@@ -208,14 +213,14 @@ export const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#d8e1f1_0%,_#f6f8fc_40%,_#f8fafc_100%)]">
-      <Seo title={seoTitle} description={seoDescription} noIndex />
+      <Seo title={user?.role === "employee" ? seoText(language, "Employee Dashboard", "لوحة الموظف") : seoTitle} description={seoDescription} noIndex />
       <Navbar />
       <main className="container-shell grid gap-6 py-8 lg:grid-cols-[320px_1fr]">
         <DashboardSidebar
           links={sidebarLinks}
-          sectionLabel={sidebarSectionLabel}
-          title={sidebarTitle}
-          subtitle={sidebarSubtitle}
+          sectionLabel={user?.role === "employee" ? (language === "ar" ? "أقسام العمل" : "Your sections") : sidebarSectionLabel}
+          title={user?.role === "employee" ? (language === "ar" ? "لوحة الموظف" : "Employee dashboard") : sidebarTitle}
+          subtitle={user?.role === "employee" ? (language === "ar" ? "الأقسام المسموح لك بإدارتها." : "The sections you are allowed to manage.") : sidebarSubtitle}
         />
         <Outlet />
       </main>

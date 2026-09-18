@@ -34,7 +34,7 @@ export const LoginPage = () => {
 
   useEffect(() => {
     if (user) {
-      navigate(getHomeRouteForRole(user.role), {
+      navigate(getHomeRouteForRole(user.role, user.permissions), {
         replace: true,
       });
     }
@@ -44,7 +44,7 @@ export const LoginPage = () => {
     setFormError("");
     try {
       const user = await login(values.email, values.password);
-      navigate(getHomeRouteForRole(user.role));
+      navigate(getHomeRouteForRole(user.role, user.permissions));
     } catch (error) {
       setFormError(getErrorMessage(error, t("authFailed")));
     }
@@ -56,7 +56,7 @@ export const LoginPage = () => {
 
     try {
       const user = await googleLogin(credential);
-      navigate(getHomeRouteForRole(user.role));
+      navigate(getHomeRouteForRole(user.role, user.permissions));
     } catch (error) {
       setFormError(
         getErrorMessage(

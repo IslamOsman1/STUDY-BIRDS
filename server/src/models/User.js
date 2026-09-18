@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["student", "admin", "partner", "parent", "university"],
+      enum: ["student", "admin", "partner", "parent", "university", "employee"],
       default: "student",
     },
     // NEW — only meaningful when role === "admin". Optional so every

@@ -162,9 +162,10 @@ export const AppRoutes = () => (
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute roles={["admin"]} />}>
+      <Route element={<ProtectedRoute roles={["admin", "employee"]} />}>
         <Route element={<DashboardLayout />}>
           <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/employee" element={<Navigate replace to="/admin" />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/students" element={<AdminStudentsPage />} />
           <Route path="/admin/students/:id" element={<AdminStudentsPage />} />

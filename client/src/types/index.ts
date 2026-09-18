@@ -1,4 +1,4 @@
-export type Role = "student" | "admin" | "partner" | "parent" | "university";
+export type Role = "student" | "admin" | "partner" | "parent" | "university" | "employee";
 
 export type EmployeeRole =
   | "educational_consultant"

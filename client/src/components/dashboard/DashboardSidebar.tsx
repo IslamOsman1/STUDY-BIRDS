@@ -30,7 +30,7 @@ export const DashboardSidebar = ({
           const Icon = link.icon;
           return (
             <Link
-              key={link.href}
+              key={`${link.href}:${link.label}`}
               to={link.href}
               className={`block rounded-2xl border px-4 py-3 transition ${
                 active
