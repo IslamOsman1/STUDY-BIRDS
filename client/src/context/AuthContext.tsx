@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { createContext, useEffect, useState, type ReactNode } from "react";
 import { authService } from "../services/authService";
 import type { StudentProfile, User } from "../types";
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(data.user);
       setProfile(data.profile ?? null);
     } catch (error) {
+      if (!isAxiosError(error) || ![401, 403].includes(error.response?.status ?? 0)) throw error;
       localStorage.removeItem("studyBirdsToken");
       setToken(null);
       setUser(null);
@@ -50,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    refreshSession();
+    void refreshSession().catch(() => setLoading(false));
   }, []);
 
   const login = async (email: string, password: string, twoFactorCode?: string) => {

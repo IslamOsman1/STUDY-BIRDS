@@ -26,11 +26,13 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const { login, googleLogin, user } = useAuth();
   const { t, language } = useLanguage();
+  const [showPassword, setShowPassword] = useState(false);
   const [requiresCode, setRequiresCode] = useState(false);
   const [formError, setFormError] = useState("");
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const {
     register,
+    setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({ resolver: zodResolver(schema) });
@@ -94,17 +96,23 @@ export const LoginPage = () => {
           </div>
         ) : null}
         <FormInput label={t("email")} type="email" {...register("email")} error={errors.email?.message} />
-        <FormInput label={t("password")} type="password" {...register("password")} error={errors.password?.message} />
+        <FormInput label={t("password")} type={showPassword ? "text" : "password"} autoComplete="current-password" {...register("password")} error={errors.password?.message} />
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <label className="flex items-center gap-2"><input type="checkbox" checked={showPassword} onChange={e => setShowPassword(e.target.checked)} />{language === "ar" ? "إظهار كلمة المرور" : "Show password"}</label>
+          <Link to="/forgot-password" className="font-medium text-brand-700">{language === "ar" ? "نسيت كلمة المرور؟" : "Forgot password?"}</Link>
+        </div>
         {requiresCode ? (
           <FormInput label={language === "ar" ? "رمز التحقق المرسل إلى بريدك" : "Verification code sent to your email"}
             inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" required
             {...register("twoFactorCode")} />
         ) : null}
+        {requiresCode ? <button type="button" disabled={isSubmitting} className="text-sm text-brand-700 underline" onClick={() => { setRequiresCode(false); setValue("twoFactorCode", ""); setFormError(""); }}>{language === "ar" ? "العودة لبيانات الدخول أو طلب رمز آخر" : "Back to sign-in details or request another code"}</button> : null}
         <button type="submit" disabled={isSubmitting} className="w-full rounded-full bg-brand-900 px-5 py-3 font-semibold text-white">
           {isSubmitting ? t("signingIn") : t("login")}
         </button>
       </form>
 
+      {import.meta.env.VITE_GOOGLE_CLIENT_ID ? <>
       <div className="my-6 flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-slate-400">
         <div className="h-px flex-1 bg-slate-200" />
         <span>{language === "ar" ? "أو" : "Or"}</span>
@@ -112,6 +120,7 @@ export const LoginPage = () => {
       </div>
 
       <GoogleSignInButton language={language} onCredential={handleGoogleCredential} />
+      </> : null}
       {googleSubmitting ? (
         <p className="mt-3 text-center text-sm text-slate-500">
           {language === "ar" ? "جارٍ تسجيل الدخول عبر Google..." : "Signing in with Google..."}

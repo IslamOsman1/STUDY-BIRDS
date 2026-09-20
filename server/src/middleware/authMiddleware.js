@@ -41,7 +41,7 @@ const protect = asyncHandler(async (req, res, next) => {
     res.status(401); throw new Error('Session revoked. Please sign in again.');
   }
   // Track mobile devices, but enforce revocation even when the header is omitted.
-  if (req.headers['x-study-birds-client'] === 'mobile') {
+  if (['mobile', 'web'].includes(req.headers['x-study-birds-client'])) {
     const session = await Session.findOneAndUpdate({ digest }, {
       $set: { lastSeen: new Date() },
       $setOnInsert: { user: user._id, expiresAt: new Date(decoded.exp * 1000), device: String(req.headers['user-agent'] || 'Study Birds Mobile').slice(0, 200) },

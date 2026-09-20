@@ -22,7 +22,7 @@ export const ProtectedRoute = ({ roles }: { roles?: Role[] }) => {
     return <Navigate to="/" replace />;
   }
 
-  if (user.role === "employee" && !canAccessEmployeePage(user, pathname)) {
+  if (user.role === "employee" && pathname !== "/account/security" && !canAccessEmployeePage(user, pathname)) {
     const home = employeeHome(user);
     if (home !== pathname) return <Navigate to={`${home}?lang=${language}`} replace />;
     return <div className="container-shell py-12"><p>{language === "ar" ? "لم يتم تعيين أقسام لحسابك. تواصل مع الأدمن لتحديد صلاحياتك." : "No sections assigned. Contact your administrator to request access."}</p><a href="/">{language === "ar" ? "الرئيسية" : "Home"}</a></div>;

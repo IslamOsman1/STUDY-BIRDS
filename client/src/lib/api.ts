@@ -15,7 +15,7 @@ const resolveApiUrl = () => {
     }
   }
 
-  return "https://study-birds-api.onrender.com/api";
+  return "https://study-birds1.onrender.com/api";
 };
 
 export const API_URL = resolveApiUrl();
@@ -26,6 +26,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  config.headers["X-Study-Birds-Client"] = "web";
   const token = localStorage.getItem("studyBirdsToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

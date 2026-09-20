@@ -41,6 +41,7 @@ const parseAllowedOrigins = () => {
     "https://studybirds.net",
     "https://www.studybirds.net",
     "https://study-birds-web.onrender.com",
+    "https://study-birds.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
   ]);

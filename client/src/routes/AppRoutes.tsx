@@ -5,6 +5,7 @@ import { DashboardLayout } from "../layouts/DashboardLayout";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { useLanguage } from "../hooks/useLanguage";
 
+const AccountSecurityPage = lazy(() => import("../pages/auth/AccountSecurityPage").then(module => ({ default: module.AccountSecurityPage })));
 const HomePage = lazy(() => import("../pages/HomePage").then((module) => ({ default: module.HomePage })));
 const ProgramsPage = lazy(() => import("../pages/ProgramsPage").then((module) => ({ default: module.ProgramsPage })));
 const ProgramDetailsPage = lazy(() => import("../pages/ProgramDetailsPage").then((module) => ({ default: module.ProgramDetailsPage })));
@@ -126,6 +127,7 @@ export const AppRoutes = () => (
         <Route path="/become-agent" element={<BecomeAgentPage />} />
       </Route>
 
+      <Route element={<ProtectedRoute />}><Route element={<MainLayout />}><Route path="/account/security" element={<AccountSecurityPage />} /></Route></Route>
       <Route element={<ProtectedRoute roles={["student"]} />}>
         <Route element={<DashboardLayout />}>
           <Route path="/student" element={<StudentDashboardPage />} />

@@ -125,6 +125,7 @@ export const Navbar = () => {
                   {profileLabel}
                 </Link>
               )}
+              <Link to="/account/security" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-900">{language === "ar" ? "أمان الحساب" : "Account security"}</Link>
               <button onClick={logout} className="rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white">
                 {t("logout")}
               </button>
@@ -279,7 +280,8 @@ export const Navbar = () => {
                     {profileLabel}
                   </Link>
                 )}
-                <button onClick={logout} className="rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white">
+                <Link to="/account/security" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-900">{language === "ar" ? "أمان الحساب" : "Account security"}</Link>
+              <button onClick={logout} className="rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white">
                   {t("logout")}
                 </button>
               </>
