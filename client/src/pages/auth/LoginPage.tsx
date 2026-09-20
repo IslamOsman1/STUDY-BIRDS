@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +17,7 @@ import { SITE_NAME, seoText } from "../../seo/site";
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+  twoFactorCode: z.string().optional(),
 });
 
 type LoginValues = z.infer<typeof schema>;
@@ -24,6 +26,7 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const { login, googleLogin, user } = useAuth();
   const { t, language } = useLanguage();
+  const [requiresCode, setRequiresCode] = useState(false);
   const [formError, setFormError] = useState("");
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const {
@@ -43,9 +46,10 @@ export const LoginPage = () => {
   const onSubmit = async (values: LoginValues) => {
     setFormError("");
     try {
-      const user = await login(values.email, values.password);
+      const user = await login(values.email, values.password, values.twoFactorCode);
       navigate(getHomeRouteForRole(user.role, user.permissions));
     } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 428) setRequiresCode(true);
       setFormError(getErrorMessage(error, t("authFailed")));
     }
   };
@@ -91,6 +95,11 @@ export const LoginPage = () => {
         ) : null}
         <FormInput label={t("email")} type="email" {...register("email")} error={errors.email?.message} />
         <FormInput label={t("password")} type="password" {...register("password")} error={errors.password?.message} />
+        {requiresCode ? (
+          <FormInput label={language === "ar" ? "رمز التحقق المرسل إلى بريدك" : "Verification code sent to your email"}
+            inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" required
+            {...register("twoFactorCode")} />
+        ) : null}
         <button type="submit" disabled={isSubmitting} className="w-full rounded-full bg-brand-900 px-5 py-3 font-semibold text-white">
           {isSubmitting ? t("signingIn") : t("login")}
         </button>

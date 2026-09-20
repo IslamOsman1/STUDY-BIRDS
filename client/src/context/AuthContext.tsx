@@ -7,7 +7,7 @@ interface AuthContextValue {
   profile: StudentProfile | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string, twoFactorCode?: string) => Promise<User>;
   googleLogin: (credential: string) => Promise<User>;
   register: (payload: { name: string; email: string; password: string }) => Promise<User>;
   logout: () => void;
@@ -53,8 +53,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     refreshSession();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const data = await authService.login({ email, password });
+  const login = async (email: string, password: string, twoFactorCode?: string) => {
+    const data = await authService.login({ email, password, twoFactorCode });
     persistAuth(data.token, data.user);
     const session = await authService.me();
     setProfile(session.profile ?? null);

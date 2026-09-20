@@ -1,3 +1,4 @@
+const { sendCode, consume } = require('../utils/mobileEmailCodes');
 const User = require("../models/User");
 const StudentProfile = require("../models/StudentProfile");
 const { OAuth2Client } = require("google-auth-library");
@@ -54,7 +55,7 @@ const register = asyncHandler(async (req, res) => {
   await ensureStudentProfile(user._id);
 
   res.status(201).json({
-    token: generateToken(user._id),
+    token: generateToken(user._id, user.tokenVersion),
     user: serializeUser(user),
   });
 });
@@ -79,11 +80,19 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("This account has been deactivated by an administrator");
   }
 
+  if (user.twoFactorEnabled) {
+    if (!req.body.twoFactorCode) {
+      await sendCode(user, 'login', res);
+      return res.status(428).json({ message: 'أدخل رمز التحقق المرسل إلى بريدك.', requiresTwoFactor: true });
+    }
+    await consume(user, 'login', req.body.twoFactorCode, res);
+  }
+
   user.lastLoginAt = new Date();
   await user.save();
 
   res.json({
-    token: generateToken(user._id),
+    token: generateToken(user._id, user.tokenVersion),
     user: serializeUser(user),
   });
 });
@@ -121,6 +130,11 @@ const googleLogin = asyncHandler(async (req, res) => {
   let user = await User.findOne({
     $or: [{ googleId: payload.sub }, { email: normalizedEmail }],
   });
+
+  if (user?.twoFactorEnabled) {
+    res.status(403);
+    throw new Error('استخدم البريد وكلمة المرور ورمز التحقق لتسجيل الدخول إلى هذا الحساب.');
+  }
 
   if (!user) {
     user = await User.create({
@@ -160,7 +174,7 @@ const googleLogin = asyncHandler(async (req, res) => {
   }
 
   res.json({
-    token: generateToken(user._id),
+    token: generateToken(user._id, user.tokenVersion),
     user: serializeUser(user),
   });
 });

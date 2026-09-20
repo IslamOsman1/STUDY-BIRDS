@@ -6,7 +6,7 @@ export const authService = {
     const { data } = await api.post<AuthResponse>("/auth/register", payload);
     return data;
   },
-  login: async (payload: { email: string; password: string }) => {
+  login: async (payload: { email: string; password: string; twoFactorCode?: string }) => {
     const { data } = await api.post<AuthResponse>("/auth/login", payload);
     return data;
   },

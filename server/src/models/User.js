@@ -83,6 +83,9 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
     lastLoginAt: Date,
+    passwordChangedAt: Date,
+    tokenVersion: { type: Number, default: 0 },
+    twoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
