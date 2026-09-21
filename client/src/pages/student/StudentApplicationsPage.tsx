@@ -1,7 +1,8 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
+import { ApplicationDocumentUpdates } from '../../components/ApplicationDocumentUpdates';
 import { useEffect, useState } from "react";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
 import { EmptyState } from "../../components/EmptyState";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import { useLanguage } from "../../hooks/useLanguage";
 import { studentService } from "../../services/studentService";
 import type { Application } from "../../types";
@@ -13,6 +14,7 @@ export const StudentApplicationsPage = () => {
   const { t, language } = useLanguage();
   const [applications, setApplications] = useState<Application[]>([]);
   const [formError, setFormError] = useState("");
+  const [editingId, setEditingId] = useState<string>();
 
   useEffect(() => {
     studentService.getApplications().then(setApplications).catch((error) => setFormError(getErrorMessage(error, dt(language, "applicationFailed"))));
@@ -78,9 +80,9 @@ export const StudentApplicationsPage = () => {
                               <p className="font-medium text-slate-900">{documentTypeLabels[document.type] || document.type}</p>
                               <p className="text-xs text-slate-500">{document.fileName}</p>
                             </div>
-                            <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="font-semibold text-brand-700">
+                            <DocumentFileLink className="font-semibold text-brand-700" path={document.filePath}>
                               {dt(language, "viewFile")}
-                            </a>
+                            </DocumentFileLink>
                           </div>
                         ))
                       ) : (
@@ -88,6 +90,11 @@ export const StudentApplicationsPage = () => {
                       )}
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl bg-white p-4">
+                  <button onClick={() => setEditingId(editingId === application._id ? undefined : application._id)} aria-expanded={editingId === application._id} className="min-h-11 font-semibold">{language === 'ar' ? 'استكمال مستندات الطلب' : 'Update application documents'}</button>
+                  {editingId === application._id && <ApplicationDocumentUpdates applicationId={application._id} onUpdated={() => { studentService.getApplications().then(setApplications).catch(() => setFormError(language === 'ar' ? 'تم الإرفاق؛ تعذر تحديث القائمة.' : 'Attached; unable to refresh the list.')); }} />}
                 </div>
 
                 <div className="mt-4 rounded-2xl bg-white p-4">

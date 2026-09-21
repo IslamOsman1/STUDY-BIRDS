@@ -35,6 +35,11 @@ const programSchema = new mongoose.Schema(
     applicationDeadline: Date,
     intake: String,
     requirements: [String],
+    requiredDocumentTypes: {
+      type: [{ type: String, enum: ['passport', 'biometric-photo', 'latest-qualification', 'transcript', 'language-certificate', 'other'] }],
+      default: undefined,
+      validate: { validator: (items) => !items || (items.length <= 6 && new Set(items).size === items.length), message: 'Document requirements must be unique' },
+    },
     summary: String,
     articleTitle: String,
     articleTitleColor: {

@@ -1,3 +1,4 @@
+import { ApplicationDocumentRequests } from '../../components/admin/ApplicationDocumentRequests';
 import { useEffect, useMemo, useState } from "react";
 import { Filter, Inbox, SendHorizontal, Trash2 } from "lucide-react";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
@@ -20,6 +21,7 @@ export const AdminApplicationsPage = () => {
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [downloadingDocumentId, setDownloadingDocumentId] = useState("");
   const [formError, setFormError] = useState("");
+  const [documentEditor, setDocumentEditor] = useState<string>();
   const [deleteTarget, setDeleteTarget] = useState<Application | null>(null);
   const [deleting, setDeleting] = useState(false);
   const { toasts, pushToast, dismissToast } = useAdminToasts();
@@ -243,6 +245,8 @@ export const AdminApplicationsPage = () => {
                   ) : null}
 
                   <div className="mt-4 rounded-3xl border border-slate-200 p-4">
+                    <button className="mb-3 min-h-11 font-semibold" aria-expanded={documentEditor === application._id} onClick={() => setDocumentEditor(documentEditor === application._id ? undefined : application._id)}>{language === 'ar' ? 'إدارة طلبات المستندات' : 'Manage document requests'}</button>
+                    {documentEditor === application._id && <ApplicationDocumentRequests id={application._id} />}
                     <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{dt(language, "statusTimelineLabel")}</h3>
                     <div className="mt-4 space-y-3">
                       {timeline.length ? (

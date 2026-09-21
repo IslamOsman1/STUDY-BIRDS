@@ -1,3 +1,4 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { useEffect, useState } from "react";
 import { UploadCloud } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
@@ -5,7 +6,6 @@ import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_E
 import { partnerService } from "../../services/partnerService";
 import type { VerificationOverview } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import { getErrorMessage } from "../../utils/errors";
 
 export const PartnerVerificationPage = () => {
@@ -103,9 +103,9 @@ export const PartnerVerificationPage = () => {
                   <tr key={document._id} className="border-t border-slate-100">
                     <td className="px-5 py-4 text-slate-600">{document.type}</td>
                     <td className="px-5 py-4">
-                      <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="font-semibold text-brand-700 hover:underline">
+                      <DocumentFileLink className="font-semibold text-brand-700 hover:underline" path={document.filePath}>
                         {document.fileName}
-                      </a>
+                      </DocumentFileLink>
                     </td>
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{document.status}</span>

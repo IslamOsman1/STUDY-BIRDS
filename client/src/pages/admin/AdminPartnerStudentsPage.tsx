@@ -1,7 +1,7 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Mail, Phone, Search, UserRound } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import type { AgentStudentItem } from "../../types";
 import { AdminPagination } from "../../components/admin/AdminPagination";
 import { AdminToastViewport } from "../../components/admin/AdminToastViewport";
@@ -160,10 +160,10 @@ export const AdminPartnerStudentsPage = () => {
                             <p className="break-words font-semibold text-slate-900">{document.label}</p>
                             <p className="mt-1 break-all text-xs text-slate-500">{document.fileName}</p>
                           </div>
-                          <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-700 hover:underline">
+                          <DocumentFileLink className="inline-flex items-center gap-1 text-brand-700 hover:underline" path={document.filePath}>
                             <ExternalLink className="h-4 w-4" />
                             {isArabic ? "فتح الملف" : "Open file"}
-                          </a>
+                          </DocumentFileLink>
                         </div>
                       ))
                     ) : (

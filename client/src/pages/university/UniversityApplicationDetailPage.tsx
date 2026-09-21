@@ -1,7 +1,7 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import { universityPortalService } from "../../services/universityPortalService";
 import type { Application } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
@@ -112,9 +112,9 @@ export const UniversityApplicationDetailPage = () => {
             application.documents.map((document) => (
               <div key={document._id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm">
                 <p className="font-medium text-slate-900">{document.type}</p>
-                <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="font-semibold text-brand-700">
+                <DocumentFileLink className="font-semibold text-brand-700" path={document.filePath}>
                   {isArabic ? "عرض الملف" : "View file"}
-                </a>
+                </DocumentFileLink>
               </div>
             ))
           ) : (

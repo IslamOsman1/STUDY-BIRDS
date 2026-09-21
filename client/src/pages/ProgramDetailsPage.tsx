@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArticleContentSection } from "../components/content/ArticleContentSection";
 import { FormInput } from "../components/forms/FormInput";
@@ -58,14 +58,12 @@ export const ProgramDetailsPage = () => {
   const [applicationForm, setApplicationForm] = useState<ApplicationFormState>(emptyForm);
   const [phoneDialCode, setPhoneDialCode] = useState(DEFAULT_PHONE_DIAL_CODE);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [biometricPhoto, setBiometricPhoto] = useState<File | null>(null);
-  const [passportFile, setPassportFile] = useState<File | null>(null);
-  const [latestQualificationFile, setLatestQualificationFile] = useState<File | null>(null);
+  const [documentFiles, setDocumentFiles] = useState<Record<string, File>>({});
+  const [uploadKey, setUploadKey] = useState(0);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [favoriteMessage, setFavoriteMessage] = useState("");
-  const biometricInputRef = useRef<HTMLInputElement | null>(null);
-  const passportInputRef = useRef<HTMLInputElement | null>(null);
-  const latestQualificationInputRef = useRef<HTMLInputElement | null>(null);
+  const requiredTypes = program?.requiredDocumentTypes ?? ['passport', 'biometric-photo', 'latest-qualification'];
+  const documentLabels: Record<string, string[]> = { passport: ['جواز السفر', 'Passport'], 'biometric-photo': ['صورة شخصية', 'Photo'], 'latest-qualification': ['آخر مؤهل دراسي', 'Latest qualification'], transcript: ['كشف الدرجات', 'Transcript'], 'language-certificate': ['شهادة اللغة', 'Language certificate'], other: ['مستند إضافي', 'Additional document'] };
 
   useEffect(() => {
     const loadProgram = async () => {
@@ -133,7 +131,7 @@ export const ProgramDetailsPage = () => {
       return;
     }
 
-    if (!biometricPhoto || !passportFile || !latestQualificationFile) {
+    if (requiredTypes.some(type => !documentFiles[type])) {
       setErrorMessage(dt(language, "fillRequiredDocuments"));
       return;
     }
@@ -156,16 +154,12 @@ export const ProgramDetailsPage = () => {
         address: applicationForm.address,
       });
 
-      const [passportDocument, biometricDocument, latestQualificationDocument] = await Promise.all([
-        studentService.uploadDocument(passportFile, "passport"),
-        studentService.uploadDocument(biometricPhoto, "biometric-photo"),
-        studentService.uploadDocument(latestQualificationFile, "latest-qualification"),
-      ]);
+      const uploadedDocuments = await Promise.all(requiredTypes.map(type => studentService.uploadDocument(documentFiles[type], type)));
 
       await applicationService.create({
         programId: program._id,
         notes: applicationForm.notes,
-        documentIds: [passportDocument._id, biometricDocument._id, latestQualificationDocument._id],
+        documentIds: uploadedDocuments.map(document => document._id),
         applicantProfile: {
           name: applicationForm.name,
           email: applicationForm.email,
@@ -186,21 +180,8 @@ export const ProgramDetailsPage = () => {
       await refreshSession();
       setMessage(t("submitApplicationSuccess"));
       setApplicationForm((current) => ({ ...current, notes: "" }));
-      setBiometricPhoto(null);
-      setPassportFile(null);
-      setLatestQualificationFile(null);
-
-      if (biometricInputRef.current) {
-        biometricInputRef.current.value = "";
-      }
-
-      if (passportInputRef.current) {
-        passportInputRef.current.value = "";
-      }
-
-      if (latestQualificationInputRef.current) {
-        latestQualificationInputRef.current.value = "";
-      }
+      setDocumentFiles({});
+      setUploadKey(current => current + 1);
     } catch (error) {
       setErrorMessage(getErrorMessage(error, dt(language, "applicationFailed")));
     } finally {
@@ -448,48 +429,14 @@ export const ProgramDetailsPage = () => {
             />
           </label>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "biometricPhoto")}</span>
-              <input
-                ref={biometricInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                required
-                onChange={(event) => setBiometricPhoto(event.target.files?.[0] || null)}
-                className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm"
-              />
-              <p className="mt-2 text-xs text-slate-500">{dt(language, "uploadHintBiometric")}</p>
-              {biometricPhoto ? <p className="mt-2 text-sm font-medium text-slate-700">{biometricPhoto.name}</p> : null}
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "passportFile")}</span>
-              <input
-                ref={passportInputRef}
-                type="file"
-                accept={DOCUMENT_UPLOAD_ACCEPT}
-                required
-                onChange={(event) => setPassportFile(event.target.files?.[0] || null)}
-                className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm"
-              />
-              <p className="mt-2 text-xs text-slate-500">{dt(language, "uploadHintPassport")}</p>
-              {passportFile ? <p className="mt-2 text-sm font-medium text-slate-700">{passportFile.name}</p> : null}
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "latestQualification")}</span>
-              <input
-                ref={latestQualificationInputRef}
-                type="file"
-                accept={DOCUMENT_UPLOAD_ACCEPT}
-                required
-                onChange={(event) => setLatestQualificationFile(event.target.files?.[0] || null)}
-                className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm"
-              />
-              <p className="mt-2 text-xs text-slate-500">{dt(language, "uploadHintQualification")}</p>
-              {latestQualificationFile ? <p className="mt-2 text-sm font-medium text-slate-700">{latestQualificationFile.name}</p> : null}
-            </label>
+          <div key={uploadKey} className="grid gap-4 md:grid-cols-2">
+            {requiredTypes.map(type => <label className="block" key={type}>
+              <span className="mb-2 block text-sm font-medium text-slate-700">{documentLabels[type]?.[language === 'ar' ? 0 : 1] || type}</span>
+              <input type="file" required accept={type === 'biometric-photo' ? 'image/jpeg,image/png,image/webp' : DOCUMENT_UPLOAD_ACCEPT} onChange={event => {
+                const file = event.target.files?.[0];
+                setDocumentFiles(current => { const next = {...current}; if (file) next[type] = file; else delete next[type]; return next; });
+              }} className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm" />
+            </label>)}
           </div>
 
           <button

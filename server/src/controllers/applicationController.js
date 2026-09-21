@@ -1,3 +1,5 @@
+const { requiredDocumentTypesFor, missingDocumentTypes } = require("../utils/applicationRequirements");
+const mongoose = require("mongoose");
 const Application = require("../models/Application");
 const Program = require("../models/Program");
 const Document = require("../models/Document");
@@ -10,6 +12,11 @@ const {
 const createApplication = asyncHandler(async (req, res) => {
   const { programId, documentIds = [], notes, applicantProfile } = req.body;
 
+  if (!mongoose.isValidObjectId(programId) || !Array.isArray(documentIds) || documentIds.length > 30 ||
+      documentIds.some((value) => typeof value !== 'string' || !mongoose.isValidObjectId(value)) ||
+      new Set(documentIds).size !== documentIds.length) {
+    return res.status(400).json({ message: 'Invalid program or document selection' });
+  }
   const program = await Program.findById(programId).populate("university");
   if (!program) {
     res.status(404);
@@ -31,13 +38,13 @@ const createApplication = asyncHandler(async (req, res) => {
     throw new Error("An application for this program already exists");
   }
 
-  const requiredDocumentTypes = ["passport", "biometric-photo", "latest-qualification"];
-  const documentTypes = new Set(documents.map((document) => document.type));
-  const missingRequiredDocument = requiredDocumentTypes.some((type) => !documentTypes.has(type));
-
-  if (missingRequiredDocument) {
-    res.status(400);
-    throw new Error("Biometric photo, passport file, and latest qualification are required");
+  if (documents.length !== documentIds.length) {
+    return res.status(400).json({ message: 'One or more documents are unavailable' });
+  }
+  const requiredDocumentTypes = requiredDocumentTypesFor(program);
+  const missing = missingDocumentTypes(requiredDocumentTypes, documents);
+  if (missing.length) {
+    return res.status(400).json({ message: 'Please upload the required documents', missingDocumentTypes: missing });
   }
 
   const application = await Application.create({
@@ -45,6 +52,7 @@ const createApplication = asyncHandler(async (req, res) => {
     program: program._id,
     university: program.university._id,
     documents: documents.map((document) => document._id),
+    requiredDocumentTypes,
     applicantProfile,
     notes,
     status: "submitted",

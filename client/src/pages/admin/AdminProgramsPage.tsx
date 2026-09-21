@@ -29,6 +29,7 @@ const emptyProgramForm = {
   popularity: "",
   summary: "",
   requirements: "",
+  requiredDocumentTypes: ["passport", "biometric-photo", "latest-qualification"],
   articleTitle: "",
   articleTitleColor: "#0f172a",
   articleHeadingColor: "#0f172a",
@@ -72,7 +73,10 @@ export const AdminProgramsPage = () => {
     setForm(emptyProgramForm);
   };
 
-  const startEdit = (program: Program) => {
+  const startEdit = async (item: Program) => {
+    let program: Program;
+    try { program = await programService.getById(item._id); }
+    catch (issue) { setFormError(getErrorMessage(issue, "Unable to load program")); return; }
     const articleItemCount = Math.max(1, program.articleHeadings?.length || 0, program.articleBodies?.length || 0);
     setEditingId(program._id);
     setForm({
@@ -90,6 +94,7 @@ export const AdminProgramsPage = () => {
       popularity: typeof program.popularity === "number" ? String(program.popularity) : "",
       summary: program.summary || "",
       requirements: program.requirements?.join("\n") || "",
+      requiredDocumentTypes: program.requiredDocumentTypes ?? ["passport", "biometric-photo", "latest-qualification"],
       articleTitle: program.articleTitle || "",
       articleTitleColor: program.articleTitleColor || "#0f172a",
       articleHeadingColor: program.articleHeadingColor || "#0f172a",
@@ -120,6 +125,7 @@ export const AdminProgramsPage = () => {
     setFormError("");
 
     const payload = {
+      requiredDocumentTypes: form.requiredDocumentTypes,
       title: form.title,
       university: form.university,
       degreeLevel: form.degreeLevel,
@@ -372,6 +378,13 @@ export const AdminProgramsPage = () => {
             }
             language={language}
           />
+
+          <fieldset className="rounded-2xl border border-slate-200 p-4">
+            <legend className="px-2 font-semibold">{language === 'ar' ? 'المستندات المطلوبة للتقديم' : 'Required application documents'}</legend>
+            {Object.entries({passport: ['جواز السفر', 'Passport'], 'biometric-photo': ['صورة شخصية', 'Photo'], 'latest-qualification': ['آخر مؤهل', 'Latest qualification'], transcript: ['كشف الدرجات', 'Transcript'], 'language-certificate': ['شهادة اللغة', 'Language certificate'], other: ['مستند إضافي', 'Additional document']}).map(([key, labels]) => (
+              <label key={key} className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={form.requiredDocumentTypes.includes(key)} onChange={(e) => setForm(current => ({...current, requiredDocumentTypes: e.target.checked ? [...current.requiredDocumentTypes, key] : current.requiredDocumentTypes.filter(value => value !== key)}))} />{labels[language === 'ar' ? 0 : 1]}</label>
+            ))}
+          </fieldset>
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "requirements")}</span>

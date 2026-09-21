@@ -1,7 +1,7 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, Search, XCircle } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import type { VerificationDocumentItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -129,9 +129,9 @@ export const AdminVerificationQueueEnhancedPage = () => {
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{item.status}</span>
                 </div>
                 <p className="mt-2 text-sm text-slate-500">{item.agent?.email || "--"}</p>
-                <a href={getDownloadableAssetUrl(item.filePath)} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-700">
+                <DocumentFileLink className="mt-4 inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-700" path={item.filePath}>
                   {isArabic ? "فتح المستند" : "Open Document"}
-                </a>
+                </DocumentFileLink>
               </div>
               <div className="w-full xl:max-w-sm">
                 <textarea value={notes[item._id] || ""} onChange={(event) => setNotes((current) => ({ ...current, [item._id]: event.target.value }))} rows={4} placeholder={isArabic ? "سبب الرفض أو ملاحظات المراجعة" : "Review note or rejection reason"} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />

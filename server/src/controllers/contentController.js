@@ -405,6 +405,10 @@ const openCloudinaryDocument = asyncHandler(async (req, res) => {
 
   const { type, extension, publicId } = extractCloudinaryDescriptor(assetUrl);
 
+  // Public content may never mint download signatures for private assets.
+  if (type !== 'upload' || publicId.startsWith('study-birds/private-documents/')) {
+    return res.status(403).json({ message: 'Private files require authenticated document access' });
+  }
   if (!extension || !CLOUDINARY_DOCUMENT_EXTENSIONS.has(extension)) {
     return res.redirect(assetUrl);
   }

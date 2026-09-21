@@ -66,6 +66,24 @@ const applicationSchema = new mongoose.Schema(
         ref: "Document",
       },
     ],
+    documentRequests: [{
+      type: { type: String, required: true },
+      note: { type: String, required: true, maxlength: 2000 },
+      status: { type: String, enum: ['requested', 'submitted', 'approved', 'cancelled'], default: 'requested' },
+      requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      requestedAt: { type: Date, default: Date.now },
+      document: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },
+      submittedAt: Date, reviewedAt: Date,
+      reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    }],
+    documentRevisions: [{
+      type: { type: String, required: true },
+      previousDocuments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
+      document: { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true },
+      changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      changedAt: { type: Date, default: Date.now },
+    }],
+    requiredDocumentTypes: { type: [String], default: undefined },
     applicantProfile: applicantProfileSchema,
     notes: String,
     status: {
@@ -125,6 +143,10 @@ applicationSchema.pre("save", function syncLegacyStatus(next) {
     if (legacyStatus) {
       this.status = legacyStatus;
     }
+  }
+  if (this.isModified("status") && !this.isModified("detailedStatus")) {
+    const detailByLegacy = {"draft": "draft", "submitted": "submitted", "under-review": "under-review", "accepted": "accepted", "rejected": "rejected"};
+    if (detailByLegacy[this.status]) this.detailedStatus = detailByLegacy[this.status];
   }
   next();
 });

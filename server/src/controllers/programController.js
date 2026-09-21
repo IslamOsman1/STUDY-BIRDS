@@ -103,8 +103,14 @@ const getProgramById = asyncHandler(async (req, res) => {
   res.json(program);
 });
 
+const handleProgramWriteError = (res) => (error) => {
+  if (['ValidationError', 'CastError'].includes(error.name)) res.status(400);
+  if (error.code === 11000) res.status(409);
+  throw error;
+};
+
 const createProgram = asyncHandler(async (req, res) => {
-  const program = await Program.create(req.body);
+  const program = await Program.create(req.body).catch(handleProgramWriteError(res));
   clearResponseCache();
   res.status(201).json(program);
 });
@@ -112,7 +118,8 @@ const createProgram = asyncHandler(async (req, res) => {
 const updateProgram = asyncHandler(async (req, res) => {
   const program = await Program.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-  });
+    runValidators: true,
+  }).catch(handleProgramWriteError(res));
 
   if (!program) {
     res.status(404);

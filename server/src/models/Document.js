@@ -19,6 +19,9 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    storage: { type: new mongoose.Schema({
+      publicId: String, resourceType: String, deliveryType: String, format: String,
+    }, { _id: false }), select: false },
     mimeType: String,
     size: Number,
     status: {
@@ -57,6 +60,10 @@ documentSchema.pre("save", function syncLegacyStatus(next) {
     if (legacyStatus) {
       this.status = legacyStatus;
     }
+  }
+  if (this.isModified("status") && !this.isModified("detailedStatus")) {
+    const detailByLegacy = {"pending": "uploaded", "verified": "approved", "rejected": "rejected"};
+    if (detailByLegacy[this.status]) this.detailedStatus = detailByLegacy[this.status];
   }
   next();
 });

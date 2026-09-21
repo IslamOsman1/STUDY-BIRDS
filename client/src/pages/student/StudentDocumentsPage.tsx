@@ -1,6 +1,6 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { useEffect, useState } from "react";
 import { FileUpload } from "../../components/forms/FileUpload";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import type { DocumentItem } from "../../types";
 import { studentService } from "../../services/studentService";
 import { EmptyState } from "../../components/EmptyState";
@@ -71,9 +71,9 @@ export const StudentDocumentsPage = () => {
                   </span>
                 </div>
                 {document.reviewNote ? <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">{document.reviewNote}</p> : null}
-                <a href={getDownloadableAssetUrl(document.filePath)} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-semibold text-brand-700">
+                <DocumentFileLink className="mt-3 inline-flex text-sm font-semibold text-brand-700" path={document.filePath}>
                   {dt(language, "viewFile")}
-                </a>
+                </DocumentFileLink>
               </div>
             ))}
           </div>

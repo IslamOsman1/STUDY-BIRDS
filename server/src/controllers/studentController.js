@@ -1,3 +1,6 @@
+const mongoose = require('mongoose');
+const { uploadPrivateDocument } = require('../utils/privateDocumentStorage');
+const { studentNextAction } = require("../utils/studentNextAction");
 const StudentProfile = require("../models/StudentProfile");
 const Document = require("../models/Document");
 const Application = require("../models/Application");
@@ -161,18 +164,23 @@ const uploadDocument = asyncHandler(async (req, res) => {
     throw new Error("File is required");
   }
 
-  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/documents");
+  const uploadResult = await uploadPrivateDocument(req.file);
+  const documentId = new mongoose.Types.ObjectId();
 
   const document = await Document.create({
+    _id: documentId,
+    storage: uploadResult,
     student: req.user._id,
     type: req.body.type || "general",
     fileName: req.file.originalname,
-    filePath: uploadResult.url,
+    filePath: `/api/documents/${documentId}/access`,
     mimeType: req.file.mimetype,
     size: uploadResult.bytes || req.file.size,
   });
 
-  res.status(201).json(document);
+  const response = document.toObject();
+  delete response.storage;
+  res.status(201).json(response);
 });
 
 const getDocuments = asyncHandler(async (req, res) => {
@@ -197,7 +205,7 @@ const getApplications = asyncHandler(async (req, res) => {
 });
 
 const getDashboardOverview = asyncHandler(async (req, res) => {
-  const [profile, applications, documents, notifications] = await Promise.all([
+  const [profile, applications, documents, notifications, invoices, unreadCount] = await Promise.all([
     StudentProfile.findOne({ user: req.user._id }).lean(),
     Application.find({ student: req.user._id })
       .populate({
@@ -211,6 +219,8 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
       .lean(),
     Document.find({ student: req.user._id }).sort({ createdAt: -1 }).lean(),
     Notification.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(5).lean(),
+    Invoice.find({ student: req.user._id }).lean(),
+    Notification.countDocuments({ user: req.user._id, isRead: false }),
   ]);
 
   const currentStage = profile?.applicationStage || "file-received";
@@ -221,6 +231,7 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
 
   res.json({
     profile: profile || null,
+    nextAction: studentNextAction({ applications, documents, invoices }),
     progress: {
       currentStage,
       stages: STUDENT_DASHBOARD_STAGES.map((stage, index) => ({
@@ -237,8 +248,8 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
       currentApplications: applications.length,
       acceptedDocuments: documents.filter((item) => item.status === "verified").length,
       rejectedDocuments: documents.filter((item) => item.status === "rejected").length,
-      pendingPayments: 0,
-      unreadNotifications: notifications.filter((item) => !item.isRead).length,
+      pendingPayments: invoices.filter((item) => ["unpaid", "rejected"].includes(item.status)).length,
+      unreadNotifications: unreadCount,
     },
     latestNotification: notifications[0] || null,
     recentApplications: applications.slice(0, 5),

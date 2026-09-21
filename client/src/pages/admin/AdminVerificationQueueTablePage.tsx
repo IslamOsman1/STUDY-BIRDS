@@ -1,7 +1,7 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, Search, XCircle } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import type { AdminPartnerItem, VerificationDocumentItem } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -276,9 +276,9 @@ export const AdminVerificationQueueTablePage = () => {
                     <td className="px-4 py-4 text-slate-600">{item.type === "not-uploaded" ? (isArabic ? "لم يرفع بعد" : "Not uploaded") : item.type}</td>
                     <td className="px-4 py-4">
                       {item.filePath ? (
-                        <a href={getDownloadableAssetUrl(item.filePath)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">
+                        <DocumentFileLink className="text-brand-700 hover:underline" path={item.filePath}>
                           {item.fileName}
-                        </a>
+                        </DocumentFileLink>
                       ) : (
                         <span className="text-slate-400">{item.fileName}</span>
                       )}

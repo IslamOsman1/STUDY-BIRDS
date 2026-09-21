@@ -1,6 +1,6 @@
+import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { useEffect, useState } from "react";
 import { adminService } from "../../services/adminService";
-import { getDownloadableAssetUrl } from "../../lib/api";
 import type { InvoiceItem, PaymentProofItem, User } from "../../types";
 import { useLanguage } from "../../hooks/useLanguage";
 import { getErrorMessage } from "../../utils/errors";
@@ -164,9 +164,9 @@ export const AdminStudentFinancialsPage = () => {
               </div>
               {proof.reviewNote ? <p className="mt-3 text-sm text-slate-600">{proof.reviewNote}</p> : null}
               <div className="mt-4 flex flex-wrap gap-3">
-                <a href={getDownloadableAssetUrl(proof.filePath)} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">
+                <DocumentFileLink className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" path={proof.filePath}>
                   {isArabic ? "عرض الملف" : "View file"}
-                </a>
+                </DocumentFileLink>
                 <button type="button" onClick={() => handleProofStatus(proof._id, "approved")} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
                   {isArabic ? "اعتماد" : "Approve"}
                 </button>

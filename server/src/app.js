@@ -121,6 +121,7 @@ app.use("/api/scholarships", requireDatabaseConnection, require("./routes/schola
 app.use("/api/assistant", requireDatabaseConnection, require("./routes/assistantRoutes").router);
 app.use("/api/identity", requireDatabaseConnection, require("./routes/identityRoutes"));
 app.use("/api/auth", requireDatabaseConnection, authRoutes);
+app.use("/api/documents", requireDatabaseConnection, require("./routes/documentAccessRoutes"));
 app.use("/api/students", requireDatabaseConnection, studentRoutes);
 app.use("/api/partners", requireDatabaseConnection, partnerRoutes);
 app.use("/api/universities", requireDatabaseConnection, universityRoutes);

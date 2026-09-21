@@ -212,6 +212,7 @@ export interface FavoriteItem {
 }
 
 export interface Program extends ArticleContent {
+  requiredDocumentTypes?: string[];
   _id: string;
   title: string;
   slug: string;
@@ -478,6 +479,7 @@ export interface KnowledgeBaseItem {
 }
 
 export interface StudentDashboardOverview {
+  nextAction?: { code: string; destination: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; entityId: string; waiting: boolean; dueDate: string | null };
   profile: StudentProfile | null;
   progress: {
     currentStage: NonNullable<StudentProfile["applicationStage"]>;
