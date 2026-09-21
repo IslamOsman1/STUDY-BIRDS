@@ -15,6 +15,7 @@ const serializeUser = (user) => ({
   avatar: user.avatar,
   authProvider: user.authProvider,
   emailVerified: user.emailVerified,
+  verifiedPhone: user.verifiedPhone || null,
   // NEW — always present but null/empty for existing student/admin/partner
   // accounts, so no existing consumer (website included) is affected.
   employeeRole: user.employeeRole || null,
@@ -248,6 +249,8 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  serializeUser,
+  ensureStudentProfile,
   register,
   login,
   googleLogin,

@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
     },
+    appleId: { type: String, unique: true, sparse: true },
+    verifiedPhone: { type: String },
     googleId: {
       type: String,
       unique: true,
@@ -25,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     authProvider: {
       type: String,
-      enum: ["local", "google"],
+      enum: ["local", "google", "apple"],
       default: "local",
     },
     emailVerified: {

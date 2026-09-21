@@ -27,6 +27,7 @@ const FaqPage = lazy(() => import("../pages/FaqPage").then((module) => ({ defaul
 const PartnerPage = lazy(() => import("../pages/PartnerPage").then((module) => ({ default: module.PartnerPage })));
 const BecomeAgentPage = lazy(() => import("../pages/BecomeAgentPage").then((module) => ({ default: module.BecomeAgentPage })));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
+const MobileSignInPage = lazy(() => import("../pages/auth/MobileSignInPage").then(module => ({default:module.MobileSignInPage})));
 const LoginPage = lazy(() => import("../pages/auth/LoginPage").then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import("../pages/auth/RegisterPage").then((module) => ({ default: module.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import("../pages/auth/ForgotPasswordPage").then((module) => ({ default: module.ForgotPasswordPage })));
@@ -102,6 +103,7 @@ export const AppRoutes = () => (
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/mobile-sign-in" element={<MobileSignInPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

@@ -113,10 +113,13 @@ app.get("/sitemap.xml", requireDatabaseConnection, async (req, res, next) => {
 
 app.get('/api/mobile/capabilities', (req, res) => {
   const { isMailerConfigured } = require('./utils/mailer');
-  res.set('Cache-Control', 'no-store').json({ security: true, email: isMailerConfigured(), messaging: true, push: false, assistant: false });
+  res.set('Cache-Control', 'no-store').json({ security: true, email: isMailerConfigured(), messaging: true, push: false, assistant: require("./routes/assistantRoutes").ready() });
 });
 app.use('/api/mobile-security', requireDatabaseConnection, require('./routes/mobileSecurityRoutes'));
 app.use('/api/mobile-workspace', requireDatabaseConnection, require('./routes/mobileMessagingRoutes'));
+app.use("/api/scholarships", requireDatabaseConnection, require("./routes/scholarshipRoutes"));
+app.use("/api/assistant", requireDatabaseConnection, require("./routes/assistantRoutes").router);
+app.use("/api/identity", requireDatabaseConnection, require("./routes/identityRoutes"));
 app.use("/api/auth", requireDatabaseConnection, authRoutes);
 app.use("/api/students", requireDatabaseConnection, studentRoutes);
 app.use("/api/partners", requireDatabaseConnection, partnerRoutes);

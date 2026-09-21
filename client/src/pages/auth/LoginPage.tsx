@@ -1,3 +1,4 @@
+import { IdentityLogin } from "../../components/auth/IdentityLogin";
 import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,7 +40,7 @@ export const LoginPage = () => {
 
   useEffect(() => {
     if (user) {
-      navigate(getHomeRouteForRole(user.role, user.permissions), {
+      navigate((sessionStorage.getItem("mobileSignInRequest") ? `/mobile-sign-in?request=${encodeURIComponent(sessionStorage.getItem("mobileSignInRequest")!)}` : getHomeRouteForRole(user.role, user.permissions)), {
         replace: true,
       });
     }
@@ -49,7 +50,7 @@ export const LoginPage = () => {
     setFormError("");
     try {
       const user = await login(values.email, values.password, values.twoFactorCode);
-      navigate(getHomeRouteForRole(user.role, user.permissions));
+      navigate((sessionStorage.getItem("mobileSignInRequest") ? `/mobile-sign-in?request=${encodeURIComponent(sessionStorage.getItem("mobileSignInRequest")!)}` : getHomeRouteForRole(user.role, user.permissions)));
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 428) setRequiresCode(true);
       setFormError(getErrorMessage(error, t("authFailed")));
@@ -62,7 +63,7 @@ export const LoginPage = () => {
 
     try {
       const user = await googleLogin(credential);
-      navigate(getHomeRouteForRole(user.role, user.permissions));
+      navigate((sessionStorage.getItem("mobileSignInRequest") ? `/mobile-sign-in?request=${encodeURIComponent(sessionStorage.getItem("mobileSignInRequest")!)}` : getHomeRouteForRole(user.role, user.permissions)));
     } catch (error) {
       setFormError(
         getErrorMessage(
@@ -127,6 +128,7 @@ export const LoginPage = () => {
         </p>
       ) : null}
 
+      <IdentityLogin />
       <p className="mt-5 text-center text-sm text-slate-600">
         {t("registerPrompt")}{" "}
         <Link to="/register" className="font-semibold text-brand-700">

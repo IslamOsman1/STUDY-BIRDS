@@ -6,7 +6,7 @@ import { AppRoutes } from "../routes/AppRoutes";
 
 export default function App() {
   const { pathname } = useLocation();
-  const accountFlow = ["/login", "/register", "/forgot-password", "/account/security"].includes(pathname);
+  const accountFlow = ["/login", "/register", "/forgot-password", "/account/security", "/mobile-sign-in"].includes(pathname);
   return (
     <>
       <LanguageRouteSync />
