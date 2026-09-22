@@ -1,0 +1,57 @@
+[
+  {
+    "path": "server/src/models/Application.js",
+    "before": "512e1986c73dfb4ec1604c4cec6761fa587050fd751edb4701e32a0e72b1bba3",
+    "after": "7173873cba098b8bbc33757f239c9dbbe9ac3669ebeeb4a29066525bd0ea6c7f"
+  },
+  {
+    "path": "server/src/models/WorkerLease.js",
+    "before": null,
+    "after": "4eedb486fae4a4bbaaf065ccc4413a12201bfa7bb4fb634d46c1a0e7d47a68bf"
+  },
+  {
+    "path": "server/src/controllers/applicationAssignmentController.js",
+    "before": "2661b7d87307e9c7d006388c5730aba4de0ed217c5a95357d2a328746fe78b93",
+    "after": "f1d26fe49e7756bd32d9e360907524fd1cf916b422ec33e8ce5bb02909677ac2"
+  },
+  {
+    "path": "server/src/utils/automaticApplicationAssignment.js",
+    "before": null,
+    "after": "076f071e2fc1f98e212ba2018a8ddb38931e9d99d2d959586269f2d1d716be25"
+  },
+  {
+    "path": "server/src/utils/studentJourney.js",
+    "before": "45f8b2802e74109423bbaa7202c88a355ac99b5bfa3df2d876bc9db178dd87ff",
+    "after": "cfb230853c555a05e569a75b22b5c3aaf6fac2c25f34894b5a6e60d3e6bafdf5"
+  },
+  {
+    "path": "server/src/server.js",
+    "before": "8fc13efb5e34882c157a6db46ff49d67363120961d96707f2db5a1c85ca327d3",
+    "after": "514c37abcc8e1d4810afb92c41080ae54ec71f87c9e7248f92e864e8919b11d3"
+  },
+  {
+    "path": "server/.env.example",
+    "before": "3564e071c3cf6dfa53368725ca8893a0ae96838ee9aa7d507b5c3980aa690f51",
+    "after": "6d7fe71de6946c72a4e6cb08323d9e4dcdafb3ad183bd6f073ac65423efe3919"
+  },
+  {
+    "path": "server/tests/automaticApplicationAssignment.test.js",
+    "before": null,
+    "after": "364c058aaa1541be076f3a46a7f1d7808d7c11871265154e1c1f76611adacaa4"
+  },
+  {
+    "path": "server/tests/applicationAssignment.test.js",
+    "before": "564d7edc97aefd034b93b336c2c1ab767658f796c9789628a5246a3b3321d449",
+    "after": "8eb661b54fff9410aa26b540dda2e77d7c07916c9f1b5130d95de1ff77a7a1b5"
+  },
+  {
+    "path": "client/src/components/admin/ApplicationAssignment.tsx",
+    "before": "647962488c64a6856d6bf8441dfd9e15ec65dbb02e0187a1e28519bc4e547213",
+    "after": "cf11a2d2ee0b963080bbc5bc273a6b29ff7079c30152f5c1db8d69fb68a79d71"
+  },
+  {
+    "path": "AUTOMATIC_ASSIGNMENT.md",
+    "before": null,
+    "after": "e837433b873fe9ed331e48e2afa16a70a2c59a80940f9a7101fd8d1bcbb0f64a"
+  }
+]

@@ -1,0 +1,437 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'device_lock.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'api_client.dart';
+import '../app_shell.dart';
+import '../screens/roles/parent_dashboard_screen.dart';
+import '../screens/roles/agent_dashboard_screen.dart';
+import '../screens/roles/university_dashboard_screen.dart';
+import '../screens/roles/employee_dashboard_screen.dart';
+
+/// Central role enum — the single source of truth for role names across the
+/// app. Never compare against raw strings like 'Student'/'student' elsewhere;
+/// always go through this enum to avoid the inconsistent-casing problem.
+///
+/// NOTE: these names are the app's own vocabulary (kept for UI/UX
+/// continuity — "agent"/"employee" read better in-app than the backend's
+/// internal "partner"/"admin"). The backend's real role strings are
+/// different; see [UserRoleWire] below for the mapping both ways.
+enum UserRole { student, parent, agent, university, employee, admin }
+
+extension UserRoleX on UserRole {
+  String get label {
+    switch (this) {
+      case UserRole.student:
+        return 'طالب';
+      case UserRole.parent:
+        return 'ولي أمر';
+      case UserRole.agent:
+        return 'وكيل';
+      case UserRole.university:
+        return 'جامعة';
+      case UserRole.employee:
+        return 'موظف';
+      case UserRole.admin:
+        return 'مدير النظام';
+    }
+  }
+
+  /// Serialized form used for local persistence (SharedPreferences) — stable
+  /// and explicit, independent of enum declaration order.
+  String get key => name;
+
+  static UserRole? fromKey(String? key) {
+    for (final r in UserRole.values) {
+      if (r.key == key) return r;
+    }
+    return null;
+  }
+}
+
+/// Maps between the app's UserRole and the REAL role strings the backend
+/// uses ("student" | "admin" | "partner" | "parent" | "university" — see
+/// server/src/models/User.js). This is the ONLY place that mapping lives.
+extension UserRoleWire on UserRole {
+  String get wireValue {
+    switch (this) {
+      case UserRole.student:
+        return 'student';
+      case UserRole.parent:
+        return 'parent';
+      case UserRole.agent:
+        return 'partner';
+      case UserRole.university:
+        return 'university';
+      case UserRole.employee:
+        return 'employee';
+      case UserRole.admin:
+        return 'admin';
+    }
+  }
+
+  static UserRole? fromWire(String? wire) {
+    switch (wire) {
+      case 'student':
+        return UserRole.student;
+      case 'parent':
+        return UserRole.parent;
+      case 'partner':
+        return UserRole.agent;
+      case 'university':
+        return UserRole.university;
+      case 'employee':
+        return UserRole.employee;
+      case 'admin':
+        return UserRole.admin;
+      default:
+        return null;
+    }
+  }
+}
+
+/// The authenticated account, parsed directly from the backend's
+/// `/api/auth/login`, `/api/auth/register`, and `/api/auth/me` responses.
+/// The role and permissions ALWAYS come from here, never from whatever the
+/// person tapped on the "Who Are You?" screen.
+class AuthUser {
+  final String id;
+  final String name;
+  final String email;
+  final UserRole role;
+  final String? employeeRole; // e.g. 'admission', 'finance', 'super_admin'
+  final Set<String> permissions;
+  final String? linkedUniversityId;
+
+  const AuthUser({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+    this.employeeRole,
+    this.permissions = const {},
+    this.linkedUniversityId,
+  });
+
+  /// Parses the `user` object exactly as returned by the backend's
+  /// serializeUser() (see server/src/controllers/authController.js).
+  factory AuthUser.fromJson(Map<String, dynamic> json) {
+    final role = UserRoleWire.fromWire(json['role'] as String?);
+    if (role == null) {
+      throw ApiException(
+          0, 'Unknown role "${json['role']}" returned by server');
+    }
+
+    final rawPermissions = json['permissions'];
+    final linked = json['linkedUniversity'];
+
+    return AuthUser(
+      id: json['_id'] as String? ?? json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      role: role,
+      employeeRole: json['employeeRole'] as String?,
+      permissions: rawPermissions is List
+          ? rawPermissions.map((e) => e.toString()).toSet()
+          : const {},
+      linkedUniversityId: linked is String
+          ? linked
+          : (linked is Map ? linked['_id'] as String? : null),
+    );
+  }
+}
+
+/// Real backend authentication — talks to the Study Birds API on Render.
+/// See server/src/routes/authRoutes.js for the exact endpoints.
+class AuthService {
+  AuthService._();
+  static final AuthService instance = AuthService._();
+
+  /// Returns the authenticated user on success, or null on bad credentials
+  /// / any request failure. Callers that need the specific failure reason
+  /// can call [loginOrThrow] instead.
+  Future<AuthUser?> login(String email, String password) async {
+    try {
+      return (await loginOrThrow(email, password)).user;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Same as [login] but throws [ApiException] with the backend's own
+  /// message on failure (e.g. "Invalid credentials") instead of swallowing
+  /// it — use this where the UI can show a specific error.
+  Future<({AuthUser user, String token})> loginOrThrow(
+      String email, String password,
+      {String? twoFactorCode}) async {
+    final data = await ApiClient.instance.post('/auth/login', body: {
+      'email': email.trim(),
+      'password': password,
+      if (twoFactorCode != null) 'twoFactorCode': twoFactorCode,
+    });
+    final user = AuthUser.fromJson(data['user'] as Map<String, dynamic>);
+    final token = data['token'] as String;
+    return (user: user, token: token);
+  }
+
+  /// Public registration — the backend always forces role="student" here,
+  /// matching the spec rule that nobody can self-register as
+  /// parent/agent/university/admin.
+  Future<({AuthUser user, String token})> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final data = await ApiClient.instance.post('/auth/register', body: {
+      'name': name,
+      'email': email.trim(),
+      'password': password,
+    });
+    final user = AuthUser.fromJson(data['user'] as Map<String, dynamic>);
+    final token = data['token'] as String;
+    return (user: user, token: token);
+  }
+
+  /// Re-fetches the current user from a previously-stored token — used on
+  /// app start to restore the session. Returns null if the token is
+  /// invalid/expired, so the caller falls back to the login screen.
+  Future<AuthUser?> fetchCurrentUser(String token) async {
+    try {
+      final data = await ApiClient.instance.get('/auth/me', token: token);
+      return AuthUser.fromJson(data['user'] as Map<String, dynamic>);
+    } on ApiException catch (e) {
+      if (e.statusCode == 401 || e.statusCode == 403) return null;
+      rethrow;
+    }
+  }
+}
+
+/// Holds the current session in memory and persists the real JWT token, so
+/// [ApiClient] calls elsewhere in the app can attach it and the session
+/// survives app restarts. On restore, the token is re-validated against the
+/// backend (`/api/auth/me`) rather than trusting any locally-cached role.
+class AuthSession extends ChangeNotifier {
+  AuthSession._();
+  static final AuthSession instance = AuthSession._();
+
+  AuthUser? currentUser;
+  String? token;
+  bool _restored = false;
+  bool get isRestored => _restored;
+
+  Future<void> restore() async {
+    if (_restored) return;
+    final prefs = await SharedPreferences.getInstance();
+    var storedToken =
+        await const FlutterSecureStorage().read(key: 'active_session_token');
+    final legacy = prefs.getString('session_token');
+    if (storedToken == null && legacy != null) {
+      await const FlutterSecureStorage()
+          .write(key: 'active_session_token', value: legacy);
+      storedToken = legacy;
+    }
+    await prefs.remove('session_token');
+
+    if (storedToken != null) {
+      final user = await AuthService.instance.fetchCurrentUser(storedToken);
+      if (user != null) {
+        currentUser = user;
+        token = storedToken;
+      } else {
+        // Token expired/invalid — clear it so we don't keep retrying.
+        await const FlutterSecureStorage().delete(key: 'active_session_token');
+      }
+    }
+
+    _restored = true;
+    notifyListeners();
+  }
+
+  Future<void> login(AuthUser user, {String? authToken}) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (authToken != null) {
+      await const FlutterSecureStorage()
+          .write(key: 'active_session_token', value: authToken);
+    } else {
+      await const FlutterSecureStorage().delete(key: 'active_session_token');
+    }
+    await prefs.remove('session_token');
+    currentUser = user;
+    token = authToken;
+    notifyListeners();
+  }
+
+  Future<void> logout() async {
+    currentUser = null;
+    token = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('session_token');
+    await const FlutterSecureStorage().delete(key: 'active_session_token');
+    await DeviceLock.instance.clear();
+    notifyListeners();
+  }
+}
+
+/// THE single centralized role→home mapping. Every login/registration/
+/// session-restore path in the app must call this — never scatter
+/// `if (role == ...) Navigator.push(...)` logic across multiple screens.
+/// Each destination is wrapped in its own [RoleGuard] so that even if this
+/// function is reached some other way (e.g. a future deep link), the guard
+/// still re-validates against the REAL authenticated role.
+Widget getHomeRouteForUser(AuthUser user) {
+  switch (user.role) {
+    case UserRole.student:
+      return RoleGuard(
+          requiredRole: UserRole.student, child: const StudentAppShell());
+    case UserRole.parent:
+      return RoleGuard(
+          requiredRole: UserRole.parent, child: const ParentDashboardScreen());
+    case UserRole.agent:
+      return RoleGuard(
+          requiredRole: UserRole.agent, child: const AgentDashboardScreen());
+    case UserRole.university:
+      return RoleGuard(
+          requiredRole: UserRole.university,
+          child: const UniversityDashboardScreen());
+    case UserRole.employee:
+      return RoleGuard(
+          requiredRole: UserRole.employee,
+          child: EmployeeDashboardScreen(user: user));
+    case UserRole.admin:
+      return RoleGuard(
+          requiredRole: UserRole.admin,
+          child: EmployeeDashboardScreen(user: user));
+  }
+}
+
+String _employeeRoleLabel(String? employeeRole) {
+  switch (employeeRole) {
+    case 'educational_consultant':
+      return 'مستشار تعليمي';
+    case 'sales':
+      return 'مبيعات (Sales)';
+    case 'admission':
+      return 'مسؤول قبول (Admission)';
+    case 'admission_manager':
+      return 'مدير قبول';
+    case 'visa_officer':
+      return 'مسؤول تأشيرات';
+    case 'travel_coordinator':
+      return 'منسق سفر';
+    case 'accommodation_officer':
+      return 'مسؤول سكن';
+    case 'finance':
+      return 'مالية (Finance)';
+    case 'customer_support':
+      return 'دعم فني (Customer Support)';
+    case 'branch_manager':
+      return 'مدير فرع';
+    case 'operations':
+      return 'عمليات';
+    case 'marketing':
+      return 'تسويق';
+    case 'university_relations':
+      return 'علاقات الجامعات';
+    case 'agent_manager':
+      return 'مدير الوكلاء';
+    case 'content_manager':
+      return 'مدير محتوى';
+    case 'super_admin':
+      return 'مدير النظام (Super Admin)';
+    default:
+      return 'موظف Study Birds (لم يُحدد دوره بعد)';
+  }
+}
+
+/// Maps the string key from the "Who Are You?" screen to a [UserRole] for
+/// comparison against the REAL authenticated role. This claimed value is
+/// used only to decide whether to warn about a mismatch — it never grants
+/// any permission by itself.
+UserRole? claimedRoleFromKey(String key) {
+  switch (key) {
+    case 'student':
+      return UserRole.student;
+    case 'parent':
+      return UserRole.parent;
+    case 'agent':
+      return UserRole.agent;
+    case 'university':
+      return UserRole.university;
+    case 'employee':
+      return UserRole.employee;
+    default:
+      return null;
+  }
+}
+
+/// Route guard: wrap any role-specific screen with this. If the currently
+/// authenticated user's REAL role doesn't match, the screen never renders —
+/// an Access Denied screen shows instead. This protects against direct
+/// navigation/deep-links bypassing the login flow, independent of whatever
+/// was selected on the "Who Are You?" screen.
+class RoleGuard extends StatelessWidget {
+  final UserRole requiredRole;
+  final Widget child;
+  final String? requiredPermission;
+
+  const RoleGuard(
+      {super.key,
+      required this.requiredRole,
+      required this.child,
+      this.requiredPermission});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = AuthSession.instance.currentUser;
+    final roleOk = user != null && user.role == requiredRole;
+    final permissionOk = requiredPermission == null ||
+        user == null ||
+        user.permissions.contains('*') ||
+        user.permissions.contains(requiredPermission);
+
+    if (!roleOk || !permissionOk) {
+      return const AccessDeniedScreen();
+    }
+    return child;
+  }
+}
+
+class AccessDeniedScreen extends StatelessWidget {
+  const AccessDeniedScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.block_rounded,
+                    size: 56, color: Colors.redAccent),
+                const SizedBox(height: 16),
+                const Text('غير مصرح لك بالوصول لهذه الصفحة',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    textAlign: TextAlign.center),
+                const SizedBox(height: 8),
+                const Text('هذا القسم مخصص لنوع حساب مختلف عن حسابك الحالي.',
+                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                    textAlign: TextAlign.center),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).popUntil((r) => r.isFirst),
+                  child: const Text('الرجوع للبداية'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

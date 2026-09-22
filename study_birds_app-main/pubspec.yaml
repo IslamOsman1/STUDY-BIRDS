@@ -1,0 +1,49 @@
+name: study_birds
+description: Study Birds — study abroad companion app (UI screens package)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  url_launcher: ^6.3.0
+  shared_preferences: ^2.3.2
+  flutter_secure_storage: ^9.2.4
+  http: ^1.2.2
+  http_parser: ^4.0.2
+  flutter_animate: ^4.5.0
+  file_picker: ^8.1.2
+  local_auth: ^3.0.2
+  crypto: ^3.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
+  # After `flutter pub get`, run: flutter pub run flutter_launcher_icons
+  # This generates the real Study Birds app icon for Android + iOS from
+  # assets/images/app_icon.png (the bird mark on a white background).
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+  assets:
+    - assets/images/logo_full.png
+    - assets/images/logo_mark.png
+    - assets/images/app_icon.png
