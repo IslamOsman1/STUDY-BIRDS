@@ -1,3 +1,4 @@
+import { DocumentFileLink } from "../../components/DocumentFileLink";
 import { useEffect, useState } from "react";
 import { Send } from "lucide-react";
 import { adminService } from "../../services/adminService";
@@ -52,6 +53,7 @@ export const AdminSupportTicketsPage = () => {
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{item.status}</span>
             </div>
             <p className="mt-4 text-sm leading-7 text-slate-600">{item.message}</p>
+              {item.attachment?.filePath && <DocumentFileLink path={item.attachment.filePath} className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-slate-200 px-4 text-sm font-semibold text-orange-700">{item.attachment.fileName || (isArabic ? "فتح المرفق" : "Open attachment")}</DocumentFileLink>}
             {item.replies?.length ? (
               <div className="mt-5 space-y-3 rounded-3xl bg-slate-50 p-4">
                 {item.replies.map((reply, index) => (

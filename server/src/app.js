@@ -121,6 +121,8 @@ app.use("/api/scholarships", requireDatabaseConnection, require("./routes/schola
 app.use("/api/assistant", requireDatabaseConnection, require("./routes/assistantRoutes").router);
 app.use("/api/identity", requireDatabaseConnection, require("./routes/identityRoutes"));
 app.use("/api/auth", requireDatabaseConnection, authRoutes);
+app.use("/api/support-attachments", requireDatabaseConnection, require("./routes/supportAttachmentAccessRoutes"));
+app.use("/api/payment-proofs", requireDatabaseConnection, require("./routes/paymentProofAccessRoutes"));
 app.use("/api/documents", requireDatabaseConnection, require("./routes/documentAccessRoutes"));
 app.use("/api/students", requireDatabaseConnection, studentRoutes);
 app.use("/api/partners", requireDatabaseConnection, partnerRoutes);
@@ -137,3 +139,4 @@ app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
+

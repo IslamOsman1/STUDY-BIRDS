@@ -67,12 +67,12 @@ export const getDownloadableAssetUrl = (path?: string) => {
   return assetUrl;
 };
 
-export const privateDocumentId = (path?: string) => path?.match(/^\/api\/documents\/([a-f0-9]{24})\/access$/i)?.[1];
+export const privateDocumentId = (path?: string) => path?.match(/^\/api\/(?:documents|payment-proofs|support-attachments)\/([a-f0-9]{24})\/access$/i)?.[1];
 
 export const downloadApiAsset = async (path?: string, fileName?: string) => {
   const documentId = privateDocumentId(path);
   if (documentId) {
-    const { data } = await api.post<{url: string; expiresAt: number}>(`/documents/${documentId}/access`);
+    const { data } = await api.post<{url: string; expiresAt: number}>(path!.slice(4));
     const url = new URL(data.url);
     if (url.protocol !== 'https:' || url.hostname !== 'api.cloudinary.com') throw new Error('Invalid document download URL');
     const link = document.createElement('a');

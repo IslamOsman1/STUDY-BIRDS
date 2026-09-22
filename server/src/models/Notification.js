@@ -21,6 +21,8 @@ const notificationSchema = new mongoose.Schema(
       default: "info",
     },
     link: String,
+    reminderApplication: { type: mongoose.Schema.Types.ObjectId, ref: "Application" },
+    reminderDueAt: Date,
     isRead: {
       type: Boolean,
       default: false,

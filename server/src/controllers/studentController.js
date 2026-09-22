@@ -1,3 +1,4 @@
+const { studentJourneys } = require('../utils/studentJourney');
 const mongoose = require('mongoose');
 const { uploadPrivateDocument } = require('../utils/privateDocumentStorage');
 const { studentNextAction } = require("../utils/studentNextAction");
@@ -17,7 +18,6 @@ const Program = require("../models/Program");
 const University = require("../models/University");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
-const { uploadFileToCloudinary } = require("../utils/uploadToCloudinary");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
@@ -208,6 +208,7 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
   const [profile, applications, documents, notifications, invoices, unreadCount] = await Promise.all([
     StudentProfile.findOne({ user: req.user._id }).lean(),
     Application.find({ student: req.user._id })
+      .populate('assignedAdvisor', 'name isActive')
       .populate({
         path: "program",
         populate: {
@@ -232,6 +233,7 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
   res.json({
     profile: profile || null,
     nextAction: studentNextAction({ applications, documents, invoices }),
+    journeys: studentJourneys({ applications, documents, invoices }),
     progress: {
       currentStage,
       stages: STUDENT_DASHBOARD_STAGES.map((stage, index) => ({
@@ -360,18 +362,22 @@ const createStudentSupportTicket = asyncHandler(async (req, res) => {
     throw new Error("Invalid support ticket category");
   }
 
-  let attachment;
+  const ticketId = new mongoose.Types.ObjectId();
+  let attachment, attachmentStorage;
   if (req.file) {
-    const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/student-support");
+    const uploadResult = await uploadPrivateDocument(req.file);
+    attachmentStorage = uploadResult;
     attachment = {
       fileName: req.file.originalname,
-      filePath: uploadResult.url,
+      filePath: `/api/support-attachments/${ticketId}/access`,
       mimeType: req.file.mimetype,
       size: uploadResult.bytes || req.file.size,
     };
   }
 
   const ticket = await SupportTicket.create({
+    _id: ticketId,
+    attachmentStorage,
     user: req.user._id,
     requesterRole: "student",
     subject: String(subject).trim(),
@@ -387,7 +393,9 @@ const createStudentSupportTicket = asyncHandler(async (req, res) => {
     ],
   });
 
-  res.status(201).json(ticket);
+  const result = ticket.toObject();
+  delete result.attachmentStorage;
+  res.status(201).json(result);
 });
 
 const getStudentKnowledgeBase = asyncHandler(async (req, res) => {
@@ -429,12 +437,14 @@ const uploadPaymentProof = asyncHandler(async (req, res) => {
     throw new Error("Invoice not found");
   }
 
-  const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/payment-proofs");
+  const uploadResult = await uploadPrivateDocument(req.file);
+  const proofId = new mongoose.Types.ObjectId();
   const proof = await PaymentProof.create({
+    _id: proofId, storage: uploadResult,
     student: req.user._id,
     invoice: invoice._id,
     fileName: req.file.originalname,
-    filePath: uploadResult.url,
+    filePath: `/api/payment-proofs/${proofId}/access`,
     mimeType: req.file.mimetype,
     size: uploadResult.bytes || req.file.size,
     amount: Number(req.body.amount || invoice.amount || 0),
@@ -451,7 +461,9 @@ const uploadPaymentProof = asyncHandler(async (req, res) => {
     type: "info",
   });
 
-  res.status(201).json(proof);
+  const response = proof.toObject();
+  delete response.storage;
+  res.status(201).json(response);
 });
 
 const getArrivalServiceRequest = asyncHandler(async (req, res) => {

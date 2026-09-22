@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+const { uploadPrivateDocument } = require("../utils/privateDocumentStorage");
 const StudentProfile = require("../models/StudentProfile");
 const User = require("../models/User");
 const AgentStudent = require("../models/AgentStudent");
@@ -421,18 +423,22 @@ const createSupportTicket = asyncHandler(async (req, res) => {
     throw new Error("Invalid support ticket category");
   }
 
-  let attachment;
+  const ticketId = new mongoose.Types.ObjectId();
+  let attachment, attachmentStorage;
   if (req.file) {
-    const uploadResult = await uploadFileToCloudinary(req.file, "study-birds/support-tickets");
+    const uploadResult = await uploadPrivateDocument(req.file);
+    attachmentStorage = uploadResult;
     attachment = {
       fileName: req.file.originalname,
-      filePath: uploadResult.url,
+      filePath: `/api/support-attachments/${ticketId}/access`,
       mimeType: req.file.mimetype,
       size: uploadResult.bytes || req.file.size,
     };
   }
 
   const ticket = await SupportTicket.create({
+    _id: ticketId,
+    attachmentStorage,
     user: req.user._id,
     agent: req.user._id,
     requesterRole: "partner",
@@ -451,7 +457,9 @@ const createSupportTicket = asyncHandler(async (req, res) => {
 
   await logActivity(req, req.user._id, "support.ticket-created", `Opened support ticket ${ticket.subject}`, { ticketId: ticket._id });
 
-  res.status(201).json(ticket);
+  const result = ticket.toObject();
+  delete result.attachmentStorage;
+  res.status(201).json(result);
 });
 
 const getPartnerNotifications = asyncHandler(async (req, res) => {

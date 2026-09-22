@@ -54,6 +54,8 @@ test('application requirements, document ownership, and dashboard isolation', as
     await Invoice.create({ student: a.user._id, invoiceNumber: 'own', description: 'A invoice', amount: 100, status: 'pending-confirmation' });
     await Notification.insertMany(Array.from({ length: 8 }, (_, index) => ({ user: a.user._id, title: `Notice ${index}`, message: 'Test', isRead: false })));
     const overview = await call('GET', '/students/overview', a.token);
+    assert.ok(Array.isArray(overview.journeys));
+    assert.ok(overview.journeys.every(j => j.stages.length === 3));
     assert.equal(overview.nextAction.code, 'payment-review');
     assert.equal(overview.stats.pendingPayments, 0);
     assert.equal(overview.stats.unreadNotifications, 9);

@@ -57,6 +57,46 @@ test('private upload, scoped access, expiration and public signer isolation', as
     await access(parent, 200); parentLink.status = 'rejected'; await parentLink.save(); await access(parent, 404);
     const application = await Application.create({ student: student._id, university: universityId, program: new mongoose.Types.ObjectId(), documents: [doc._id] });
     await access(university, 200); application.documents = []; await application.save(); await access(university, 404);
+    const Invoice = require('../src/models/Invoice');
+    const PaymentProof = require('../src/models/PaymentProof');
+    const finance = await User.create({ name: 'Finance', email: 'finance@example.test', role: 'employee', permissions: ['student-financials'] });
+    const invoice = await Invoice.create({ student: student._id, invoiceNumber: 'INV-private', description: 'Test invoice', amount: 100 });
+    const proofForm = new FormData(); proofForm.append('file', new Blob(['test receipt'], { type: 'application/pdf' }), 'receipt.pdf');
+    const proofResponse = await fetch(base + `/students/financials/invoices/${invoice._id}/payment-proof`, { method: 'POST', headers: { Authorization: `Bearer ${token(student)}` }, body: proofForm });
+    assert.equal(proofResponse.status, 201);
+    const proof = await proofResponse.json();
+    assert.equal(proof.storage, undefined);
+    assert.equal(proof.filePath, `/api/payment-proofs/${proof._id}/access`);
+    assert.equal((await PaymentProof.findById(proof._id)).storage, undefined);
+    for (const [actor, expected] of [[null,401],[student,200],[other,404],[finance,200],[staff,404],[university,404],[parent,404]]) {
+      const result = await fetch(base + `/payment-proofs/${proof._id}/access`, { method: 'POST', headers: actor ? { Authorization: `Bearer ${token(actor)}` } : {} });
+      assert.equal(result.status, expected);
+      if (expected === 200) { assert.equal(result.headers.get('cache-control'), 'no-store'); assert.ok((await result.json()).expiresAt > Date.now()/1000); }
+    }
+    parentLink.status = 'approved'; await parentLink.save();
+    assert.equal((await fetch(base + `/payment-proofs/${proof._id}/access`, { method: 'POST', headers: { Authorization: `Bearer ${token(parent)}` } })).status, 200);
+    assert.equal((await Invoice.findById(invoice._id)).status, 'pending-confirmation');
+    const SupportTicket = require('../src/models/SupportTicket');
+    const support = await User.create({ name: 'Support', email: 'support@example.test', role: 'employee', permissions: ['support'] });
+    const partner = await User.create({ name: 'Partner', email: 'partner@example.test', role: 'partner' });
+    const admin = await User.create({ name: 'Admin', email: 'admin@example.test', role: 'admin' });
+    for (const [owner, route] of [[student, '/students/support-tickets'], [partner, '/partners/tickets']]) {
+      const form = new FormData(); form.append('subject', 'Help'); form.append('message', 'Please review');
+      form.append('file', new Blob(['support attachment'], { type: 'application/pdf' }), 'help.pdf');
+      const response = await fetch(base + route, { method: 'POST', headers: { Authorization: `Bearer ${token(owner)}` }, body: form });
+      assert.equal(response.status, 201);
+      const ticket = await response.json();
+      assert.equal(ticket.attachmentStorage, undefined);
+      assert.equal(ticket.attachment.filePath, `/api/support-attachments/${ticket._id}/access`);
+      assert.equal((await SupportTicket.findById(ticket._id)).attachmentStorage, undefined);
+      for (const [actor, expected] of [[null,401],[owner,200],[support,200],[admin,200],[other,404],[finance,404],[staff,404],[university,404],[parent,404]]) {
+        const response = await fetch(base + `/support-attachments/${ticket._id}/access`, { method: 'POST', headers: actor ? { Authorization: `Bearer ${token(actor)}` } : {} });
+        assert.equal(response.status, expected);
+        if (expected === 200) { assert.equal(response.headers.get('cache-control'), 'no-store'); assert.ok((await response.json()).expiresAt > Date.now()/1000); }
+      }
+      await SupportTicket.updateOne({ _id: ticket._id }, { $unset: { attachmentStorage: 1 } });
+      assert.equal((await fetch(base + `/support-attachments/${ticket._id}/access`, { method: 'POST', headers: { Authorization: `Bearer ${token(owner)}` } })).status, 409);
+    }
     for (const type of ['authenticated', 'private', 'upload']) {
       const fake = `https://res.cloudinary.com/test-cloud/raw/${type}/v1/study-birds/private-documents/example.pdf`;
       const response = await fetch(base + '/content/file-open?url=' + encodeURIComponent(fake), { redirect: 'manual' });

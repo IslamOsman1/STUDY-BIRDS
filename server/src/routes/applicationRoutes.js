@@ -12,7 +12,11 @@ const router = express.Router();
 const { requireSection, authorizeApplicationRead } = require("../middleware/employeeAccess");
 
 const { attachApplicationDocument, requestApplicationDocument, reviewApplicationDocumentRequest } = require('../controllers/applicationDocumentController');
+const { getAssignment, updateAssignment } = require('../controllers/applicationAssignmentController');
 router.use(protect);
+router.use('/follow-up-reminders', require('./followUpReminderRoutes'));
+router.get('/:id/assignment', requireSection('applications'), getAssignment);
+router.patch('/:id/assignment', requireSection('applications'), updateAssignment);
 router.post('/:id/document-requests', requireSection('applications'), requestApplicationDocument);
 router.patch('/:id/document-requests/:requestId', requireSection('applications'), reviewApplicationDocumentRequest);
 router.patch('/:id/documents', authorize('student'), attachApplicationDocument);

@@ -73,6 +73,7 @@ const supportTicketSchema = new mongoose.Schema(
       enum: ["open", "in-progress", "answered", "closed"],
       default: "open",
     },
+    attachmentStorage: { type: new mongoose.Schema({ publicId: String, resourceType: String, deliveryType: String, format: String }, { _id: false }), select: false },
     attachment: {
       fileName: String,
       filePath: String,

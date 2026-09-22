@@ -22,6 +22,7 @@ const paymentProofSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    storage: { type: new mongoose.Schema({ publicId: String, resourceType: String, deliveryType: String, format: String }, { _id: false }), select: false },
     mimeType: String,
     size: Number,
     amount: Number,

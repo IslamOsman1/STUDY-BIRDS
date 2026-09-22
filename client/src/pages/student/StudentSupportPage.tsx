@@ -1,3 +1,4 @@
+import { DocumentFileLink } from "../../components/DocumentFileLink";
 import { useEffect, useState } from "react";
 import { EmptyState } from "../../components/EmptyState";
 import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT_AR, DOCUMENT_UPLOAD_HINT_EN } from "../../constants/upload";
@@ -100,6 +101,7 @@ export const StudentSupportPage = () => {
                 <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700">{ticket.status}</span>
               </div>
               <p className="mt-4 text-sm leading-7 text-slate-600">{ticket.message}</p>
+              {ticket.attachment?.filePath && <DocumentFileLink path={ticket.attachment.filePath} className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-slate-200 px-4 text-sm font-semibold text-orange-700">{ticket.attachment.fileName || (isArabic ? "فتح المرفق" : "Open attachment")}</DocumentFileLink>}
               {ticket.replies?.length ? (
                 <div className="mt-5 space-y-3 rounded-3xl bg-slate-50 p-4">
                   {ticket.replies.map((reply, index) => (

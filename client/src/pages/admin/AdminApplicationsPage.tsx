@@ -1,3 +1,5 @@
+import { FollowUpReminders } from '../../components/admin/FollowUpReminders';
+import { ApplicationAssignment } from '../../components/admin/ApplicationAssignment';
 import { ApplicationDocumentRequests } from '../../components/admin/ApplicationDocumentRequests';
 import { useEffect, useMemo, useState } from "react";
 import { Filter, Inbox, SendHorizontal, Trash2 } from "lucide-react";
@@ -21,6 +23,7 @@ export const AdminApplicationsPage = () => {
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [downloadingDocumentId, setDownloadingDocumentId] = useState("");
   const [formError, setFormError] = useState("");
+  const [focusedApplication, setFocusedApplication] = useState<string>();
   const [documentEditor, setDocumentEditor] = useState<string>();
   const [deleteTarget, setDeleteTarget] = useState<Application | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -31,8 +34,8 @@ export const AdminApplicationsPage = () => {
   }, []);
 
   const filteredApplications = useMemo(
-    () => applications.filter((application) => statusFilter === "all" || application.status === statusFilter),
-    [applications, statusFilter]
+    () => applications.filter((application) => (!focusedApplication || application._id === focusedApplication) && (statusFilter === "all" || application.status === statusFilter)),
+    [applications, statusFilter, focusedApplication]
   );
 
   const documentTypeLabels: Record<string, string> = {
@@ -117,6 +120,8 @@ export const AdminApplicationsPage = () => {
 
   return (
     <div className="space-y-6">
+      <FollowUpReminders onOpen={id => { setFocusedApplication(id); setStatusFilter("all"); setDocumentEditor(id); }} />
+      {focusedApplication && <button className="min-h-11 rounded-xl border px-4" onClick={() => setFocusedApplication(undefined)}>{language === "ar" ? "عرض جميع الطلبات" : "Show all applications"}</button>}
       <section className="panel p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-center gap-3">
@@ -245,8 +250,8 @@ export const AdminApplicationsPage = () => {
                   ) : null}
 
                   <div className="mt-4 rounded-3xl border border-slate-200 p-4">
-                    <button className="mb-3 min-h-11 font-semibold" aria-expanded={documentEditor === application._id} onClick={() => setDocumentEditor(documentEditor === application._id ? undefined : application._id)}>{language === 'ar' ? 'إدارة طلبات المستندات' : 'Manage document requests'}</button>
-                    {documentEditor === application._id && <ApplicationDocumentRequests id={application._id} />}
+                    <button className="mb-3 min-h-11 font-semibold" aria-expanded={documentEditor === application._id} onClick={() => setDocumentEditor(documentEditor === application._id ? undefined : application._id)}>{language === 'ar' ? 'إدارة المتابعة والمستندات' : 'Manage follow-up and documents'}</button>
+                    {documentEditor === application._id && <><ApplicationAssignment id={application._id} /><ApplicationDocumentRequests id={application._id} /></>}
                     <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{dt(language, "statusTimelineLabel")}</h3>
                     <div className="mt-4 space-y-3">
                       {timeline.length ? (

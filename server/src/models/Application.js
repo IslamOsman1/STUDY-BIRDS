@@ -60,6 +60,9 @@ const applicationSchema = new mongoose.Schema(
       ref: "University",
       required: true,
     },
+    assignedAdvisor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    followUpDueAt: { type: Date, default: null },
+    assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now } }],
     documents: [
       {
         type: mongoose.Schema.Types.ObjectId,
