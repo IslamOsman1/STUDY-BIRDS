@@ -67,7 +67,7 @@ const applicationSchema = new mongoose.Schema(
     },
     assignedAdvisor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     followUpDueAt: { type: Date, default: null },
-    assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now } }],
+    assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now }, source: { type: String, enum: ['manual', 'automatic'], default: 'manual' } }],
     documents: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -140,6 +140,7 @@ applicationSchema.index({ detailedStatus: 1, createdAt: -1 });
 applicationSchema.index({ reviewedBy: 1, updatedAt: -1 });
 applicationSchema.index({ university: 1, createdAt: -1 });
 applicationSchema.index({ program: 1, createdAt: -1 });
+applicationSchema.index({ assignedAdvisor: 1, status: 1, createdAt: 1 });
 
 applicationSchema.pre("save", function syncLegacyStatus(next) {
   if (this.isModified("detailedStatus")) {
