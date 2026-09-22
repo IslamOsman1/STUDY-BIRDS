@@ -16,8 +16,9 @@ const openApplication = {
 };
 const candidateApplication = {
   assignedAdvisor: null,
-  // An explicitly cleared manual assignment must remain unassigned.
-  'assignmentHistory.0': { $exists: false },
+  // A cleared manual assignment stays out of the queue unless staff explicitly
+  // re-queues it (autoAssignmentEligible) — see requeueAssignment.
+  $or: [{ 'assignmentHistory.0': { $exists: false } }, { autoAssignmentEligible: true }],
   status: { $in: ['submitted', 'under-review'] },
   detailedStatus: { $in: ['submitted', 'under-review', 'additional-documents-required'] },
 };
@@ -84,7 +85,7 @@ async function assignUnassignedApplications({ maxLoad = 20, followUpHours = 48, 
         ...candidateApplication, _id: application._id, __v: application.__v,
         status: application.status, detailedStatus: application.detailedStatus,
       }, {
-        $set: { assignedAdvisor: advisor._id, followUpDueAt: dueAt },
+        $set: { assignedAdvisor: advisor._id, followUpDueAt: dueAt, autoAssignmentEligible: false },
         $inc: { __v: 1 },
         $push: { assignmentHistory: { advisor: advisor._id, dueAt, changedAt: now, source: 'automatic' } },
       }, { runValidators: true });

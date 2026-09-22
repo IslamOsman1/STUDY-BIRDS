@@ -67,7 +67,11 @@ const applicationSchema = new mongoose.Schema(
     },
     assignedAdvisor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     followUpDueAt: { type: Date, default: null },
-    assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now }, source: { type: String, enum: ['manual', 'automatic'], default: 'manual' } }],
+    // Manually clearing an assignment permanently excludes the application from the
+    // automatic scheduler (see candidateApplication in automaticApplicationAssignment.js);
+    // this flag is the explicit staff opt-in to re-enter that queue.
+    autoAssignmentEligible: { type: Boolean, default: false },
+    assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now }, source: { type: String, enum: ['manual', 'automatic', 'requeued'], default: 'manual' } }],
     documents: [
       {
         type: mongoose.Schema.Types.ObjectId,

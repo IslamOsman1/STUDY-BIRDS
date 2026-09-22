@@ -61,7 +61,18 @@ test('assignment permissions, eligibility, version conflicts, audit and student 
   await call('PATCH',route,staff,{advisorId:null,dueAt:null,version:1});
   await sendFollowUpReminders(); assert.deepEqual(await call('GET','/applications/follow-up-reminders',staff),[]);
   saved=await Application.findById(app._id); assert.equal(saved.assignedAdvisor,null); assert.equal(saved.assignmentHistory.length,2);
+  const requeueRoute=`${route}/requeue`;
+  const view=await call('GET',route,staff); assert.equal(view.application.hasAssignmentHistory,true); assert.equal(view.application.autoAssignmentEligible,false);
+  await call('POST',requeueRoute,student,{version:saved.__v},403);
+  await call('POST',requeueRoute,staff,{version:saved.__v+1},409);
+  await call('POST',requeueRoute,staff,{version:saved.__v});
+  await call('POST',requeueRoute,staff,{version:saved.__v+1},409);
+  saved=await Application.findById(app._id);
+  assert.equal(saved.autoAssignmentEligible,true); assert.equal(saved.assignmentHistory.length,3);
+  assert.equal(saved.assignmentHistory[2].source,'requeued'); assert.equal(String(saved.assignmentHistory[2].changedBy),String(staff._id));
+  assert.equal((await call('GET',route,staff)).application.autoAssignmentEligible,true);
   await Application.updateOne({_id:app._id},{$set:{status:'rejected'}});
+  await call('POST',requeueRoute,staff,{version:saved.__v},409);
   await call('PATCH',route,staff,{...body,version:2},409);
   await Application.updateOne({_id:app._id},{$set:{assignedAdvisor:staff._id,followUpDueAt:new Date('2022-01-01')}});
   await sendFollowUpReminders();assert.equal(await Notification.countDocuments({reminderApplication:app._id}),2);

@@ -63,6 +63,20 @@ test('automatic admissions assignment on an isolated database', async t => {
       assert.equal((await Application.findById(manual._id)).assignmentHistory.length, 0);
     });
 
+    await t.test('re-queued manually cleared applications are picked up and the flag resets', async () => {
+      await clear();
+      const advisor = await person();
+      const requeued = await application({ assignmentHistory: [{ advisor: null, changedBy: advisor._id }], autoAssignmentEligible: true });
+      const stillExcluded = await application({ assignmentHistory: [{ advisor: null, changedBy: advisor._id }] });
+      assert.equal((await assign()).assigned, 1);
+      const saved = await Application.findById(requeued._id);
+      assert.equal(String(saved.assignedAdvisor), String(advisor._id));
+      assert.equal(saved.autoAssignmentEligible, false);
+      assert.equal(saved.assignmentHistory.length, 2);
+      assert.equal(saved.assignmentHistory[1].source, 'automatic');
+      assert.equal((await Application.findById(stillExcluded._id)).assignedAdvisor, null);
+    });
+
     await t.test('concurrent workers respect capacity and a live lease; expired leases recover', async () => {
       await clear();
       const advisor = await person();
