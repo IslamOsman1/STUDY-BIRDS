@@ -1,0 +1,32 @@
+[
+  {
+    "path": "server/src/models/Application.js",
+    "before": "5d168edfdde7a6688d56f59340fab993835b4eac3cbeb96b73121506a11c6126",
+    "after": "1b7b810f1fdf43344069e916be8ac7f7611e914f08392198f72d29dd04860987"
+  },
+  {
+    "path": "server/src/models/WorkerLease.js",
+    "before": null,
+    "after": "0d1cb193dfa99aa882e7942ff531945f82d88b1bd341fd2c0e5b9a0a913d0485"
+  },
+  {
+    "path": "server/src/utils/automaticApplicationAssignment.js",
+    "before": null,
+    "after": "0fcc647370f36d67096494486f93696dbae7d70e6438d6c392b14a069a396620"
+  },
+  {
+    "path": "server/src/server.js",
+    "before": "6427486c8b6db7e7e41c6adc3dded5d66ff11c1fe4c83f80068522fed02f8239",
+    "after": "0c7c39c165c61a839ac5ece6038713ea09385b01c252ad675cd5ddcb9c7b5f09"
+  },
+  {
+    "path": "server/tests/automaticApplicationAssignment.test.js",
+    "before": null,
+    "after": "371b63e448ccaa10402fdb37eb23981603c8d7360832a131494d4ff8b5a624fc"
+  },
+  {
+    "path": "AUTOMATIC_ASSIGNMENT.md",
+    "before": null,
+    "after": "732e0fe42acb98ed7a0cedf64dbca148768a2aeac5b51c240f0c79e95bb1f9de"
+  }
+]

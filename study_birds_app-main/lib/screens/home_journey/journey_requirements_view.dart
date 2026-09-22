@@ -73,7 +73,7 @@ class JourneyRequirementsView extends StatelessWidget {
                     style: AppTextStyles.cardTitle),
                 const SizedBox(height: 8),
                 Text(
-                    'تعرض كل رحلة مستندات وفواتير الطلب المرتبطة بها. المراجعة والقبول يتطلبان تأكيد الفريق.',
+                    'تابع مستندات وفواتير كل طلب، ومراحل ما بعد القبول وفق تحديثات الفريق.',
                     style: AppTextStyles.caption),
                 const SizedBox(height: 16),
                 if (journeys.isEmpty)
@@ -149,6 +149,19 @@ class JourneyRequirementsView extends StatelessWidget {
                           if ((stage['reference'] as String? ?? '').isNotEmpty)
                             Text('مرجع التحقق: ${stage['reference']}',
                                 style: AppTextStyles.caption),
+                          if (stage['status'] == 'overdue' &&
+                              stage['recordedStatus'] != null)
+                            Text('بانتظار: ${label(stage['recordedStatus'])}',
+                                style: AppTextStyles.caption),
+                          if (journey['closed'] != true &&
+                              stage['destination'] == 'support' &&
+                              !['completed', 'not-required']
+                                  .contains(stage['recordedStatus']))
+                            TextButton.icon(
+                                onPressed: () => open(context, 'support'),
+                                icon: const Icon(Icons.support_agent),
+                                label: Text(
+                                    'تواصل بشأن ${stage['titleAr'] ?? 'المرحلة'}')),
                         ],
                         const SizedBox(height: 14),
                         OutlinedButton.icon(
@@ -187,6 +200,8 @@ class JourneyRequirementsView extends StatelessWidget {
         'in-progress': 'قيد التنفيذ',
         'not-required': 'غير مطلوبة',
         'waiting': 'بانتظار المراجعة',
+        'waiting-team': 'بانتظار فريق Study Birds',
+        'waiting-university': 'بانتظار الجامعة',
         'action-required': 'مطلوب منك',
         'overdue': 'متأخرة',
         'rejected': 'غير مقبول',

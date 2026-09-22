@@ -389,7 +389,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                           expand: false,
                           onPressed: () =>
                               Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => overview.nextAction == null
+                            builder: (_) => overview.nextAction == null ||
+                                    overview.nextAction?['destination'] == 'journey'
                                 ? JourneyTrackerScreen(
                                     currentStageKey: overview.journeyStage,
                                     journeyPathLabel: journeyPathLabel)
