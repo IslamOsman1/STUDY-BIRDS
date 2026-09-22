@@ -1,0 +1,6 @@
+{
+  "passed": 16,
+  "database": "real isolated localhost MongoDB",
+  "storage": "Cloudinary adapter mocked; multipart and persistence real",
+  "completedAt": "2026-09-16T18:28:25.558Z"
+}

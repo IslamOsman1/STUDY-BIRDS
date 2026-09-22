@@ -1,0 +1,122 @@
+[
+  {
+    "path": "IDENTITY_SETUP.md",
+    "before": "0746d4d98c09a88adb33aadc4ea5188acc85643b58b12ace3e0c9140349ec9a5",
+    "after": "9ab5a2e4f5c983615318f38edc97ed12e1052f29b9c69d68ae35cf03073fb38e"
+  },
+  {
+    "path": "client/.env.example",
+    "before": "5087f6be7d77b72811ae521f058640399bd86c55b009e1eec1344c26671d8abf",
+    "after": "5087f6be7d77b72811ae521f058640399bd86c55b009e1eec1344c26671d8abf"
+  },
+  {
+    "path": "client/package-lock.json",
+    "before": "86679f8077b8f11e829f5b7873743523e8b9af48da57902e38acbc79ecac203f",
+    "after": "ff76cc61a7f33d389a87d9c93adf7a92690b2cfbc62906440a5d4c971f41d364"
+  },
+  {
+    "path": "client/package.json",
+    "before": "402b97965495c9604dae499a48af5fc0c94b8ff274cfab8674dabedc805bfbef",
+    "after": "473736e0eb1cb656d2b1a8e82a56ac4686aea3382110973ce07d75a6073dc87b"
+  },
+  {
+    "path": "client/src/app/App.tsx",
+    "before": "8c19bfcd993e3b02559c89c1e1eb4f14fe968e03d8f674bea985c9c70f1c3ecf",
+    "after": "bf7868e005b50bd08c51cbd41bc838993d34ff14126cb614adadd10c5eb53010"
+  },
+  {
+    "path": "client/src/components/auth/IdentityLogin.tsx",
+    "before": null,
+    "after": "5b99963ca17ea74f49d0de0b4b7438c275b345dcb57f7c5acae27c82f955e0e6"
+  },
+  {
+    "path": "client/src/components/auth/IdentitySettings.tsx",
+    "before": null,
+    "after": "1a499bbf33b1ace608773aa5227d1561d69756f026911f558e3fca77916e535c"
+  },
+  {
+    "path": "client/src/context/AuthContext.tsx",
+    "before": "9cdf40cdc2a5ee265fad79dc4a020302a74a5e36a9d05cb4766d8a9681411092",
+    "after": "b1e6d682d58d8282a2b771280b0d0ba4b7bd8217b96b03c8a07cbe402f7fbbe9"
+  },
+  {
+    "path": "client/src/pages/auth/AccountSecurityPage.tsx",
+    "before": "de1ac760af0d034dbc0faa3ebc85bc2ca65d8b93cd1e201dda362f7dfecb651d",
+    "after": "b16934f45169af7ccb48d275c334e3d00bcc11d8f88b6756a22c7090342398dc"
+  },
+  {
+    "path": "client/src/pages/auth/LoginPage.tsx",
+    "before": "34cfe7be78eb478887a06fb192c5aa0ef7afbe62002a06033cd244d7f38c4add",
+    "after": "f4667f0c81923c59c8e8dcdafecfd8acc31734ecae95beeeeb47e9135f8f2038"
+  },
+  {
+    "path": "client/src/pages/auth/MobileSignInPage.tsx",
+    "before": null,
+    "after": "c5e83706dc5c2042feb27e3347690ed77bd808559f8ac7df82247f7dc11440d0"
+  },
+  {
+    "path": "client/src/routes/AppRoutes.tsx",
+    "before": "97ee63127b92ccf8d843293d076f2f15a041832b966c81b8d3ea1e2ece554e6b",
+    "after": "91b0f827cffaa2797eed65e873ff916965af7c235610c044dfbe3c180b09837f"
+  },
+  {
+    "path": "server/.env.example",
+    "before": "2e8efb5ff5ff5584d8c23a3472546acb422cc3adf7c8659fec88ea54db3723ea",
+    "after": "6ba8ebaffd1bcd1340dcdd3ca55b269db0f6d4c887cd74276692b0c82170e4d6"
+  },
+  {
+    "path": "server/package-lock.json",
+    "before": "4084be4ac9cfae3c2ce6aa9cdbce04fd63b20c0dc170cd289ae4a3d0051fa2c3",
+    "after": "01faa975a447c04afd3ef519bac9ef00ab77573dcc0b29b872a47ac9dd234fb8"
+  },
+  {
+    "path": "server/package.json",
+    "before": "52035513277abce26f55c184c498396061bffc0a2a77dcc60916a90bcbc753f0",
+    "after": "66d24163cd2414a0745b8656313f7e1c3d336f6bb0ae5d067aebfd0dd2c88021"
+  },
+  {
+    "path": "server/src/app.js",
+    "before": "d9f89d870fc8bea8749995106ef25ea41918a03323ea6768e40bb447b97342e9",
+    "after": "c02f9734d603437345abd1f58fefaeb854900c4d68939ab0836c8442baa388ec"
+  },
+  {
+    "path": "server/src/controllers/authController.js",
+    "before": "21651ba72a26278da99b147bca8e6d0416b710daea665b09480a187f9c72c637",
+    "after": "9287d5e1c7c5cda4bf57ecf94a79e042e944d7b41fd6ea1c1287e3aa182296fd"
+  },
+  {
+    "path": "server/src/models/IdentityCredential.js",
+    "before": null,
+    "after": "6a6a57d844d02d2eaa01a6b4efa5536e08ade5c6e7ad29bf46ffcd9ae2a635e8"
+  },
+  {
+    "path": "server/src/models/User.js",
+    "before": "4ce290d465d83d793e68c95beffab61f3b5042928e55ce9d6d5cf5902ede9e48",
+    "after": "674156e47dd32d3b7c1a5f5d8052bc73385cae0f704a766c59a94b5b7542e7d8"
+  },
+  {
+    "path": "server/src/routes/assistantRoutes.js",
+    "before": null,
+    "after": "5f709d67ca09cba392124a864861a5072f5c14a558652d89bd8978bdc03f3c18"
+  },
+  {
+    "path": "server/src/routes/identityRoutes.js",
+    "before": null,
+    "after": "13324a6fd444c10f83bac8642f63a22a356d5f8e31af9ed0ba6fd639400a653a"
+  },
+  {
+    "path": "server/src/routes/scholarshipRoutes.js",
+    "before": null,
+    "after": "86727ccbe9113eab8b2a9fbc8a35591df8394953b97b09eaa3657c21686ddaf6"
+  },
+  {
+    "path": "server/tests/assistantRelease.test.js",
+    "before": null,
+    "after": "19ec8362fe237ecaeb8e82c6bab724215eb395acd08d28458af04baab1e8e225"
+  },
+  {
+    "path": "server/tests/identityRelease.test.js",
+    "before": null,
+    "after": "0dea0d26e5aa858edf1cab33d6fbe2b7e00bec36f9f55fd8b1603493d97bcb70"
+  }
+]
