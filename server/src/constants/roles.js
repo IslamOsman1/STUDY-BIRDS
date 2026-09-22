@@ -106,8 +106,8 @@ const JOURNEY_STAGE_TO_LEGACY_STAGE = Object.freeze({
 
 /**
  * The full 12-status application lifecycle (spec-aligned). NEW field
- * (Application.detailedStatus). The EXISTING Application.status (5 values)
- * is untouched — see APPLICATION_DETAILED_TO_LEGACY_STATUS below.
+ * (Application.detailedStatus). Website review actions are mapped below;
+ * detailed lifecycle updates map back to the original summary statuses.
  */
 const APPLICATION_DETAILED_STATUSES = Object.freeze({
   DRAFT: "draft",
@@ -127,6 +127,22 @@ const APPLICATION_DETAILED_STATUSES = Object.freeze({
 });
 
 const ALL_APPLICATION_DETAILED_STATUSES = Object.values(APPLICATION_DETAILED_STATUSES);
+
+// Website review actions and their corresponding detailed lifecycle stages.
+const APPLICATION_STATUS_TO_DETAILED_STATUS = Object.freeze({
+  draft: "draft",
+  submitted: "submitted",
+  "under-review": "under-review",
+  accepted: "accepted",
+  rejected: "rejected",
+  "preliminary-accepted": "conditional-admission",
+  "preliminary-accepted-first-payment": "payment-required",
+  "final-accepted": "final-admission",
+  "file-completed-accepted": "completed",
+  "file-completed-rejected": "rejected",
+});
+
+const ALL_APPLICATION_STATUSES = Object.keys(APPLICATION_STATUS_TO_DETAILED_STATUS);
 
 const APPLICATION_DETAILED_TO_LEGACY_STATUS = Object.freeze({
   draft: "draft",
@@ -184,6 +200,8 @@ module.exports = {
   LEGACY_APPLICATION_STAGES,
   JOURNEY_STAGE_TO_LEGACY_STAGE,
   APPLICATION_DETAILED_STATUSES,
+  ALL_APPLICATION_STATUSES,
+  APPLICATION_STATUS_TO_DETAILED_STATUS,
   ALL_APPLICATION_DETAILED_STATUSES,
   APPLICATION_DETAILED_TO_LEGACY_STATUS,
   DOCUMENT_DETAILED_STATUSES,

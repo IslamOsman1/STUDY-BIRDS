@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
-const activeDue = now => ({ assignedAdvisor: { $ne: null }, followUpDueAt: { $lte: now, $ne: null }, status: { $ne: 'rejected' }, detailedStatus: { $ne: 'completed' } });
+const activeDue = now => ({ assignedAdvisor: { $ne: null }, followUpDueAt: { $lte: now, $ne: null }, status: { $nin: ['rejected', 'file-completed-rejected', 'file-completed-accepted'] }, detailedStatus: { $nin: ['rejected', 'completed'] } });
 // A deterministic ObjectId makes concurrent scheduler instances and retries idempotent.
 const reminderId = app => new mongoose.Types.ObjectId(crypto.createHash('sha256').update(`follow-up:${app._id}:${app.assignedAdvisor}:${app.followUpDueAt.toISOString()}`).digest('hex').slice(0,24));
 async function sendFollowUpReminders(now = new Date()) {

@@ -5,6 +5,7 @@ const Program = require("../models/Program");
 const Document = require("../models/Document");
 const Notification = require("../models/Notification");
 const asyncHandler = require("../utils/asyncHandler");
+const { ALL_APPLICATION_STATUSES } = require("../constants/roles");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
@@ -132,6 +133,9 @@ const getApplicationById = asyncHandler(async (req, res) => {
 
 const updateApplicationStatus = asyncHandler(async (req, res) => {
   const { status, note } = req.body;
+  if (!ALL_APPLICATION_STATUSES.includes(status)) {
+    return res.status(400).json({ message: "Invalid application status" });
+  }
   const application = await Application.findById(req.params.id).populate("program");
 
   if (!application) {

@@ -1,4 +1,9 @@
 const mongoose = require("mongoose");
+const {
+  ALL_APPLICATION_STATUSES,
+  APPLICATION_STATUS_TO_DETAILED_STATUS,
+  APPLICATION_DETAILED_TO_LEGACY_STATUS,
+} = require("../constants/roles");
 
 const timelineSchema = new mongoose.Schema(
   {
@@ -91,13 +96,11 @@ const applicationSchema = new mongoose.Schema(
     notes: String,
     status: {
       type: String,
-      enum: ["draft", "submitted", "under-review", "accepted", "rejected"],
+      enum: ALL_APPLICATION_STATUSES,
       default: "submitted",
     },
-    // NEW — granular 12-value lifecycle used by the mobile app. `status`
-    // above is untouched and kept in sync automatically (see pre-save hook
-    // below), so the existing website admin table keeps filtering/rendering
-    // exactly as before with zero code changes there.
+    // Detailed lifecycle used by the mobile app, synchronized with website
+    // review actions by the pre-save hook below.
     detailedStatus: {
       type: String,
       enum: [
@@ -138,8 +141,6 @@ applicationSchema.index({ reviewedBy: 1, updatedAt: -1 });
 applicationSchema.index({ university: 1, createdAt: -1 });
 applicationSchema.index({ program: 1, createdAt: -1 });
 
-const { APPLICATION_DETAILED_TO_LEGACY_STATUS } = require("../constants/roles");
-
 applicationSchema.pre("save", function syncLegacyStatus(next) {
   if (this.isModified("detailedStatus")) {
     const legacyStatus = APPLICATION_DETAILED_TO_LEGACY_STATUS[this.detailedStatus];
@@ -148,8 +149,8 @@ applicationSchema.pre("save", function syncLegacyStatus(next) {
     }
   }
   if (this.isModified("status") && !this.isModified("detailedStatus")) {
-    const detailByLegacy = {"draft": "draft", "submitted": "submitted", "under-review": "under-review", "accepted": "accepted", "rejected": "rejected"};
-    if (detailByLegacy[this.status]) this.detailedStatus = detailByLegacy[this.status];
+    const detailedStatus = APPLICATION_STATUS_TO_DETAILED_STATUS[this.status];
+    if (detailedStatus) this.detailedStatus = detailedStatus;
   }
   next();
 });

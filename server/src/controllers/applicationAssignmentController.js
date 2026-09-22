@@ -19,7 +19,7 @@ const updateAssignment = asyncHandler(async (req, res) => {
   if (advisorId && !await User.exists({ _id: advisorId, ...eligible })) return res.status(400).json({ message: 'Choose an active admissions staff member' });
   const application = await Application.findById(req.params.id).lean();
   if (!application) return res.status(404).json({ message: 'Application not found' });
-  if (application.status === 'rejected' || application.detailedStatus === 'completed') return res.status(409).json({ message: 'Closed application cannot be reassigned' });
+  if (['rejected', 'file-completed-rejected', 'file-completed-accepted'].includes(application.status) || ['rejected', 'completed'].includes(application.detailedStatus)) return res.status(409).json({ message: 'Closed application cannot be reassigned' });
   const updated = await Application.findOneAndUpdate({ _id: application._id, __v: version, status: application.status, detailedStatus: application.detailedStatus }, {
     $set: { assignedAdvisor: advisorId, followUpDueAt: due }, $inc: { __v: 1 },
     $push: { assignmentHistory: { advisor: advisorId, dueAt: due, changedBy: req.user._id, changedAt: new Date() } },
