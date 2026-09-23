@@ -772,6 +772,13 @@ export interface ArrivalServiceRequestItem {
   };
   status: "draft" | "submitted" | "in-progress" | "completed";
   adminNote?: string;
+  travelAlert?: string;
+  pickup?: {
+    status?: "not-assigned" | "assigned" | "en-route" | "arrived" | "completed";
+    driverName?: string;
+    driverPhone?: string;
+    confirmedAt?: string | null;
+  };
   updatedBy?: Pick<User, "_id" | "name" | "email">;
   createdAt?: string;
   updatedAt?: string;

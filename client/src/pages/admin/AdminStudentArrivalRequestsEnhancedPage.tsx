@@ -25,7 +25,30 @@ export const AdminStudentArrivalRequestsEnhancedPage = () => {
     studentName: string;
   } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [driverDrafts, setDriverDrafts] = useState<Record<string, { driverName: string; driverPhone: string; travelAlert: string }>>({});
   const { toasts, pushToast, dismissToast } = useToasts();
+
+  const pickupStatusLabels: Record<string, [string, string]> = {
+    "not-assigned": ["لم يُسند بعد", "Not assigned"], assigned: ["تم إسناد السائق", "Driver assigned"],
+    "en-route": ["السائق في الطريق", "Driver en route"], arrived: ["تم الوصول", "Arrived"], completed: ["اكتمل الاستقبال", "Pickup completed"],
+  };
+  function draftFor(item: ArrivalServiceRequestItem) {
+    return driverDrafts[item._id] || { driverName: item.pickup?.driverName || "", driverPhone: item.pickup?.driverPhone || "", travelAlert: item.travelAlert || "" };
+  }
+  async function savePickup(item: ArrivalServiceRequestItem, pickupStatus?: NonNullable<ArrivalServiceRequestItem["pickup"]>["status"]) {
+    const draft = draftFor(item);
+    setSaving(true);
+    try {
+      const updated = await adminService.updateArrivalRequest(item._id, {
+        travelAlert: draft.travelAlert,
+        pickup: { driverName: draft.driverName, driverPhone: draft.driverPhone, ...(pickupStatus ? { status: pickupStatus } : {}) },
+      });
+      setItems((current) => current.map((row) => (row._id === item._id ? updated : row)));
+      pushToast(isArabic ? "تم تحديث بيانات الاستقبال." : "Pickup details updated.", "success");
+    } catch (issue) {
+      pushToast(getErrorMessage(issue, isArabic ? "تعذر حفظ بيانات الاستقبال." : "Unable to save pickup details."), "error");
+    } finally { setSaving(false); }
+  }
 
   useEffect(() => {
     adminService
@@ -161,6 +184,19 @@ export const AdminStudentArrivalRequestsEnhancedPage = () => {
                   {isArabic ? "مكتمل" : "Completed"}
                 </button>
               </div>
+
+              {item.services.airportPickup ? <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-sm font-semibold text-slate-700">{isArabic ? "استقبال المطار" : "Airport pickup"} — {pickupStatusLabels[item.pickup?.status || "not-assigned"][isArabic ? 0 : 1]}</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label>{isArabic ? "اسم السائق" : "Driver name"}<input className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={draftFor(item).driverName} onChange={(e) => setDriverDrafts((d) => ({ ...d, [item._id]: { ...draftFor(item), driverName: e.target.value } }))} /></label>
+                  <label>{isArabic ? "رقم اتصال السائق" : "Driver phone"}<input className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={draftFor(item).driverPhone} onChange={(e) => setDriverDrafts((d) => ({ ...d, [item._id]: { ...draftFor(item), driverPhone: e.target.value } }))} /></label>
+                </div>
+                <label className="mt-3 block">{isArabic ? "تنبيه/إرشادات سفر تظهر للطالب" : "Travel alert shown to the student"}<textarea rows={2} className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={draftFor(item).travelAlert} onChange={(e) => setDriverDrafts((d) => ({ ...d, [item._id]: { ...draftFor(item), travelAlert: e.target.value } }))} /></label>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" disabled={saving} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm" onClick={() => void savePickup(item)}>{isArabic ? "حفظ بيانات السائق والتنبيه" : "Save driver details & alert"}</button>
+                  {(["assigned", "en-route", "arrived", "completed"] as const).map((s) => <button key={s} type="button" disabled={saving} className="rounded-full bg-slate-900 px-3 py-1.5 text-sm text-white" onClick={() => void savePickup(item, s)}>{pickupStatusLabels[s][isArabic ? 0 : 1]}</button>)}
+                </div>
+              </div> : null}
             </article>
           ))}
         </div>
