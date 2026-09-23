@@ -511,6 +511,13 @@ export const FloatingAssistant = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // Other screens (e.g. the student home "Bird AI" shortcut) open the assistant with this event.
+  useEffect(() => {
+    const openAssistant = () => setOpen(true);
+    window.addEventListener("studybirds:open-assistant", openAssistant);
+    return () => window.removeEventListener("studybirds:open-assistant", openAssistant);
+  }, []);
+
   useEffect(() => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;

@@ -3,7 +3,7 @@ const Application = require('../models/Application');
 const asyncHandler = require('../utils/asyncHandler');
 const { hasSection } = require('../middleware/employeeAccess');
 const { STAGES, STATES, isPostAdmissionEligible, postAdmissionStages } = require('../utils/postAdmissionJourney');
-const view = app => ({ version: app.__v, eligible: isPostAdmissionEligible(app), stages: postAdmissionStages(app) });
+const view = app => ({ version: app.__v, eligible: isPostAdmissionEligible(app), stages: postAdmissionStages(app), studiesStartAt: app.studiesStartAt || null });
 const getPostAdmission = asyncHandler(async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Application not found' });
   if (req.user.role !== 'student' && !hasSection(req.user, 'applications')) return res.status(403).json({ message: 'Access denied' });
@@ -20,13 +20,18 @@ const updatePostAdmission = asyncHandler(async (req, res) => {
   }
   const due = dueAt === null ? null : typeof dueAt === 'string' ? new Date(dueAt) : new Date(NaN);
   if (due && !Number.isFinite(due.getTime())) return res.status(400).json({ message: 'Invalid deadline' });
+  // Optional: undefined leaves the study start date unchanged, null clears it.
+  const { studiesStartAt } = req.body;
+  const studiesStart = studiesStartAt === undefined || studiesStartAt === null ? studiesStartAt
+    : typeof studiesStartAt === 'string' ? new Date(studiesStartAt) : new Date(NaN);
+  if (studiesStart && !Number.isFinite(studiesStart.getTime())) return res.status(400).json({ message: 'Invalid study start date' });
   const app = await Application.findById(req.params.id).lean();
   if (!app) return res.status(404).json({ message: 'Application not found' });
   if (!isPostAdmissionEligible(app)) return res.status(409).json({ message: 'An active final admission is required' });
   const now = new Date();
   const values = { status, note: note.trim(), reference: reference.trim(), dueAt: due, updatedAt: now };
   const updated = await Application.findOneAndUpdate({ _id: app._id, __v: version, status: app.status, detailedStatus: app.detailedStatus }, {
-    $set: { [`postAdmission.${stage}`]: values }, $inc: { __v: 1 },
+    $set: { [`postAdmission.${stage}`]: values, ...(studiesStart !== undefined ? { studiesStartAt: studiesStart } : {}) }, $inc: { __v: 1 },
     $push: { postAdmissionHistory: { stage, fromStatus: app.postAdmission?.[stage]?.status || 'not-started', ...values, changedBy: req.user._id, changedAt: now } },
   }, { new: true, runValidators: true }).lean();
   if (!updated) return res.status(409).json({ message: 'Application changed. Refresh and retry.' });

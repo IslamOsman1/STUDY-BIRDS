@@ -487,7 +487,37 @@ export interface KnowledgeBaseItem {
   createdAt?: string;
 }
 
+// Home screen payload built by server/src/utils/studentHome.js.
+export interface StudentHomeDate {
+  key: string; date: string; daysLeft: number; overdue: boolean; critical: boolean;
+  titleAr: string; titleEn: string; destination: string; entityId: string;
+}
+export interface StudentHome {
+  greeting: { name: string };
+  context: { key: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; destination: string };
+  statusCard: {
+    statusInfo: StatusInfo | null; labelAr: string; labelEn: string; nextStepAr: string; nextStepEn: string;
+    nextStepDescriptionAr: string; nextStepDescriptionEn: string; destination: string; waiting: boolean;
+  };
+  currentJourney: { applicationId: string; country: string; city: string; university: string; program: string } | null;
+  progressPercent: number;
+  importantDates: StudentHomeDate[];
+  sections: {
+    application: { applicationId: string; program: string; statusInfo: StatusInfo } | null;
+    documents: { total: number; approved: number; needsAction: number; underReview: number };
+    admission: { statusInfo: StatusInfo } | null;
+    visa: { status: string; labelAr: string; labelEn: string; appointmentDate: string | null } | null;
+    travel: { arrivalDate: string | null; arrivalStatus: string | null; pickupStatus: string | null; housingStatus: string | null; moveInDate: string | null } | null;
+    payments: { unpaid: number; overdue: number; nextDueDate: string | null; nextDueAmount: number | null };
+    support: { openTickets: number };
+    notifications: { unread: number; latest: { title: string; message: string; createdAt: string } | null };
+    recentActivity: Array<{ at: string; kind: string; titleAr: string; titleEn: string; destination: string; entityId: string }>;
+  };
+  quickActions: Array<{ key: string; labelAr: string; labelEn: string; destination: string }>;
+}
+
 export interface StudentDashboardOverview {
+  home?: StudentHome;
   nextAction?: { code: string; destination: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; entityId: string; waiting: boolean; dueDate: string | null };
   profile: StudentProfile | null;
   progress: {

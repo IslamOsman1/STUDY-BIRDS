@@ -64,7 +64,12 @@ class DashboardOverview {
   final List<dynamic> recentApplications;
   final List<dynamic> recentDocuments;
 
+  /// Context-aware home payload (server utils/studentHome.js); null on older
+  /// servers, in which case the home screen keeps its previous layout.
+  final Map<String, dynamic>? home;
+
   const DashboardOverview({
+    this.home,
     this.nextAction,
     this.journeys,
     required this.profile,
@@ -85,6 +90,9 @@ class DashboardOverview {
     final progress = json['progress'] as Map<String, dynamic>? ?? {};
     final statsJson = json['stats'] as Map<String, dynamic>? ?? {};
     return DashboardOverview(
+      home: json['home'] is Map
+          ? Map<String, dynamic>.from(json['home'] as Map)
+          : null,
       journeys: (json['journeys'] as List<dynamic>?)
           ?.map((e) => Map<String, dynamic>.from(e as Map))
           .toList(),
