@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/app_theme.dart';
+import '../../core/status_info.dart';
 import '../../core/student_repository.dart';
 
 /// Maps the backend's document status (legacy 3-value `status`, or the
@@ -15,6 +16,8 @@ class DocStatusMeta {
 }
 
 DocStatusMeta docStatusMeta(Map<String, dynamic> doc) {
+  final info = StatusInfo.of(doc);
+  if (info != null) return DocStatusMeta(info.label, info.color);
   final detailed = doc['detailedStatus'] as String?;
   switch (detailed ?? doc['status'] as String? ?? 'pending') {
     case 'missing':
@@ -204,6 +207,10 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                       itemBuilder: (context, i) {
                         final d = _docs[i] as Map<String, dynamic>;
                         final meta = docStatusMeta(d);
+                        final info = StatusInfo.of(d);
+                        // Surface what to fix without opening the document.
+                        final needsAction = info != null &&
+                            (info.tone == 'action' || info.tone == 'danger');
                         return AppCard(
                           onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
@@ -224,9 +231,20 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                  child: Text(
-                                      docTypeLabel(d['type'] as String?),
-                                      style: AppTextStyles.cardTitle)),
+                                  child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(docTypeLabel(d['type'] as String?),
+                                      style: AppTextStyles.cardTitle),
+                                  if (needsAction)
+                                    Text(info.meaning,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTextStyles.caption
+                                            .copyWith(color: meta.color)),
+                                ],
+                              )),
+                              const SizedBox(width: 8),
                               StatusBadge(label: meta.label, color: meta.color),
                             ],
                           ),
@@ -244,8 +262,10 @@ class DocumentDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final meta = docStatusMeta(document);
+    final info = StatusInfo.of(document);
     final reviewNote = document['reviewNote'] as String?;
     final createdAt = document['createdAt'] as String?;
+    final expiresAt = DateTime.tryParse('${document['expiresAt']}')?.toLocal();
 
     return AppScaffold(
       title: docTypeLabel(document['type'] as String?),
@@ -298,10 +318,27 @@ class DocumentDetailScreen extends StatelessWidget {
                       StatusBadge(label: meta.label, color: meta.color),
                     ],
                   ),
+                  if (expiresAt != null) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('صالح حتى', style: AppTextStyles.caption),
+                        Text(
+                            MaterialLocalizations.of(context)
+                                .formatMediumDate(expiresAt),
+                            style: AppTextStyles.body),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
-            if (reviewNote != null && reviewNote.isNotEmpty) ...[
+            // The server's explanation already includes the reviewer's reason.
+            if (info != null) ...[
+              const SizedBox(height: 12),
+              StatusExplanationCard(info: info),
+            ] else if (reviewNote != null && reviewNote.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(14),
