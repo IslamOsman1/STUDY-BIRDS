@@ -22,6 +22,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   List<dynamic> _children = [];
   List<dynamic> _linkRequests = [];
   int _selectedIndex = 0;
+  // Incremented per overview request; a response is shown only if it is
+  // still the latest, so a slow answer for a previously selected child never
+  // appears under the newly selected one.
+  int _overviewRequest = 0;
   bool _loadingChildren = true;
   String? _loadError;
 
@@ -73,6 +77,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   }
 
   Future<void> _loadOverview(int index) async {
+    final request = ++_overviewRequest;
     setState(() {
       _selectedIndex = index;
       _loadingOverview = true;
@@ -82,13 +87,13 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       final studentId =
           (_children[index] as Map<String, dynamic>)['_id'] as String;
       final data = await ParentRepository.instance.getChildOverview(studentId);
-      if (!mounted) return;
+      if (!mounted || request != _overviewRequest) return;
       setState(() {
         _overview = data;
         _loadingOverview = false;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || request != _overviewRequest) return;
       setState(() => _loadingOverview = false);
     }
   }

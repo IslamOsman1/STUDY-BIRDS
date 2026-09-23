@@ -5,7 +5,9 @@ const notFound = (req, res, next) => {
 };
 
 const errorHandler = (error, req, res, next) => {
-  const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
+  // Errors may carry their own client status (e.g. a busy lease → 409).
+  const carried = Number.isInteger(error.statusCode) && error.statusCode >= 400 && error.statusCode < 500 ? error.statusCode : null;
+  const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : carried || 500;
 
   res.status(statusCode).json({
     message: error.message || "Server error",
