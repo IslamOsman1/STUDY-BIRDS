@@ -1,5 +1,6 @@
 import { DocumentFileLink } from '../../components/DocumentFileLink';
 import { StudentPostAdmission } from '../../components/StudentPostAdmission';
+import { StudentVisaCase } from '../../components/StudentVisaCase';
 import { ApplicationDocumentUpdates } from '../../components/ApplicationDocumentUpdates';
 import { useEffect, useState } from "react";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
@@ -94,6 +95,7 @@ export const StudentApplicationsPage = () => {
                 </div>
 
                 <StudentPostAdmission applicationId={application._id} />
+                <StudentVisaCase applicationId={application._id} />
                 <div className="mt-4 rounded-2xl bg-white p-4">
                   <button onClick={() => setEditingId(editingId === application._id ? undefined : application._id)} aria-expanded={editingId === application._id} className="min-h-11 font-semibold">{language === 'ar' ? 'استكمال مستندات الطلب' : 'Update application documents'}</button>
                   {editingId === application._id && <ApplicationDocumentUpdates applicationId={application._id} onUpdated={() => { studentService.getApplications().then(setApplications).catch(() => setFormError(language === 'ar' ? 'تم الإرفاق؛ تعذر تحديث القائمة.' : 'Attached; unable to refresh the list.')); }} />}

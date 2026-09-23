@@ -6,6 +6,7 @@ import { ProtectedRoute } from "../components/ProtectedRoute";
 import { useLanguage } from "../hooks/useLanguage";
 
 const ConsultationsPage = lazy(() => import("../pages/ConsultationsPage").then(m => ({ default: m.ConsultationsPage })));
+const VisaCenterPage = lazy(() => import("../pages/admin/VisaCenterPage").then(m => ({ default: m.VisaCenterPage })));
 const AccountSecurityPage = lazy(() => import("../pages/auth/AccountSecurityPage").then(module => ({ default: module.AccountSecurityPage })));
 const HomePage = lazy(() => import("../pages/HomePage").then((module) => ({ default: module.HomePage })));
 const ProgramsPage = lazy(() => import("../pages/ProgramsPage").then((module) => ({ default: module.ProgramsPage })));
@@ -194,6 +195,7 @@ export const AppRoutes = () => (
           <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage />} />
           <Route path="/admin/payout-requests" element={<AdminPayoutRequestsPage />} />
           <Route path="/admin/consultations" element={<ConsultationsPage staff />} />
+          <Route path="/admin/visa" element={<VisaCenterPage />} />
           <Route path="/admin/support-tickets" element={<AdminSupportTicketsPage />} />
           <Route path="/admin/knowledge-base" element={<AdminKnowledgeBasePage />} />
           <Route path="/admin/student-financials" element={<AdminStudentFinancialsPage />} />

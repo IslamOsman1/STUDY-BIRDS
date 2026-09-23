@@ -57,6 +57,20 @@ const postAdmissionStageSchema = new mongoose.Schema({
   updatedAt: Date,
 }, { _id: false });
 
+const { VISA_STATES } = require('../utils/visaCase');
+const visaCaseSchema = new mongoose.Schema({
+  status: { type: String, enum: VISA_STATES, default: 'not-started' },
+  requirements: [{ label: { type: String, maxlength: 200 }, done: { type: Boolean, default: false } }],
+  appointment: { date: Date, location: { type: String, maxlength: 250 } },
+  insurance: {
+    provider: { type: String, maxlength: 150 },
+    policyNumber: { type: String, maxlength: 100 },
+    expiresAt: Date,
+  },
+  notes: { type: String, maxlength: 2000 },
+  updatedAt: Date,
+}, { _id: false });
+
 const applicationSchema = new mongoose.Schema(
   {
     student: {
@@ -81,6 +95,13 @@ const applicationSchema = new mongoose.Schema(
       fromStatus: { type: String, enum: STATES },
       status: { type: String, enum: STATES },
       note: String, dueAt: Date, reference: String,
+      changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      changedAt: Date,
+    }],
+    visaCase: { type: visaCaseSchema, default: () => ({}) },
+    visaCaseHistory: [{
+      fromStatus: { type: String, enum: VISA_STATES },
+      status: { type: String, enum: VISA_STATES },
       changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       changedAt: Date,
     }],

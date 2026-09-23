@@ -85,6 +85,7 @@ export const DashboardLayout = () => {
 
   const adminLinks = [
     { label: language === "ar" ? "الاستشارات والمواعيد" : "Consultations", href: "/admin/consultations", icon: CalendarClock, description: language === "ar" ? "المواعيد والحجوزات" : "Availability and bookings" },
+    { label: language === "ar" ? "مركز التأشيرة" : "Visa Center", href: "/admin/visa", icon: IdCard, description: language === "ar" ? "متطلبات السفارة والمواعيد والتأمين" : "Embassy requirements, appointments and insurance" },
     { label: t("overview"), href: "/admin", icon: LayoutDashboard, description: dt(language, "executiveSummary") },
     { label: dt(language, "users"), href: "/admin/users", icon: Users, description: dt(language, "userAccessDesc") },
     { label: language === "ar" ? "ملفات الطلاب" : "Student Profiles", href: "/admin/students", icon: GraduationCap, description: language === "ar" ? "الملف الشخصي الكامل لكل طالب مع جميع الوحدات المرتبطة به." : "Each student profile with linked operational modules." },
