@@ -17,6 +17,9 @@ import '../universities_programs_countries/countries_scholarships_screens.dart';
 import '../services_support/services_consultation_screens.dart';
 import '../services_support/support_team_ai_screens.dart';
 import '../services_support/community_screen.dart';
+import '../universities_programs_countries/programs_screens.dart';
+import '../visa_travel_accommodation/arrival_services_screen.dart';
+import 'smart_home_sections.dart';
 
 /// Real, live Home Dashboard — fetches GET /api/students/overview on load.
 /// Uses the server next action when available; older deployments fall back
@@ -164,6 +167,83 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     }
   }
 
+  /// Opens a home destination key sent by the server (context card, dates,
+  /// sections, quick actions). Visa and travel go to the live journey and
+  /// arrival screens, not the static demo visa/travel screens.
+  void _openDestination(String destination) {
+    if (destination == 'consultation') {
+      showAnimatedBottomSheet(context,
+          builder: (_) => SizedBox(
+                height: MediaQuery.of(context).size.height * 0.88,
+                child: const ConsultationBookingScreen(),
+              ));
+      return;
+    }
+    final Widget screen = switch (destination) {
+      'journey' || 'visa' => const JourneyTrackerScreen(),
+      'travel' || 'accommodation' => const ArrivalServicesScreen(),
+      'programs' || 'catalog' => const ProgramsExplorerScreen(),
+      'universities' => const UniversitiesExplorerScreen(),
+      'documents' || 'upload-document' => const MyDocumentsScreen(),
+      'payments' => const PaymentsSummaryScreen(),
+      'support' => const SupportCenterScreen(),
+      'notifications' => const NotificationsScreen(),
+      'bird-ai' => const BirdAIChatScreen(),
+      'community' => const StudentCommunityScreen(),
+      _ => const ApplicationsListScreen(),
+    };
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  static const Map<String, IconData> _quickActionIcons = {
+    'programs': Icons.menu_book_outlined,
+    'universities': Icons.account_balance_outlined,
+    'applications': Icons.description_outlined,
+    'upload-document': Icons.upload_file_outlined,
+    'consultation': Icons.support_agent_outlined,
+    'visa': Icons.badge_outlined,
+    'travel': Icons.flight_takeoff_outlined,
+    'accommodation': Icons.home_work_outlined,
+    'payments': Icons.payments_outlined,
+    'support': Icons.headset_mic_outlined,
+    'community': Icons.forum_outlined,
+  };
+
+  /// Server-driven shortcuts (PRD 11) when available, plus the app-only
+  /// community shortcut; the local list otherwise.
+  List<Map<String, dynamic>> _visibleQuickActions(Map<String, dynamic>? home) {
+    final server = home?['quickActions'];
+    if (server is! List || server.isEmpty) {
+      return _quickActions
+          .map((q) => {...q, 'destination': _legacyDestinations[q['label']]})
+          .toList();
+    }
+    return [
+      for (final item in server.whereType<Map>())
+        {
+          'label': '${item['labelAr'] ?? item['key']}',
+          'icon': _quickActionIcons[item['key']],
+          'destination': '${item['destination'] ?? item['key']}',
+        },
+      {
+        'label': 'المجتمع',
+        'icon': Icons.forum_outlined,
+        'destination': 'community'
+      },
+    ];
+  }
+
+  static const Map<String, String> _legacyDestinations = {
+    'طلباتي': 'applications',
+    'الجامعات': 'universities',
+    'مستنداتي': 'documents',
+    'المدفوعات': 'payments',
+    'Bird AI': 'bird-ai',
+    'استشارة': 'consultation',
+    'الدعم': 'support',
+    'المجتمع': 'community',
+  };
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -216,13 +296,31 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     );
     final completedCount =
         overview.stages.where((s) => s.status == 'completed').length;
-    final progress =
-        overview.stages.isEmpty ? 0.0 : completedCount / overview.stages.length;
+    final home = overview.home;
+    final homeStatus = home?['statusCard'] is Map
+        ? Map<String, dynamic>.from(home!['statusCard'] as Map)
+        : null;
+    // Server progress counts the real stages of the main application.
+    final progress = home?['progressPercent'] is num
+        ? (home!['progressPercent'] as num).clamp(0, 100) / 100
+        : overview.stages.isEmpty
+            ? 0.0
+            : completedCount / overview.stages.length;
+    final greetingName = home?['greeting'] is Map
+        ? '${(home!['greeting'] as Map)['name'] ?? ''}'.trim()
+        : '';
 
     // Journey path label: derived from the most recent application if one
     // exists, otherwise a generic placeholder — no invented university name.
     String journeyPathLabel = 'لم تبدأ رحلة تقديم بعد';
-    if (overview.recentApplications.isNotEmpty) {
+    final journey = home?['currentJourney'];
+    if (journey is Map) {
+      // e.g. "Turkey - Istanbul - Physiotherapy" (PRD 9).
+      final parts = [journey['country'], journey['city'], journey['program']]
+          .map((e) => '${e ?? ''}'.trim())
+          .where((e) => e.isNotEmpty);
+      if (parts.isNotEmpty) journeyPathLabel = parts.join(' - ');
+    } else if (overview.recentApplications.isNotEmpty) {
       final app = overview.recentApplications.first as Map<String, dynamic>;
       final program = app['program'] as Map<String, dynamic>?;
       final university = program?['university'] as Map<String, dynamic>?;
@@ -262,14 +360,20 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text('مرحباً بك',
-                            style: TextStyle(
+                        Text(
+                            greetingName.isEmpty
+                                ? 'مرحباً بك'
+                                : 'مرحباً $greetingName',
+                            style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.2)),
                         const SizedBox(height: 2),
-                        Text(currentStage.titleAr,
+                        Text(
+                            '${homeStatus?['labelAr'] ?? ''}'.isNotEmpty
+                                ? '${homeStatus!['labelAr']}'
+                                : currentStage.titleAr,
                             style: const TextStyle(
                                 color: Colors.white60, fontSize: 12)),
                       ],
@@ -374,6 +478,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                                       : 'الخطوة القادمة',
                                   style: AppTextStyles.caption),
                               const SizedBox(height: 2),
+                              // Status card (PRD 97): the exact next step.
+                              if ('${homeStatus?['nextStepAr'] ?? ''}'
+                                  .isNotEmpty)
+                                Text('${homeStatus!['nextStepAr']}',
+                                    style: AppTextStyles.body.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.navy)),
                               Text(
                                   overview.nextAction?['descriptionAr']
                                           as String? ??
@@ -394,7 +505,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                           onPressed: () =>
                               Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) => overview.nextAction == null ||
-                                    overview.nextAction?['destination'] == 'journey'
+                                    overview.nextAction?['destination'] ==
+                                        'journey'
                                 ? JourneyTrackerScreen(
                                     currentStageKey: overview.journeyStage,
                                     journeyPathLabel: journeyPathLabel)
@@ -446,6 +558,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           child: Column(
             children: [
               const SizedBox(height: 12),
+              // Context card (PRD 96): what to do now, first thing on screen.
+              if (home != null) ...[
+                SmartHomeContextCard(home: home, onOpen: _openDestination),
+                const SizedBox(height: 16),
+              ],
               const Align(
                   alignment: Alignment.centerRight,
                   child:
@@ -455,24 +572,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 alignment: WrapAlignment.start,
                 spacing: 12,
                 runSpacing: 16,
-                children: _quickActions
+                children: _visibleQuickActions(home)
                     .map((q) => GestureDetector(
-                          onTap: () {
-                            if (q['label'] == 'استشارة') {
-                              showAnimatedBottomSheet(
-                                context,
-                                builder: (_) => SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.88,
-                                  child: const ConsultationBookingScreen(),
-                                ),
-                              );
-                            } else {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => _quickActionScreen(
-                                      q['label'] as String)));
-                            }
-                          },
+                          onTap: () => _openDestination('${q['destination']}'),
                           child: SizedBox(
                               width: 72,
                               child: Column(
@@ -490,18 +592,29 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                                   ),
                                   const SizedBox(height: 6),
                                   Text(q['label'] as String,
+                                      textAlign: TextAlign.center,
                                       style: AppTextStyles.caption),
                                 ],
                               )),
                         ))
                     .toList(),
               ),
+              if (home != null) ...[
+                const SizedBox(height: 20),
+                SmartHomeDates(home: home, onOpen: _openDestination),
+                const SizedBox(height: 16),
+                SmartHomeSections(home: home, onOpen: _openDestination),
+              ],
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('المنح الدراسية المتاحة',
-                      style: AppTextStyles.sectionLabel),
+                  // Flexible: on narrow phones the title wraps instead of
+                  // pushing "عرض الكل" off screen.
+                  const Flexible(
+                    child: Text('المنح الدراسية المتاحة',
+                        style: AppTextStyles.sectionLabel),
+                  ),
                   GestureDetector(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const ScholarshipsScreen())),
