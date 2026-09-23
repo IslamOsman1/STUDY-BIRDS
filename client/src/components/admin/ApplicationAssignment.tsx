@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useLanguage } from '../../hooks/useLanguage';
 import { AdminConfirmationModal } from './AdminConfirmationModal';
-type State = { application: { assignedAdvisor?: string; followUpDueAt?: string; __v: number; autoAssignmentEligible?: boolean; hasAssignmentHistory?: boolean }; advisors: { _id: string; name: string }[] };
+type State = { application: { assignedAdvisor?: string; followUpDueAt?: string; __v: number; autoAssignmentEligible?: boolean; hasAssignmentHistory?: boolean; canRequeue?: boolean; isQueuedForAutomaticAssignment?: boolean }; advisors: { _id: string; name: string }[] };
 export function ApplicationAssignment({ id }: { id: string }) {
   const { language } = useLanguage(); const ar = language === 'ar';
   const [data, setData] = useState<State>(); const [advisor, setAdvisor] = useState('');
@@ -35,7 +35,7 @@ export function ApplicationAssignment({ id }: { id: string }) {
     } catch { setError(ar ? 'تعذر إعادة الطلب لطابور التوزيع التلقائي. حدّث البيانات ثم حاول مجددًا.' : 'Unable to re-queue the application. Refresh and retry.'); setConfirmRequeue(false); }
     finally { setBusy(false); }
   }
-  const requeueable = !!data && !advisor && data.application.hasAssignmentHistory && !data.application.autoAssignmentEligible;
+  const requeueable = !!data?.application.canRequeue && !advisor;
   return <section className="my-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
     <h3 className="font-semibold text-slate-900">{ar ? 'مسؤول متابعة الطلب' : 'Application follow-up owner'}</h3>
     {data && <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -48,7 +48,7 @@ export function ApplicationAssignment({ id }: { id: string }) {
       <button disabled={busy} onClick={() => setConfirm(true)} className="min-h-11 rounded-xl bg-slate-900 px-4 text-white">{ar ? 'حفظ التعيين' : 'Save assignment'}</button>
     </div>}
     {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
-    {data?.application.autoAssignmentEligible && <p className="mt-3 text-sm text-slate-600">{ar ? 'الطلب بانتظار التوزيع التلقائي في الفحص القادم.' : 'Waiting for the automatic scheduler to pick this up.'}</p>}
+    {data?.application.isQueuedForAutomaticAssignment && <p className="mt-3 text-sm text-slate-600">{ar ? 'الطلب مؤهل للفحص عند تشغيل التوزيع التلقائي وتوفر موظف مناسب.' : 'Eligible for a scan when automatic assignment is enabled and a suitable advisor is available.'}</p>}
     {requeueable && <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
       <p className="text-sm text-amber-900">{ar ? 'هذا الطلب أُلغي تعيينه يدويًا، لذا لن يدخل طابور التوزيع التلقائي إلا بإعادته صراحةً.' : 'This application was manually unassigned, so it will not re-enter the automatic queue unless explicitly re-queued.'}</p>
       <button disabled={busy} onClick={() => setConfirmRequeue(true)} className="min-h-11 rounded-xl border border-amber-300 bg-white px-4 text-sm text-amber-900">{ar ? 'إعادة إلى طابور التوزيع التلقائي' : 'Re-queue for automatic assignment'}</button>

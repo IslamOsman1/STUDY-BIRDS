@@ -48,6 +48,15 @@ const applicantProfileSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const { STAGES, STATES } = require('../utils/postAdmissionJourney');
+const postAdmissionStageSchema = new mongoose.Schema({
+  status: { type: String, enum: STATES, default: 'not-started' },
+  note: { type: String, maxlength: 2000 },
+  dueAt: Date,
+  reference: { type: String, maxlength: 250 },
+  updatedAt: Date,
+}, { _id: false });
+
 const applicationSchema = new mongoose.Schema(
   {
     student: {
@@ -66,10 +75,17 @@ const applicationSchema = new mongoose.Schema(
       required: true,
     },
     assignedAdvisor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    postAdmission: { type: new mongoose.Schema(Object.fromEntries(Object.keys(STAGES).map(key => [key, postAdmissionStageSchema])), { _id: false }), default: () => ({}) },
+    postAdmissionHistory: [{
+      stage: { type: String, enum: Object.keys(STAGES) },
+      fromStatus: { type: String, enum: STATES },
+      status: { type: String, enum: STATES },
+      note: String, dueAt: Date, reference: String,
+      changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      changedAt: Date,
+    }],
     followUpDueAt: { type: Date, default: null },
-    // Manually clearing an assignment permanently excludes the application from the
-    // automatic scheduler (see candidateApplication in automaticApplicationAssignment.js);
-    // this flag is the explicit staff opt-in to re-enter that queue.
+    // Manually clearing an assignment excludes it until staff explicitly requeues it.
     autoAssignmentEligible: { type: Boolean, default: false },
     assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now }, source: { type: String, enum: ['manual', 'automatic', 'requeued'], default: 'manual' } }],
     documents: [
