@@ -438,12 +438,14 @@ Future<bool> showAppConfirmDialog(
   required String message,
   String confirmLabel = 'تأكيد',
   bool danger = false,
+  bool scrollable = false,
 }) async {
   final result = await showDialog<bool>(
     context: context,
     builder: (context) => Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
+        scrollable: scrollable,
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.card)),

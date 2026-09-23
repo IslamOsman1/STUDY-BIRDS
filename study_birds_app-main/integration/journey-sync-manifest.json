@@ -1,0 +1,92 @@
+[
+  {
+    "path": "server/src/models/Application.js",
+    "before": "ee0ae4f0c64642c9fb9fb48e1f6f361c5b7805bdc2b6d25947edb621b8f93745",
+    "after": "2f483173f411b59f69ff8b455b8249acb059245b0df29c6be4aea4d8c22cc9ff"
+  },
+  {
+    "path": "server/src/utils/automaticApplicationAssignment.js",
+    "before": "4823b8d83e773edc76b3985cec3f79aa8d8ef1c4f042bfe2f8d65733b586e1af",
+    "after": "73d487b0c0c91b79c96286e84c6bef08c22d6d07fc0d314898772ab08db594f5"
+  },
+  {
+    "path": "server/src/utils/automaticAssignmentEligibility.js",
+    "before": null,
+    "after": "61e677b22f607b38639f9e8366f8e41e19d8c0c45dd51b28555b2ce5c2322638"
+  },
+  {
+    "path": "server/src/controllers/applicationAssignmentController.js",
+    "before": "6c8917ca7426cc647ec81a99848a222314535044933296b4e05e629eae6e21d5",
+    "after": "07016579425736deb2a621d1d1947ba5121ea0e9b482f8d7b2c6f21171561aa2"
+  },
+  {
+    "path": "server/src/controllers/postAdmissionController.js",
+    "before": null,
+    "after": "b57bffbf0d3b82a96e9e7ddc27313fd37232dff75fcc0cd167ee6708a7796151"
+  },
+  {
+    "path": "server/src/utils/postAdmissionJourney.js",
+    "before": null,
+    "after": "c4abcac599d0ddd7c8ab8d37d85346de42621d86ddad397b3afcaba06198ee0f"
+  },
+  {
+    "path": "server/src/utils/studentJourney.js",
+    "before": "fbb4e6a2943b5aefe8917322ed53c3ac8fd1eac960babff61930806aa317be18",
+    "after": "2df7d939ef10b91fc4b60d2b2c0825b513ddf5ab243248bbd632edf8449de4f4"
+  },
+  {
+    "path": "server/src/utils/studentNextAction.js",
+    "before": "4a6be2bc2550d681077a275914270f7b7466c10b0fb0d979393c657982bff6a9",
+    "after": "55a0adec84bdfa2edc02a4e3fa45ecda232bdbbabc6c14ac37b79eb471980b9d"
+  },
+  {
+    "path": "server/src/routes/applicationRoutes.js",
+    "before": "16610eea3f0450d83ff458d6260abb7db3fa4bd5c2fd6cb96640dd72ea3f9581",
+    "after": "1fdf53eabfc962e76eb540ca5d571a22983994299cb5aa6638c5d39c50c40b26"
+  },
+  {
+    "path": "server/tests/postAdmissionJourney.test.js",
+    "before": null,
+    "after": "3a33867ebf5bc7cda706345e80de87cc0de39d02cf064e4b4083965268d775f4"
+  },
+  {
+    "path": "server/tests/assignmentRequeueRegression.test.js",
+    "before": null,
+    "after": "9514a0c3a048b08fddf65f702d6d9d6726f7443753ffd95ed348d910075a8e94"
+  },
+  {
+    "path": "client/src/components/admin/ApplicationAssignment.tsx",
+    "before": "9485e3263db915417e4cdadc2cf448c4780bc6c377ef20cdba28ab568213153d",
+    "after": "ee389d11400f095dcc4b92e1a2269a0018a6609f782f8b5c30b739b0e2345141"
+  },
+  {
+    "path": "client/src/components/admin/ApplicationPostAdmission.tsx",
+    "before": null,
+    "after": "587645bb945c9582fa62207d1fc29e66378ec79a57bfadae78415c4797bec6a0"
+  },
+  {
+    "path": "client/src/pages/admin/AdminApplicationsPage.tsx",
+    "before": "4e61dfbed04345cb9d8b607fbdf5407747e6933e2b2414427aad20b3826c0760",
+    "after": "57df51998886c20a3b089acffb49a38842c500bc5d2e22564672cd866d81291d"
+  },
+  {
+    "path": "client/src/components/StudentPostAdmission.tsx",
+    "before": null,
+    "after": "ce98c5cfb09b19bdd30e81dfeff7688d4bafb1e644d6b9ad0a6fefdfa3608d58"
+  },
+  {
+    "path": "client/src/pages/student/StudentApplicationsPage.tsx",
+    "before": "cfae7a8a2d2c17d19dcb1a172df705dc1de155210b2ee5b2fb89742033de55f3",
+    "after": "67ccee6053a5b71a95f834baf1f12ace7e25050b6c7dcd3bbdb4b1d9391693d3"
+  },
+  {
+    "path": "client/src/pages/student/StudentDashboardPage.tsx",
+    "before": "a04ecd3314c13f9f1d6d238f0c29b462a7f11d38b9bfd726a6365cdeef0c1311",
+    "after": "36489d2fd764101b98b14809fc8983bb65adda91110b131bdca711501c7041ea"
+  },
+  {
+    "path": "POST_ADMISSION_JOURNEY.md",
+    "before": null,
+    "after": "d2720418c46135a072584fd9d305e7fcc333ec11ac650ea982e3bd531a22913c"
+  }
+]

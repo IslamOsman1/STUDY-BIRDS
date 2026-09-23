@@ -1,4 +1,6 @@
 import 'student_repository.dart';
+import 'consultation_repository.dart';
+import 'api_client.dart';
 
 class StudentEvent {
   final DateTime date;
@@ -8,8 +10,16 @@ class StudentEvent {
 }
 
 List<StudentEvent> calendarEvents(
-    Map<String, dynamic> financials, Map<String, dynamic>? arrival) {
+    Map<String, dynamic> financials, Map<String, dynamic>? arrival,
+    [List<Map<String, dynamic>> consultations = const []]) {
   final events = <StudentEvent>[];
+  for (final booking in consultations) {
+    final date = DateTime.tryParse('${booking['startsAt']}');
+    if (booking['status'] == 'booked' && date != null) {
+      events.add(StudentEvent(date.toLocal(), 'موعد استشارة',
+          '${booking['advisor']?['name'] ?? ''}'));
+    }
+  }
   for (final invoice in (financials['invoices'] as List? ?? [])) {
     final date = DateTime.tryParse(invoice['dueDate']?.toString() ?? '');
     if (date != null && invoice['status'] != 'paid') {
@@ -63,7 +73,15 @@ Future<List<StudentEvent>> loadCalendarEvents() async {
   final repo = StudentRepository.instance;
   final values =
       await Future.wait([repo.getFinancials(), repo.getArrivalServices()]);
-  return calendarEvents(values[0]!, values[1]);
+  List<Map<String, dynamic>> consultations;
+  try {
+    consultations = await ConsultationRepository.instance.mine();
+  } on ApiException catch (e) {
+    // Keep the existing calendar usable until the consultations API is deployed.
+    if (e.statusCode != 404) rethrow;
+    consultations = [];
+  }
+  return calendarEvents(values[0]!, values[1], consultations);
 }
 
 Future<List<StudentEvent>> loadActivityEvents() async {
