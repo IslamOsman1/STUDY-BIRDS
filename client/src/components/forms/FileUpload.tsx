@@ -35,6 +35,11 @@ export const FileUpload = ({
         <option value="resume">{dt(language, "resumeDocument")}</option>
         <option value="other-documents">{language === "ar" ? "مستندات أخرى" : "Other Documents"}</option>
         <option value="biometric-photo">{dt(language, "biometricPhoto")}</option>
+        <option value="birth-certificate">{language === "ar" ? "شهادة الميلاد" : "Birth certificate"}</option>
+        <option value="high-school-certificate">{language === "ar" ? "شهادة الثانوية" : "High school certificate"}</option>
+        <option value="university-degree">{language === "ar" ? "الشهادة الجامعية" : "University degree"}</option>
+        <option value="recommendation-letter">{language === "ar" ? "خطاب توصية" : "Recommendation letter"}</option>
+        <option value="personal-statement">{language === "ar" ? "خطاب الدافع" : "Personal statement"}</option>
       </select>
       <input type="file" accept={DOCUMENT_UPLOAD_ACCEPT} onChange={(event) => setFile(event.target.files?.[0] || null)} className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6" />
       <p className="text-xs text-slate-500">{language === "ar" ? DOCUMENT_UPLOAD_HINT_AR : DOCUMENT_UPLOAD_HINT_EN}</p>

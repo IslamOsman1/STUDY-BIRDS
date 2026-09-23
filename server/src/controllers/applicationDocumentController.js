@@ -3,6 +3,8 @@ const Application = require('../models/Application');
 const Document = require('../models/Document');
 const asyncHandler = require('../utils/asyncHandler');
 const { requiredDocumentTypesFor } = require('../utils/applicationRequirements');
+const Notification = require('../models/Notification');
+const { DOCUMENT_TYPES, documentLabel } = require('../constants/documentTypes');
 
 const editableStates = new Set(['draft', 'documents-missing', 'ready-to-apply', 'submitted', 'under-review', 'additional-documents-required']);
 const correctionStates = new Set(['missing', 'rejected', 'needs-revision', 'needs-translation', 'expired']);
@@ -51,7 +53,7 @@ const attachApplicationDocument = asyncHandler(async (req, res) => {
 
 const requestApplicationDocument = asyncHandler(async (req, res) => {
   const { type, note, version } = req.body;
-  if (!mongoose.isValidObjectId(req.params.id) || !['passport', 'biometric-photo', 'latest-qualification', 'transcript', 'language-certificate', 'other'].includes(type) ||
+  if (!mongoose.isValidObjectId(req.params.id) || !Object.hasOwn(DOCUMENT_TYPES, type || '') ||
       typeof note !== 'string' || !note.trim() || note.length > 2000 || !Number.isInteger(version) || version < 0) {
     return res.status(400).json({ message: 'Document type, note and version are required' });
   }
@@ -67,6 +69,14 @@ const requestApplicationDocument = asyncHandler(async (req, res) => {
       statusTimeline: { status: application.detailedStatus || application.status, note: `طلب مستند إضافي: ${note.trim()}`, changedBy: req.user._id, changedAt: new Date() } },
   }, { new: true, runValidators: true }).populate('documents').populate('program');
   if (!updated) return res.status(409).json({ message: 'Application changed. Refresh first.' });
+  // PRD 31: tell the student at once what is needed, why, and where to upload it.
+  await Notification.create({
+    user: application.student,
+    title: `مطلوب منك: ${documentLabel(type)}`,
+    message: `${updated.program?.title ? `${updated.program.title} — ` : ''}سبب الطلب: ${note.trim()}. ارفع المستند من صفحة الطلب، وسيراجعه الفريق فور وصوله.`,
+    type: 'warning',
+    link: '/student/applications',
+  });
   res.status(201).json(updated);
 });
 
@@ -95,6 +105,13 @@ const reviewApplicationDocumentRequest = asyncHandler(async (req, res) => {
     $push: { statusTimeline: { status: application.detailedStatus || application.status, note: `${reviewLabel}: ${note.trim()}`, changedBy: req.user._id, changedAt: new Date() } },
   }, { new: true, runValidators: true }).populate('documents').populate('program');
   if (!updated) return res.status(409).json({ message: 'Application changed. Refresh first.' });
+  const label = documentLabel(request.type);
+  const notice = {
+    approved: [`تم اعتماد ${label}`, `استوفيت المستند المطلوب. ${note.trim()}`, 'success'],
+    requested: [`${label} يحتاج تصحيحًا`, `السبب: ${note.trim()}. أعد رفعه من صفحة الطلب.`, 'warning'],
+    cancelled: [`أُلغي طلب ${label}`, `لم يعد هذا المستند مطلوبًا. ${note.trim()}`, 'info'],
+  }[decision];
+  await Notification.create({ user: application.student, title: notice[0], message: notice[1], type: notice[2], link: '/student/applications' });
   res.json(updated);
 });
 

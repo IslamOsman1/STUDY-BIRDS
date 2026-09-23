@@ -52,10 +52,27 @@ const List<Map<String, String>> kDocumentTypes = [
   {'key': 'latest-qualification', 'label': 'آخر مؤهل دراسي'},
   {'key': 'transcript', 'label': 'كشف الدرجات'},
   {'key': 'language-certificate', 'label': 'شهادة اللغة'},
+  {'key': 'high-school-certificate', 'label': 'شهادة الثانوية'},
+  {'key': 'university-degree', 'label': 'الشهادة الجامعية'},
+  {'key': 'birth-certificate', 'label': 'شهادة الميلاد'},
+  {'key': 'recommendation-letter', 'label': 'خطاب توصية'},
+  {'key': 'personal-statement', 'label': 'خطاب الدافع'},
+  {'key': 'cv', 'label': 'السيرة الذاتية'},
   {'key': 'other', 'label': 'أخرى'},
 ];
 
+// Labels for keys used by older website uploads and for translations.
+const Map<String, String> _extraDocumentLabels = {
+  'translation': 'ترجمة معتمدة',
+  'language-certificates': 'شهادات اللغة',
+  'personal-photos': 'صور شخصية',
+  'english-test': 'شهادة اختبار الإنجليزية',
+  'resume': 'السيرة الذاتية',
+  'other-documents': 'مستندات أخرى',
+};
+
 String docTypeLabel(String? key) {
+  if (_extraDocumentLabels[key] case final label?) return label;
   return kDocumentTypes.firstWhere((t) => t['key'] == key,
       orElse: () => {'label': key ?? 'مستند'})['label']!;
 }
@@ -64,7 +81,8 @@ String docTypeLabel(String? key) {
 /// MyDocumentsScreen and DocumentDetailScreen (a pushed route is NOT a
 /// widget-tree ancestor of the screen that opened it, so this can't be a
 /// method looked up via findAncestorStateOfType — it's a standalone helper).
-Future<bool> pickAndUploadDocument(BuildContext context, String type) async {
+Future<bool> pickAndUploadDocument(BuildContext context, String type,
+    {String? replaces, String? translationOf}) async {
   final result = await FilePicker.platform.pickFiles(
     type: FileType.custom,
     allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
@@ -82,7 +100,11 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type) async {
 
   try {
     await StudentRepository.instance.uploadDocument(
-        fileBytes: file.bytes!, fileName: file.name, type: type);
+        fileBytes: file.bytes!,
+        fileName: file.name,
+        type: type,
+        replaces: replaces,
+        translationOf: translationOf);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('تم رفع المستند بنجاح'),
@@ -127,7 +149,12 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
       final docs = await StudentRepository.instance.getDocuments();
       if (!mounted) return;
       setState(() {
-        _docs = docs;
+        // Current files only: older versions and translations live inside
+        // their document's detail screen (PRD 29).
+        _docs = docs
+            .whereType<Map>()
+            .where((d) => d['isLatest'] != false && d['translationOf'] == null)
+            .toList();
         _loading = false;
       });
     } catch (_) {
@@ -145,9 +172,10 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      // Scrollable: the type list no longer fits a small phone's sheet.
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: ListView(
+          shrinkWrap: true,
           children: [
             const Padding(
                 padding: EdgeInsets.all(16),
@@ -212,10 +240,15 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                         final needsAction = info != null &&
                             (info.tone == 'action' || info.tone == 'danger');
                         return AppCard(
-                          onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      DocumentDetailScreen(document: d))),
+                          onTap: () async {
+                            // The detail pops true after a new version or
+                            // translation was uploaded.
+                            final changed = await Navigator.of(context)
+                                .push<bool>(MaterialPageRoute(
+                                    builder: (_) =>
+                                        DocumentDetailScreen(document: d)));
+                            if (changed == true) _load();
+                          },
                           child: Row(
                             children: [
                               Container(
@@ -266,6 +299,26 @@ class DocumentDetailScreen extends StatelessWidget {
     final reviewNote = document['reviewNote'] as String?;
     final createdAt = document['createdAt'] as String?;
     final expiresAt = DateTime.tryParse('${document['expiresAt']}')?.toLocal();
+    // PRD 29: reviewer, translation state and version history from the server.
+    final reviewer = document['reviewedBy'] is Map
+        ? '${(document['reviewedBy'] as Map)['name'] ?? ''}'
+        : '';
+    final translation =
+        document['translation'] is Map ? document['translation'] as Map : null;
+    final translationStatus = translation?['status'] as String?;
+    const translationLabels = {
+      'required': 'مطلوبة',
+      'uploaded': 'مرفوعة وقيد المراجعة',
+      'approved': 'معتمدة',
+      'needs-attention': 'تحتاج تصحيحًا',
+      'not-required': 'غير مطلوبة',
+    };
+    final versions = (document['versions'] is List)
+        ? (document['versions'] as List)
+            .whereType<Map>()
+            .map((v) => Map<String, dynamic>.from(v))
+            .toList()
+        : const <Map<String, dynamic>>[];
 
     return AppScaffold(
       title: docTypeLabel(document['type'] as String?),
@@ -331,6 +384,32 @@ class DocumentDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ],
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('المراجِع', style: AppTextStyles.caption),
+                      Text(reviewer.isEmpty ? 'لم يُراجع بعد' : reviewer,
+                          style: AppTextStyles.body),
+                    ],
+                  ),
+                  if (translationStatus != null) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('الترجمة', style: AppTextStyles.caption),
+                        Text(
+                            translationLabels[translationStatus] ??
+                                translationStatus,
+                            style: AppTextStyles.body.copyWith(
+                                color: translationStatus == 'required' ||
+                                        translationStatus == 'needs-attention'
+                                    ? AppColors.warning
+                                    : null)),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -382,15 +461,58 @@ class DocumentDetailScreen extends StatelessWidget {
                                 'تعذر فتح الملف. تحقق من الجلسة والصلاحيات ثم حاول مجددًا.')));
                     }
                   }),
+            // Linked to this file, so the current one moves to the history.
             PrimaryButton(
               label: 'رفع نسخة جديدة',
               icon: Icons.upload_file_rounded,
               onPressed: () async {
                 final success = await pickAndUploadDocument(
-                    context, document['type'] as String? ?? 'other');
-                if (success && context.mounted) Navigator.of(context).pop();
+                    context, document['type'] as String? ?? 'other',
+                    replaces: '${document['_id']}');
+                if (success && context.mounted) Navigator.of(context).pop(true);
               },
             ),
+            if (translationStatus != null &&
+                translationStatus != 'approved' &&
+                translationStatus != 'uploaded') ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.translate_rounded),
+                label: const Text('رفع ترجمة معتمدة'),
+                onPressed: () async {
+                  final success = await pickAndUploadDocument(
+                      context, 'translation',
+                      translationOf: '${document['_id']}');
+                  if (success && context.mounted) {
+                    Navigator.of(context).pop(true);
+                  }
+                },
+              ),
+            ],
+            if (versions.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text('سجل النسخ (${versions.length})',
+                  style: AppTextStyles.sectionLabel),
+              const SizedBox(height: 6),
+              for (final version in versions)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  leading: const Icon(Icons.history_rounded,
+                      color: AppColors.textSecondary),
+                  title: Text('${version['fileName'] ?? ''}',
+                      style: AppTextStyles.body),
+                  subtitle: Text(
+                      [
+                        if (DateTime.tryParse('${version['createdAt']}')
+                            case final date?)
+                          MaterialLocalizations.of(context)
+                              .formatMediumDate(date.toLocal()),
+                        StatusInfo.of(version)?.label ?? '',
+                      ].where((e) => e.isNotEmpty).join(' · '),
+                      style: AppTextStyles.caption),
+                ),
+            ],
           ],
         ),
       ),

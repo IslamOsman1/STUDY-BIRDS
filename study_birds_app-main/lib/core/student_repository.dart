@@ -198,12 +198,19 @@ class StudentRepository {
     required List<int> fileBytes,
     required String fileName,
     required String type,
+    // A new version of an existing document, or a certified translation of one.
+    String? replaces,
+    String? translationOf,
   }) async {
     final data = await ApiClient.instance.postMultipart(
       '/students/documents',
       fileBytes: fileBytes,
       fileName: fileName,
-      fields: {'type': type},
+      fields: {
+        if (type.isNotEmpty) 'type': type,
+        if (replaces != null) 'replaces': replaces,
+        if (translationOf != null) 'translationOf': translationOf,
+      },
       token: _token,
     );
     return data as Map<String, dynamic>;

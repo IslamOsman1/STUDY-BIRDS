@@ -11,8 +11,7 @@ const CLOSED = new Set(['rejected', 'completed']);
 const ORDER = ['draft', 'documents-missing', 'ready-to-apply', 'submitted', 'under-review', 'additional-documents-required',
   'conditional-admission', 'payment-required', 'payment-verification', 'accepted', 'final-admission', 'visa-preparation', 'completed'];
 const DOCUMENT_ACTIONS = new Set(['document-correction', 'documents-required', 'additional-document-request']);
-const DOCUMENT_LABELS = { passport: 'جواز السفر', 'biometric-photo': 'الصورة الشخصية', 'latest-qualification': 'آخر مؤهل دراسي',
-  transcript: 'كشف الدرجات', 'language-certificate': 'شهادة اللغة' };
+const { documentLabel } = require('../constants/documentTypes');
 const VISA_LABELS = {
   'not-started': ['لم تبدأ', 'Not started'], 'preparing-documents': ['تجهيز المستندات', 'Preparing documents'],
   ready: ['جاهز للتقديم', 'Ready to submit'], submitted: ['مقدّم للسفارة', 'Submitted'], 'under-review': ['قيد مراجعة السفارة', 'Under embassy review'],
@@ -85,7 +84,7 @@ function importantDates({ applications, invoices, arrivals, bookings, consultati
   for (const booking of consultations) add('consultation', booking.startsAt, 'موعد استشارتك', 'Your consultation', 'consultation', booking);
   for (const document of documents.filter(item => item.detailedStatus === 'approved' && valid(item.expiresAt))) {
     if (daysUntil(document.expiresAt, now) <= 60) {
-      add('document-expiry', document.expiresAt, `انتهاء صلاحية ${DOCUMENT_LABELS[document.type] || 'مستند'}`, `Document expires: ${document.type}`, 'documents', document);
+      add('document-expiry', document.expiresAt, `انتهاء صلاحية ${documentLabel(document.type)}`, `Document expires: ${document.type}`, 'documents', document);
     }
   }
   return dates.sort((a, b) => Number(b.overdue) - Number(a.overdue) || new Date(a.date) - new Date(b.date)).slice(0, 8);
@@ -138,7 +137,7 @@ function studentHome({ user, applications = [], documents = [], invoices = [], a
       return { at: entry.changedAt, kind: 'application', titleAr: `${app.program?.title || 'طلبك'}: ${info.ar.label}`, titleEn: `${app.program?.title || 'Application'}: ${info.en.label}`, destination: 'applications', entityId: id(app) };
     })),
     ...docInfos.filter(({ doc }) => valid(doc.reviewedAt)).map(({ doc, info }) => ({
-      at: doc.reviewedAt, kind: 'document', titleAr: `${DOCUMENT_LABELS[doc.type] || 'مستند'}: ${info.ar.label}`, titleEn: `${doc.type}: ${info.en.label}`, destination: 'documents', entityId: id(doc),
+      at: doc.reviewedAt, kind: 'document', titleAr: `${documentLabel(doc.type)}: ${info.ar.label}`, titleEn: `${doc.type}: ${info.en.label}`, destination: 'documents', entityId: id(doc),
     })),
   ].filter(item => valid(item.at)).sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 6);
 
@@ -187,4 +186,4 @@ function studentHome({ user, applications = [], documents = [], invoices = [], a
   };
 }
 
-module.exports = { studentHome, importantDates, homeContext, QUICK_ACTIONS };
+module.exports = { studentHome, importantDates, homeContext, QUICK_ACTIONS, VISA_LABELS };

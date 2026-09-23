@@ -29,6 +29,7 @@ const emptyProgramForm = {
   popularity: "",
   summary: "",
   requirements: "",
+  careerOpportunities: "",
   requiredDocumentTypes: ["passport", "biometric-photo", "latest-qualification"],
   articleTitle: "",
   articleTitleColor: "#0f172a",
@@ -94,6 +95,7 @@ export const AdminProgramsPage = () => {
       popularity: typeof program.popularity === "number" ? String(program.popularity) : "",
       summary: program.summary || "",
       requirements: program.requirements?.join("\n") || "",
+      careerOpportunities: program.careerOpportunities?.join("\n") || "",
       requiredDocumentTypes: program.requiredDocumentTypes ?? ["passport", "biometric-photo", "latest-qualification"],
       articleTitle: program.articleTitle || "",
       articleTitleColor: program.articleTitleColor || "#0f172a",
@@ -146,6 +148,7 @@ export const AdminProgramsPage = () => {
       articleHeadings: form.articleHeadings.map((item) => item.trim()).filter(Boolean),
       articleBodies: form.articleBodies.map((item) => item.trim()).filter(Boolean),
       requirements: form.requirements.split("\n").map((item) => item.trim()).filter(Boolean),
+      careerOpportunities: form.careerOpportunities.split("\n").map((item) => item.trim()).filter(Boolean),
       featured: form.featured,
       coverImage: form.coverImage || undefined,
     };
@@ -389,6 +392,11 @@ export const AdminProgramsPage = () => {
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">{dt(language, "requirements")}</span>
             <textarea value={form.requirements} onChange={(event) => setForm((current) => ({ ...current, requirements: event.target.value }))} rows={4} placeholder={dt(language, "oneRequirementPerLine")} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{language === "ar" ? "مجالات العمل بعد التخرج" : "Career opportunities"}</span>
+            <textarea value={form.careerOpportunities} onChange={(event) => setForm((current) => ({ ...current, careerOpportunities: event.target.value }))} rows={3} placeholder={language === "ar" ? "مجال في كل سطر، مثل: طبيب عام" : "One per line, e.g. General practitioner"} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:ring" />
           </label>
 
           <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3">

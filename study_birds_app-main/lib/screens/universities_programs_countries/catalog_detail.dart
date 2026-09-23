@@ -213,6 +213,8 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                                                             '$item')),
                                                   ])),
                                       ])),
+                            // PRD 21: careers, same program elsewhere, related programs.
+                            if (!widget.university) ..._programExtras(row),
                             ...catalogArticleSections(row),
                             if (!widget.university &&
                                 AuthSession.instance.currentUser?.role ==
@@ -354,6 +356,76 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                               Text(f.value, style: AppTextStyles.cardTitle)
                             ]))),
             ]));
+  }
+
+  List<Widget> _programExtras(Map<String, dynamic> row) {
+    List<Map<String, dynamic>> rows(dynamic value) => value is List
+        ? value
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList()
+        : const [];
+    final careers = (row['careerOpportunities'] is List)
+        ? (row['careerOpportunities'] as List)
+            .map((e) => '$e')
+            .where((e) => e.trim().isNotEmpty)
+            .toList()
+        : const <String>[];
+    final offeredAt = rows(row['offeredAt']);
+    final related = rows(row['relatedPrograms']);
+    // InkWell rather than ListTile: sections have a painted background that
+    // would hide a ListTile's ink.
+    Widget link(Map<String, dynamic> item, String title, String subtitle) =>
+        InkWell(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => CatalogDetailPage(id: '${item['_id']}'))),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(children: [
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(title,
+                          style: AppTextStyles.body
+                              .copyWith(fontWeight: FontWeight.w600)),
+                      if (subtitle.isNotEmpty)
+                        Text(subtitle, style: AppTextStyles.caption),
+                    ])),
+                const Icon(Icons.chevron_left, color: AppColors.textSecondary),
+              ]),
+            ));
+    return [
+      if (careers.isNotEmpty)
+        _section(
+            'مجالات العمل بعد التخرج',
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final career in careers)
+                StatusBadge(label: career, color: AppColors.navy)
+            ])),
+      if (offeredAt.isNotEmpty)
+        _section(
+            'جامعات أخرى تقدّم البرنامج',
+            Column(children: [
+              for (final item in offeredAt)
+                link(
+                    item,
+                    '${(item['university'] as Map?)?['name'] ?? ''}',
+                    [
+                      (item['university'] as Map?)?['city'],
+                      ((item['university'] as Map?)?['country']
+                          as Map?)?['name'],
+                    ].where((e) => e != null && '$e'.isNotEmpty).join('، '))
+            ])),
+      if (related.isNotEmpty)
+        _section(
+            'برامج ذات صلة',
+            Column(children: [
+              for (final item in related)
+                link(item, '${item['title'] ?? ''}',
+                    '${(item['university'] as Map?)?['name'] ?? ''}')
+            ])),
+    ];
   }
 
   Widget _section(String title, Widget body) => Padding(
