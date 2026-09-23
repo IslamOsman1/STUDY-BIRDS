@@ -256,10 +256,12 @@ void main() {
           findsOneWidget);
       expect(tester.takeException(), isNull);
     },
-        () => MockClient((request) async => response(
-            request.url.path.endsWith('financials')
+        () => MockClient(
+            (request) async => response(request.url.path.endsWith('financials')
                 ? {'invoices': []}
-                : null)));
+                : request.url.path.endsWith('/consultations/mine')
+                    ? []
+                    : null)));
   });
 
   testWidgets('comparison uses catalog data and persists selection',
