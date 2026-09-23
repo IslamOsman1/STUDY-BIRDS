@@ -5,8 +5,15 @@ import { ToastViewport } from "../../components/ToastViewport";
 import { useLanguage } from "../../hooks/useLanguage";
 import { useToasts } from "../../hooks/useToasts";
 import { studentService } from "../../services/studentService";
+import { api } from "../../lib/api";
 import type { ArrivalServiceRequestItem, StudentProfile } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
+
+const pickupStatusLabels: Record<string, [string, string]> = {
+  "not-assigned": ["لم يُسند سائق بعد", "No driver assigned yet"], assigned: ["تم إسناد سائق", "Driver assigned"],
+  "en-route": ["السائق في الطريق إليك", "Driver is on the way"], arrived: ["وصل السائق", "Driver has arrived"], completed: ["اكتمل الاستقبال", "Pickup completed"],
+};
+type ConfirmedHousing = { listing: { title: string; type: string } };
 
 type ArrivalForm = {
   arrivalDate: string;
@@ -40,7 +47,14 @@ export const StudentArrivalServicesEnhancedPage = () => {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmedHousing, setConfirmedHousing] = useState<ConfirmedHousing | null>(null);
   const { toasts, pushToast, dismissToast } = useToasts();
+
+  useEffect(() => {
+    api.get<{ status: string; listing: { title: string; type: string } }[]>("/accommodation/bookings/mine")
+      .then(({ data }) => setConfirmedHousing(data.find((b) => b.status === "confirmed") || null))
+      .catch(() => setConfirmedHousing(null));
+  }, []);
 
   useEffect(() => {
     Promise.all([studentService.getArrivalServices(), studentService.getOverview()])
@@ -110,8 +124,21 @@ export const StudentArrivalServicesEnhancedPage = () => {
         <h1 className="text-3xl font-semibold text-slate-900">{isArabic ? "الوصول والخدمات" : "Arrival & Services"}</h1>
         <p className="mt-2 text-sm text-slate-500">{isArabic ? "أدخل بيانات السفر واختر الخدمات التي تحتاجها بعد القبول النهائي." : "Enter travel details and choose the services you need after final acceptance."}</p>
         {request?.adminNote ? <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">{request.adminNote}</div> : null}
+        {request?.travelAlert ? <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">⚠️ {request.travelAlert}</div> : null}
         {error ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
       </section>
+
+      {(request?.services.airportPickup && request?.pickup) || confirmedHousing ? <section className="grid gap-4 md:grid-cols-2">
+        {request?.services.airportPickup && request?.pickup ? <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">{isArabic ? "استقبال المطار" : "Airport pickup"}</p>
+          <p className="mt-2 text-lg font-semibold text-slate-900">{pickupStatusLabels[request.pickup.status || "not-assigned"]?.[isArabic ? 0 : 1]}</p>
+          {request.pickup.driverName ? <p className="mt-2 text-sm text-slate-600">{isArabic ? "السائق: " : "Driver: "}{request.pickup.driverName}{request.pickup.driverPhone ? ` — ${request.pickup.driverPhone}` : ""}</p> : null}
+        </article> : null}
+        {confirmedHousing ? <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">{isArabic ? "السكن المحجوز" : "Booked accommodation"}</p>
+          <p className="mt-2 text-lg font-semibold text-slate-900">{confirmedHousing.listing.title}</p>
+        </article> : null}
+      </section> : null}
 
       <section className="grid gap-4 md:grid-cols-3">
         <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">

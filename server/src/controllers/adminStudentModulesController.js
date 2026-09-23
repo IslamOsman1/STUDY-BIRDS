@@ -226,6 +226,8 @@ const getArrivalRequestsAdmin = asyncHandler(async (req, res) => {
   res.json(items);
 });
 
+const PICKUP_STATUSES = ["not-assigned", "assigned", "en-route", "arrived", "completed"];
+
 const updateArrivalRequestAdmin = asyncHandler(async (req, res) => {
   const item = await ArrivalServiceRequest.findById(req.params.id);
   if (!item) {
@@ -235,6 +237,20 @@ const updateArrivalRequestAdmin = asyncHandler(async (req, res) => {
 
   if (req.body.status !== undefined) item.status = req.body.status;
   if (req.body.adminNote !== undefined) item.adminNote = String(req.body.adminNote || "").trim();
+  if (req.body.travelAlert !== undefined) item.travelAlert = String(req.body.travelAlert || "").trim();
+  if (req.body.pickup !== undefined) {
+    const pickup = req.body.pickup || {};
+    if (pickup.status !== undefined) {
+      if (!PICKUP_STATUSES.includes(pickup.status)) {
+        res.status(400);
+        throw new Error("Invalid pickup status");
+      }
+      item.pickup.status = pickup.status;
+      item.pickup.confirmedAt = pickup.status === "arrived" || pickup.status === "completed" ? new Date() : item.pickup.confirmedAt;
+    }
+    if (pickup.driverName !== undefined) item.pickup.driverName = String(pickup.driverName || "").trim();
+    if (pickup.driverPhone !== undefined) item.pickup.driverPhone = String(pickup.driverPhone || "").trim();
+  }
   item.updatedBy = req.user._id;
   await item.save();
 
