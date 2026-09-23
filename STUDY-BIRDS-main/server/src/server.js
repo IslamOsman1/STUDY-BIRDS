@@ -7,9 +7,13 @@ const MONGODB_RETRY_DELAY_MS = Number(process.env.MONGODB_RETRY_DELAY_MS || 5000
 
 let stopReminders;
 let stopAutomaticAssignment;
+let stopConsultationReminders;
 const startDatabaseConnection = async () => {
   try {
     await connectDatabase();
+    if (!stopConsultationReminders) {
+      stopConsultationReminders = require('./utils/consultationReminders').startConsultationReminderScheduler();
+    }
     if (!stopAutomaticAssignment) {
       try { stopAutomaticAssignment = require("./utils/automaticApplicationAssignment").startAutomaticAssignmentScheduler(); }
       catch (error) { console.error("Automatic assignment configuration invalid", error.message); }

@@ -316,5 +316,14 @@
     "resources": [
       "university-accounts"
     ]
+  },
+  {
+    "key": "consultations",
+    "ar": "الاستشارات والمواعيد",
+    "en": "Consultations",
+    "pages": [
+      "consultations"
+    ],
+    "resources": []
   }
 ]

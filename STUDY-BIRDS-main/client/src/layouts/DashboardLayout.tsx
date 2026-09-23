@@ -42,6 +42,7 @@ export const DashboardLayout = () => {
   const isUniversity = user?.role === "university";
 
   const studentLinks = [
+    { label: language === "ar" ? "الاستشارات والمواعيد" : "Consultations", href: "/student/consultations", icon: CalendarClock, description: language === "ar" ? "المواعيد والحجوزات" : "Availability and bookings" },
     { label: language === "ar" ? "لوحة الطالب" : "Student Dashboard", href: "/student", icon: LayoutDashboard, description: language === "ar" ? "ملخص شامل لحالة القبول والمستندات والإشعارات." : "Executive overview of your admission progress, documents, and alerts." },
     { label: language === "ar" ? "طلباتي" : "My Applications", href: "/student/applications", icon: GraduationCap, description: language === "ar" ? "تابع الجامعات والتخصصات وحالة كل طلب." : "Track universities, programs, and each application status." },
     { label: language === "ar" ? "مستنداتي" : "My Documents", href: "/student/documents", icon: FileText, description: language === "ar" ? "ارفع مستنداتك وراجع حالتها وملاحظات المراجعة." : "Upload your documents and review their status and notes." },
@@ -83,6 +84,7 @@ export const DashboardLayout = () => {
   ];
 
   const adminLinks = [
+    { label: language === "ar" ? "الاستشارات والمواعيد" : "Consultations", href: "/admin/consultations", icon: CalendarClock, description: language === "ar" ? "المواعيد والحجوزات" : "Availability and bookings" },
     { label: t("overview"), href: "/admin", icon: LayoutDashboard, description: dt(language, "executiveSummary") },
     { label: dt(language, "users"), href: "/admin/users", icon: Users, description: dt(language, "userAccessDesc") },
     { label: language === "ar" ? "ملفات الطلاب" : "Student Profiles", href: "/admin/students", icon: GraduationCap, description: language === "ar" ? "الملف الشخصي الكامل لكل طالب مع جميع الوحدات المرتبطة به." : "Each student profile with linked operational modules." },
