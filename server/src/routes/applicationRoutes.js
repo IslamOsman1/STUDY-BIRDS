@@ -13,7 +13,10 @@ const { requireSection, authorizeApplicationRead } = require("../middleware/empl
 
 const { attachApplicationDocument, requestApplicationDocument, reviewApplicationDocumentRequest } = require('../controllers/applicationDocumentController');
 const { getAssignment, updateAssignment, requeueAssignment } = require('../controllers/applicationAssignmentController');
+const { getPostAdmission, updatePostAdmission } = require('../controllers/postAdmissionController');
 router.use(protect);
+router.get('/:id/post-admission', getPostAdmission);
+router.patch('/:id/post-admission', requireSection('applications'), updatePostAdmission);
 router.use('/follow-up-reminders', require('./followUpReminderRoutes'));
 router.get('/:id/assignment', requireSection('applications'), getAssignment);
 router.patch('/:id/assignment', requireSection('applications'), updateAssignment);

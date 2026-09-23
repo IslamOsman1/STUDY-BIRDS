@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const User = require('../models/User');
 const WorkerLease = require('../models/WorkerLease');
+const { assignmentStageFilter } = require('./automaticAssignmentEligibility');
 
 const LEASE_ID = 'automatic-admission-assignment';
 const LEASE_MS = 60000;
@@ -19,8 +20,7 @@ const candidateApplication = {
   // A cleared manual assignment stays out of the queue unless staff explicitly
   // re-queues it (autoAssignmentEligible) — see requeueAssignment.
   $or: [{ 'assignmentHistory.0': { $exists: false } }, { autoAssignmentEligible: true }],
-  status: { $in: ['submitted', 'under-review'] },
-  detailedStatus: { $in: ['submitted', 'under-review', 'additional-documents-required'] },
+  ...assignmentStageFilter,
 };
 
 function positiveInteger(value, name, maximum) {
