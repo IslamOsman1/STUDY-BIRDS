@@ -356,7 +356,9 @@
     ],
     "resources": [
       "community-posts",
-      "community-comments"
+      "community-comments",
+      "community-reports",
+      "community-moderation-log"
     ]
   }
 ]

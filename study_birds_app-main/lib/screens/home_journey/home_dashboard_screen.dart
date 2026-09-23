@@ -16,6 +16,7 @@ import '../universities_programs_countries/universities_screens.dart';
 import '../universities_programs_countries/countries_scholarships_screens.dart';
 import '../services_support/services_consultation_screens.dart';
 import '../services_support/support_team_ai_screens.dart';
+import '../services_support/community_screen.dart';
 
 /// Real, live Home Dashboard — fetches GET /api/students/overview on load.
 /// Uses the server next action when available; older deployments fall back
@@ -45,6 +46,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     {'label': 'Bird AI', 'icon': null},
     {'label': 'استشارة', 'icon': Icons.support_agent_outlined},
     {'label': 'الدعم', 'icon': Icons.headset_mic_outlined},
+    {'label': 'المجتمع', 'icon': Icons.forum_outlined},
   ];
 
   @override
@@ -153,6 +155,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         return const BirdAIChatScreen();
       case 'استشارة':
         return const ConsultationBookingScreen();
+      case 'المجتمع':
+        return const StudentCommunityScreen();
       case 'الدعم':
         return const SupportCenterScreen();
       default:

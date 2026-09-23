@@ -110,7 +110,7 @@ const {
   getAccommodationBookingsAdmin, updateAccommodationBookingStatus,
 } = require("../controllers/accommodationController");
 const { getWalletEntriesAdmin, createWalletAdjustmentAdmin } = require("../controllers/studentWalletController");
-const { listPostsAdmin, moderatePost, moderateComment } = require("../controllers/communityController");
+const { listPostsAdmin, getPostAdmin, listReportsAdmin, listModerationLogAdmin, moderatePost, moderateComment } = require("../controllers/communityController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -206,8 +206,11 @@ router.patch("/student-financials/payment-proofs/:id", reviewPaymentProofAdmin);
 router.get("/student-financials/wallet-entries", getWalletEntriesAdmin);
 router.post("/student-financials/wallet-entries", createWalletAdjustmentAdmin);
 router.get("/community-posts", listPostsAdmin);
+router.get("/community-posts/:id", getPostAdmin);
 router.patch("/community-posts/:id", moderatePost);
 router.patch("/community-comments/:id", moderateComment);
+router.get("/community-reports", listReportsAdmin);
+router.get("/community-moderation-log", listModerationLogAdmin);
 router.get("/student-arrival-requests", getArrivalRequestsAdmin);
 router.patch("/student-arrival-requests/:id", updateArrivalRequestAdmin);
 router.get("/student-favorites", getStudentFavoritesAdmin);
