@@ -722,6 +722,7 @@ export interface InvoiceItem {
   status: "unpaid" | "pending-confirmation" | "paid" | "rejected";
   invoiceUrl?: string;
   category?: "application-fee" | "tuition" | "service" | "housing" | "other";
+  walletCreditApplied?: number;
   adminNote?: string;
   reviewedAt?: string;
   reviewedBy?: Pick<User, "_id" | "name" | "email">;

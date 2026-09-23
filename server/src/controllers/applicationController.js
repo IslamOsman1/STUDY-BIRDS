@@ -9,6 +9,7 @@ const { ALL_APPLICATION_STATUSES } = require("../constants/roles");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
+const { qualifyReferral } = require("../utils/studentWallet");
 
 const createApplication = asyncHandler(async (req, res) => {
   const { programId, documentIds = [], notes, applicantProfile } = req.body;
@@ -73,6 +74,10 @@ const createApplication = asyncHandler(async (req, res) => {
     type: "success",
     link: `/student/applications`,
   });
+
+  if ((await Application.countDocuments({ student: req.user._id })) === 1) {
+    await qualifyReferral(req.user._id).catch((error) => console.error("Referral qualification failed", error.message));
+  }
 
   const populated = await Application.findById(application._id)
     .populate("student", "-password")

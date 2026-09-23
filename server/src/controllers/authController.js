@@ -4,6 +4,7 @@ const StudentProfile = require("../models/StudentProfile");
 const { OAuth2Client } = require("google-auth-library");
 const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
+const { recordReferralSignup } = require("../utils/studentWallet");
 
 const googleClient = new OAuth2Client();
 
@@ -54,6 +55,9 @@ const register = asyncHandler(async (req, res) => {
   });
 
   await ensureStudentProfile(user._id);
+  if (typeof req.body.referralCode === "string" && req.body.referralCode.trim()) {
+    await recordReferralSignup(user._id, req.body.referralCode).catch((error) => console.error("Referral signup failed", error.message));
+  }
 
   res.status(201).json({
     token: generateToken(user._id, user.tokenVersion),

@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     appleId: { type: String, unique: true, sparse: true },
+    referralCode: { type: String, unique: true, sparse: true },
     verifiedPhone: { type: String },
     googleId: {
       type: String,
