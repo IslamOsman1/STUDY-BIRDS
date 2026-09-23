@@ -325,5 +325,26 @@
       "consultations"
     ],
     "resources": []
+  },
+  {
+    "key": "visa",
+    "ar": "معالجة التأشيرات",
+    "en": "Visa processing",
+    "pages": [
+      "visa"
+    ],
+    "resources": []
+  },
+  {
+    "key": "housing",
+    "ar": "السكن الطلابي",
+    "en": "Student housing",
+    "pages": [
+      "housing"
+    ],
+    "resources": [
+      "accommodation-listings",
+      "accommodation-bookings"
+    ]
   }
 ]

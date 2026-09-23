@@ -130,6 +130,7 @@ app.use("/api/universities", requireDatabaseConnection, universityRoutes);
 app.use("/api/programs", requireDatabaseConnection, programRoutes);
 app.use("/api/applications", requireDatabaseConnection, applicationRoutes);
 app.use('/api/consultations', requireDatabaseConnection, require('./routes/consultationRoutes'));
+app.use('/api/accommodation', requireDatabaseConnection, require('./routes/accommodationRoutes'));
 app.use("/api/admin", requireDatabaseConnection, adminRoutes);
 app.use("/api/content", requireDatabaseConnection, contentRoutes);
 // NEW paths — brand new prefixes, cannot shadow or be shadowed by anything above.

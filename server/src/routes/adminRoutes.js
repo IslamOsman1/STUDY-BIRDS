@@ -105,6 +105,10 @@ const {
   getEmployeesAdmin,
   updateEmployeeRoleAdmin,
 } = require("../controllers/adminRoleManagementController");
+const {
+  getAccommodationListingsAdmin, createAccommodationListing, updateAccommodationListing, deleteAccommodationListing,
+  getAccommodationBookingsAdmin, updateAccommodationBookingStatus,
+} = require("../controllers/accommodationController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -120,6 +124,12 @@ router.patch("/users/:id", updateUser);
 router.patch("/students/:id/status", updateSectionAccountStatus);
 router.patch("/partners/:id/status", updateSectionAccountStatus);
 router.get("/applications", getAdminApplications);
+router.get("/accommodation-listings", getAccommodationListingsAdmin);
+router.post("/accommodation-listings", createAccommodationListing);
+router.put("/accommodation-listings/:id", updateAccommodationListing);
+router.delete("/accommodation-listings/:id", deleteAccommodationListing);
+router.get("/accommodation-bookings", getAccommodationBookingsAdmin);
+router.patch("/accommodation-bookings/:id", updateAccommodationBookingStatus);
 router.get("/countries", getCountriesAdmin);
 router.post("/countries/upload-image", upload.single("file"), uploadCountryHeroImage);
 router.post("/countries", createCountry);
