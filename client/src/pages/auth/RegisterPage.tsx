@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { GoogleSignInButton } from "../../components/auth/GoogleSignInButton";
@@ -23,6 +23,8 @@ type RegisterValues = z.infer<typeof schema>;
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get("ref") || undefined;
   const { register: registerUser, googleLogin, user } = useAuth();
   const { t, language } = useLanguage();
   const [formError, setFormError] = useState("");
@@ -44,7 +46,7 @@ export const RegisterPage = () => {
   const onSubmit = async (values: RegisterValues) => {
     setFormError("");
     try {
-      const user = await registerUser(values);
+      const user = await registerUser({ ...values, referralCode });
       navigate(getHomeRouteForRole(user.role, user.permissions));
     } catch (error) {
       setFormError(getErrorMessage(error, t("authFailed")));
