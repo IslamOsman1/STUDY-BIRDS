@@ -4,6 +4,7 @@ const CLOSED = new Set(['rejected', 'completed']);
 const id = (record) => String(record?._id || record || '');
 const status = (record) => record.status === 'rejected' ? 'rejected' : record.detailedStatus || record.status;
 const { missingDocumentTypes } = require('./applicationRequirements');
+const { postAdmissionNextAction } = require('./postAdmissionJourney');
 const documentLabels = { passport: 'جواز السفر', 'biometric-photo': 'الصورة الشخصية', 'latest-qualification': 'آخر مؤهل دراسي', transcript: 'كشف الدرجات', 'language-certificate': 'شهادة اللغة', other: 'مستند إضافي' };
 
 function studentNextAction({ applications = [], documents = [], invoices = [] }, now = new Date()) {
@@ -39,6 +40,8 @@ function studentNextAction({ applications = [], documents = [], invoices = [] },
     }
   }
   for (const app of active) {
+    const postAdmissionAction = postAdmissionNextAction(app, now);
+    if (postAdmissionAction) actions.push(postAdmissionAction);
     for (const request of app.documentRequests || []) {
       if (request.status === 'requested') add('additional-document-request', 'applications', 'مستند إضافي مطلوب', 'Additional document requested', request.note, request.note, app, 5);
       if (request.status === 'submitted') add('additional-document-review', 'applications', 'بانتظار مراجعة المستند الإضافي', 'Additional document under review', request.note, request.note, app, 65, true);

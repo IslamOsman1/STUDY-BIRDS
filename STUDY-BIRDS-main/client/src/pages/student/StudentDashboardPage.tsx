@@ -98,7 +98,7 @@ export const StudentDashboardPage = () => {
           <h2 className="mt-2 text-xl font-semibold text-slate-900">{isArabic ? overview.nextAction.titleAr : overview.nextAction.titleEn}</h2>
           <p className="mt-2 text-sm leading-7 text-slate-600">{isArabic ? overview.nextAction.descriptionAr : overview.nextAction.descriptionEn}</p>
           {overview.nextAction.dueDate && <p className="mt-2 text-sm">{isArabic ? "الاستحقاق: " : "Due: "}{formatDate(overview.nextAction.dueDate)}</p>}
-          <Link className="mt-4 inline-flex min-h-12 items-center rounded-xl bg-orange-500 px-5 font-semibold text-white" to={({ payments: "/student/financials", documents: "/student/documents", applications: "/student/applications", support: "/student/support", catalog: "/programs" } as Record<string, string>)[overview.nextAction.destination] || "/student/applications"}>
+          <Link className="mt-4 inline-flex min-h-12 items-center rounded-xl bg-orange-500 px-5 font-semibold text-white" to={overview.nextAction.destination === 'journey' ? `/student/applications#journey-${overview.nextAction.entityId}` : ({ payments: "/student/financials", documents: "/student/documents", applications: "/student/applications", support: "/student/support", catalog: "/programs" } as Record<string, string>)[overview.nextAction.destination] || "/student/applications"}>
             {isArabic ? "عرض التفاصيل" : "View details"}
           </Link>
         </section>

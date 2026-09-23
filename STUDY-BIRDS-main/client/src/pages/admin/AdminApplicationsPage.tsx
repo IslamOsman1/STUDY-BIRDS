@@ -1,5 +1,6 @@
 import { FollowUpReminders } from '../../components/admin/FollowUpReminders';
 import { ApplicationAssignment } from '../../components/admin/ApplicationAssignment';
+import { ApplicationPostAdmission } from '../../components/admin/ApplicationPostAdmission';
 import { ApplicationDocumentRequests } from '../../components/admin/ApplicationDocumentRequests';
 import { useEffect, useMemo, useState } from "react";
 import { Filter, Inbox, SendHorizontal, Trash2 } from "lucide-react";
@@ -251,7 +252,7 @@ export const AdminApplicationsPage = () => {
 
                   <div className="mt-4 rounded-3xl border border-slate-200 p-4">
                     <button className="mb-3 min-h-11 font-semibold" aria-expanded={documentEditor === application._id} onClick={() => setDocumentEditor(documentEditor === application._id ? undefined : application._id)}>{language === 'ar' ? 'إدارة المتابعة والمستندات' : 'Manage follow-up and documents'}</button>
-                    {documentEditor === application._id && <><ApplicationAssignment id={application._id} /><ApplicationDocumentRequests id={application._id} /></>}
+                    {documentEditor === application._id && <><ApplicationAssignment id={application._id} /><ApplicationPostAdmission key={application._id} id={application._id} /><ApplicationDocumentRequests id={application._id} /></>}
                     <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{dt(language, "statusTimelineLabel")}</h3>
                     <div className="mt-4 space-y-3">
                       {timeline.length ? (
