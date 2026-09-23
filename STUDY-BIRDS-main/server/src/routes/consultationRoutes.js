@@ -16,6 +16,13 @@ function url(value) {
   if (typeof value !== 'string' || value.length > 1000) return false;
   try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password; } catch { return false; }
 }
+function validSlot({ advisorId, startsAt, mode, meetingUrl = '', instructions = '' }) {
+  const start = typeof startsAt === 'string' ? new Date(startsAt) : new Date(NaN);
+  return validId(advisorId) && Number.isFinite(start.getTime()) && start > new Date()
+    && start.getTime() <= Date.now() + 90 * 86400000 && start.getTime() % HALF_HOUR === 0
+    && ['online', 'phone', 'office'].includes(mode) && typeof instructions === 'string' && instructions.length <= 500
+    && typeof meetingUrl === 'string' && (mode === 'online' ? url(meetingUrl) : !!instructions.trim());
+}
 function visibleBookingQuery(user) {
   if (user.role === 'student') return { student: user._id };
   if (!hasSection(user, 'consultations')) fail(403, 'Access denied');
@@ -107,21 +114,59 @@ router.post('/bookings/:id/reschedule', authorize('student'), run(async (req, re
   res.json(result);
 }));
 router.use('/staff', requireSection('consultations'));
+router.put('/staff/bookings/:id/outcome', run(async (req, res) => {
+  const { version, result, summary, nextSteps = '' } = req.body;
+  if (!validId(req.params.id) || !validVersion(version) || !['completed', 'no-show'].includes(result)
+    || typeof summary !== 'string' || !summary.trim() || summary.length > 2000
+    || typeof nextSteps !== 'string' || nextSteps.length > 2000) {
+    return res.status(400).json({ message: 'اختر نتيجة الاستشارة وأدخل ملخصًا حتى 2000 حرف وخطوات تالية حتى 2000 حرف.' });
+  }
+  const updated = await transaction(res, async session => {
+    const booking = await Booking.findOne({ _id: req.params.id, ...visibleBookingQuery(req.user) }).session(session);
+    if (!booking) fail(404, 'Booking not found');
+    if (booking.status === 'cancelled' || booking.__v !== version || booking.startsAt.getTime() + HALF_HOUR > Date.now()) {
+      fail(409, 'يمكن تسجيل النتيجة بعد انتهاء الاستشارة فقط. حدّث الحجز قبل المحاولة مجددًا.');
+    }
+    const outcome = { result, summary: summary.trim(), nextSteps: nextSteps.trim(), recordedBy: req.user._id, recordedAt: new Date() };
+    const saved = await Booking.findOneAndUpdate({ _id: booking._id, __v: version, status: booking.status }, {
+      $set: { status: result, outcome }, $inc: { __v: 1 }, $push: { outcomeHistory: outcome },
+    }, { new: true, session, runValidators: true });
+    if (!saved) fail(409, 'Booking changed');
+    await Notification.create([{ user: booking.student, title: 'تم تحديث نتيجة الاستشارة',
+      message: 'يمكنك مراجعة ملخص الاستشارة والخطوات التالية من صفحة مواعيدك.',
+      type: 'info', link: '/student/consultations' }], { session });
+    return saved;
+  });
+  res.json(updated);
+}));
 router.get('/staff/advisors', run(async (req, res) => res.json(await User.find({ ...advisors, ...(req.user.role === 'admin' ? {} : { _id: req.user._id }) }).select('name').sort({ name: 1 }).lean())));
 router.get('/staff/slots', run(async (req, res) => res.json(await Slot.find({ ...(req.user.role === 'admin' ? {} : { advisor: req.user._id }), startsAt: { $gt: new Date(Date.now() - 86400000) } }).populate('advisor', 'name').sort({ startsAt: 1 }).limit(500).lean())));
 router.get('/staff/bookings', run(async (req, res) => res.json(await Booking.find(visibleBookingQuery(req.user)).populate('student', 'name').populate('advisor', 'name').populate('slot', 'mode meetingUrl instructions').sort({ startsAt: -1 }).limit(200).lean())));
 router.post('/staff/slots', run(async (req, res) => {
   const { advisorId, startsAt, mode, meetingUrl = '', instructions = '' } = req.body;
   const start = typeof startsAt === 'string' ? new Date(startsAt) : new Date(NaN);
-  if (!validId(advisorId) || !Number.isFinite(start.getTime()) || start <= new Date() || start.getTime() > Date.now() + 90 * 86400000 || start.getTime() % HALF_HOUR !== 0
-    || !['online', 'phone', 'office'].includes(mode) || typeof instructions !== 'string' || instructions.length > 500
-    || typeof meetingUrl !== 'string' || (mode === 'online' && !url(meetingUrl)) || (mode !== 'online' && !instructions.trim())) {
+  if (!validSlot(req.body)) {
     return res.status(400).json({ message: 'اختر موعدًا مستقبليًا على رأس الساعة أو نصفها خلال 90 يومًا، وأدخل رابط اجتماع HTTPS أو تعليمات الاتصال/المكتب.' });
   }
   if (req.user.role !== 'admin' && advisorId !== String(req.user._id)) return res.status(403).json({ message: 'Only your own availability can be published' });
   if (!await User.exists({ _id: advisorId, ...advisors })) return res.status(400).json({ message: 'Choose an active authorized consultant' });
   try { res.status(201).json(await Slot.create({ advisor: advisorId, startsAt: start, mode, meetingUrl: mode === 'online' ? meetingUrl : '', instructions: instructions.trim() })); }
   catch (error) { if (error.code === 11000) return res.status(409).json({ message: 'يوجد موعد لهذا المستشار في الوقت نفسه.' }); throw error; }
+}));
+router.post('/staff/slots/batch', run(async (req, res) => {
+  const { advisorId, startsAt, mode, meetingUrl = '', instructions = '' } = req.body;
+  if (!Array.isArray(startsAt) || startsAt.length < 1 || startsAt.length > 12
+    || startsAt.some(date => !validSlot({ advisorId, startsAt: date, mode, meetingUrl, instructions }))
+    || new Set(startsAt.map(date => new Date(date).getTime())).size !== startsAt.length) {
+    return res.status(400).json({ message: 'اختر حتى 12 موعدًا مختلفًا خلال 90 يومًا على شبكة نصف الساعة، مع رابط HTTPS أو تعليمات الاتصال.' });
+  }
+  if (req.user.role !== 'admin' && advisorId !== String(req.user._id)) return res.status(403).json({ message: 'Only your own availability can be published' });
+  const result = await transaction(res, async session => {
+    if (!await User.exists({ _id: advisorId, ...advisors }).session(session)) fail(400, 'Choose an active authorized consultant');
+    return Slot.create(startsAt.map(date => ({ advisor: advisorId, startsAt: new Date(date), mode,
+      meetingUrl: mode === 'online' ? meetingUrl : '', instructions: instructions.trim() })), { session, ordered: true });
+  });
+  res.status(201).json(result);
 }));
 router.patch('/staff/slots/:id', run(async (req, res) => {
   if (!validId(req.params.id) || !validVersion(req.body.version) || typeof req.body.enabled !== 'boolean') return res.status(400).json({ message: 'Invalid slot/version' });

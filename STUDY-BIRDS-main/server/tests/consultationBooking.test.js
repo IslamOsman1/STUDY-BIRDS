@@ -85,6 +85,57 @@ test('consultations enforce authorization, atomic reservations, safe reschedulin
     await User.updateOne({ _id: second._id }, { $set: { isActive: false } });
     await call('POST', '/bookings', stranger, { slotId: parallel._id }, 409);
     assert.equal((await Slot.findById(parallel._id)).reservation, null);
+    // Results are only recorded after an appointment ends, by its consultant
+    // or an admin, and are explicitly shared with the booked student.
+    await User.updateOne({ _id: second._id }, { $set: { isActive: true } });
+    const past = await Slot.create({ advisor: staff._id, startsAt: new Date(start - 86400000), mode: 'office', instructions: 'Office' });
+    const finished = await Booking.create({ student: student._id, advisor: staff._id, slot: past._id, startsAt: past.startsAt });
+    await Slot.updateOne({ _id: past._id }, { reservation: finished._id });
+    const outcomePath = `/staff/bookings/${finished._id}/outcome`;
+    const outcome = { version: 0, result: 'completed', summary: 'Reviewed program choices', nextSteps: 'Upload transcript' };
+    await call('PUT', outcomePath, student, outcome, 403);
+    await call('PUT', outcomePath, finance, outcome, 403);
+    await call('PUT', outcomePath, second, outcome, 404);
+    for (const invalid of [{ result: 'cancelled' }, { summary: ' ' }, { summary: 'x'.repeat(2001) }, { nextSteps: [] }, { version: -1 }]) {
+      await call('PUT', outcomePath, staff, { ...outcome, ...invalid }, 400);
+    }
+    await call('PUT', `/staff/bookings/${booking._id}/outcome`, staff, { ...outcome, version: cancelled.__v }, 409);
+    const futureSlot = await Slot.create({ advisor: staff._id, startsAt: new Date(start + 7200000), mode: 'office' });
+    const futureBooking = await Booking.create({ student: student._id, advisor: staff._id, slot: futureSlot._id, startsAt: futureSlot.startsAt });
+    await call('PUT', `/staff/bookings/${futureBooking._id}/outcome`, staff, outcome, 409);
+    const beforeOutcome = await Notification.countDocuments();
+    const saved = await call('PUT', outcomePath, staff, outcome);
+    assert.equal(saved.status, 'completed');
+    assert.equal(saved.__v, 1);
+    assert.equal(saved.outcome.summary, outcome.summary);
+    assert.equal(saved.outcome.recordedBy, String(staff._id));
+    assert.equal(await Notification.countDocuments(), beforeOutcome + 1);
+    await call('PUT', outcomePath, staff, outcome, 409);
+    assert.equal(await Notification.countDocuments(), beforeOutcome + 1, 'conflicts do not notify');
+    const revised = await call('PUT', outcomePath, admin, { ...outcome, version: 1, result: 'no-show', summary: 'Student did not attend' });
+    assert.equal(revised.status, 'no-show');
+    assert.equal(revised.outcomeHistory.length, 2);
+    assert.equal(revised.outcomeHistory[0].summary, outcome.summary);
+    const studentResult = (await call('GET', '/mine', student)).find(b => b._id === String(finished._id));
+    assert.equal(studentResult.outcome.summary, 'Student did not attend');
+    assert.ok(!(await call('GET', '/mine', stranger)).some(b => b._id === String(finished._id)));
+    assert.ok(!(await call('GET', '/staff/bookings', second)).some(b => b._id === String(finished._id)));
+    const dates = [2, 9, 16].map(days => new Date(start + days * 86400000).toISOString());
+    const batch = { ...form, startsAt: dates };
+    await call('POST', '/staff/slots/batch', student, batch, 403);
+    await call('POST', '/staff/slots/batch', second, batch, 403);
+    for (const badDates of [[], Array(13).fill(dates[0]), [dates[0], dates[0]], ['invalid'], [new Date(start + 100 * 86400000).toISOString()]]) {
+      await call('POST', '/staff/slots/batch', staff, { ...batch, startsAt: badDates }, 400);
+    }
+    const series = await call('POST', '/staff/slots/batch', staff, batch, 201);
+    assert.equal(series.length, 3);
+    const unclaimedDate = new Date(start + 3 * 86400000).toISOString();
+    await call('POST', '/staff/slots/batch', staff, { ...batch, startsAt: [unclaimedDate, dates[1]] }, 409);
+    assert.equal(await Slot.countDocuments({ advisor: staff._id, startsAt: new Date(unclaimedDate) }), 0, 'conflicting batch rolls back every inserted slot');
+    assert.equal(await Slot.countDocuments({ _id: { $in: series.map(s => s._id) } }), 3);
+    const parallelBatch = { ...batch, startsAt: [unclaimedDate, new Date(start + 10 * 86400000).toISOString()] };
+    const batchResults = await Promise.all([1, 2].map(() => call('POST', '/staff/slots/batch', staff, parallelBatch, null)));
+    assert.deepEqual(batchResults.map(r => r.status).sort(), [201, 409]);
   } finally {
     if (server) await new Promise(resolve => server.close(resolve));
     await mongoose.disconnect(); await mongo.stop();

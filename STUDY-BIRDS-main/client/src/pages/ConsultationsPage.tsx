@@ -5,7 +5,8 @@ import { getErrorMessage } from "../utils/errors";
 
 type Person = { _id: string; name: string };
 type Slot = { _id: string; __v: number; advisor: Person; startsAt: string; mode: string; meetingUrl?: string; instructions?: string; enabled: boolean; reservation?: string };
-type Booking = { _id: string; __v: number; advisor: Person; student?: Person; startsAt: string; status: string; slot: Slot };
+type Outcome = { result: string; summary: string; nextSteps: string };
+type Booking = { _id: string; __v: number; advisor: Person; student?: Person; startsAt: string; status: string; slot: Slot; outcome?: Outcome };
 const labels: Record<string, [string, string]> = { online: ["أونلاين", "Online"], phone: ["هاتف", "Phone"], office: ["مكتب", "Office"] };
 export const ConsultationsPage = ({ staff = false }: { staff?: boolean }) => {
   const { language } = useLanguage();
@@ -17,8 +18,14 @@ export const ConsultationsPage = ({ staff = false }: { staff?: boolean }) => {
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
   const [error, setError] = useState(""), [success, setSuccess] = useState("");
   const [moving, setMoving] = useState<Booking | null>(null);
+  const [editing, setEditing] = useState<Booking | null>(null);
+  const [outcome, setOutcome] = useState<Outcome>({ result: "completed", summary: "", nextSteps: "" });
   const [mode, setMode] = useState(""), [advisor, setAdvisor] = useState(""), [day, setDay] = useState("");
   const [form, setForm] = useState({ advisorId: "", startsAt: "", mode: "online", meetingUrl: "", instructions: "" });
+  const [occurrences, setOccurrences] = useState(1);
+  const recurrence = Array.from({ length: occurrences }, (_, i) => {
+    const date = new Date(form.startsAt); date.setDate(date.getDate() + i * 7); return date;
+  });
   const when = (s: string) => new Date(s).toLocaleString(ar ? "ar" : "en", { dateStyle: "medium", timeStyle: "short" });
   const dateKey = (s: string) => { const d = new Date(s); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   async function load() {
@@ -33,7 +40,7 @@ export const ConsultationsPage = ({ staff = false }: { staff?: boolean }) => {
   async function change(action: () => Promise<unknown>, message: string) {
     if (busy) return;
     setBusy(true); setError(""); setSuccess("");
-    try { await action(); setMoving(null); setSuccess(message); await load(); }
+    try { await action(); setMoving(null); setEditing(null); setSuccess(message); await load(); }
     catch (e) { setError(getErrorMessage(e, t("تعذر إتمام العملية؛ حدّث المواعيد وحاول مجددًا", "Unable to complete; refresh and try again"))); }
     finally { setBusy(false); }
   }
@@ -50,24 +57,48 @@ export const ConsultationsPage = ({ staff = false }: { staff?: boolean }) => {
     {staff && <form className="space-y-3 rounded-2xl border bg-white p-5" onSubmit={e => {
       e.preventDefault();
       const start = new Date(form.startsAt);
-      if (!Number.isFinite(start.getTime()) || start.getTime() % 1800000 !== 0) { setError(t("اختر موعدًا على رأس الساعة أو نصفها بتوقيت UTC", "Choose a UTC half-hour boundary")); return; }
-      void change(() => api.post("/consultations/staff/slots", { ...form, startsAt: start.toISOString() }), t("نُشر الموعد المتاح", "Availability published"));
+      if (recurrence.some(date => !Number.isFinite(date.getTime()) || date.getTime() % 1800000 !== 0 || date.getTime() <= Date.now() || date.getTime() > Date.now() + 90 * 86400000)) { setError(t("اختر مواعيد مستقبلية خلال 90 يومًا على شبكة نصف الساعة", "Choose future half-hour slots within 90 days")); return; }
+      if (occurrences > 1 && !window.confirm(`${t("نشر جميع المواعيد التالية؟ عند التعارض لن يُنشر أي منها.", "Publish all these dates? A conflict prevents the whole batch.")}\n${recurrence.map(date => when(date.toISOString())).join("\n")}`)) return;
+      void change(() => api.post(`/consultations/staff/slots${occurrences > 1 ? "/batch" : ""}`, { ...form, startsAt: occurrences > 1 ? recurrence.map(date => date.toISOString()) : start.toISOString() }), t("نُشرت المواعيد المتاحة", "Availability published"));
     }}>
       <h2 className="text-xl font-semibold">{t("إتاحة موعد جديد", "Publish availability")}</h2>
       <div className="grid gap-3 md:grid-cols-2">
         <label>{t("المستشار", "Consultant")}<select className={`${input} block w-full`} required value={form.advisorId} onChange={e => setForm({ ...form, advisorId: e.target.value })}><option value="">{t("اختر مستشارًا", "Choose consultant")}</option>{advisors.map(a => <option key={a._id} value={a._id}>{a.name}</option>)}</select></label>
         <label>{t("التاريخ والوقت المحلي", "Local date and time")}<input className={`${input} block w-full`} type="datetime-local" required step={1800} value={form.startsAt} onChange={e => setForm({ ...form, startsAt: e.target.value })} /></label>
+        <label>{t("تكرار أسبوعي", "Weekly repetition")}<select className={`${input} block w-full`} disabled={busy} value={occurrences} onChange={e => setOccurrences(Number(e.target.value))}>{Array.from({ length: 12 }, (_, i) => <option key={i} value={i + 1}>{i + 1} {t("موعد", "appointment(s)")}</option>)}</select></label>
         <label>{t("نوع الاستشارة", "Consultation type")}<select className={`${input} block w-full`} value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value })}>{Object.entries(labels).map(([key, value]) => <option key={key} value={key}>{value[ar ? 0 : 1]}</option>)}</select></label>
         {form.mode === "online" && <label>{t("رابط اجتماع HTTPS", "HTTPS meeting link")}<input className={`${input} block w-full`} type="url" required pattern="https://.*" maxLength={1000} value={form.meetingUrl} onChange={e => setForm({ ...form, meetingUrl: e.target.value })} /></label>}
       </div>
       <label className="block">{t("تعليمات الاتصال أو عنوان المكتب", "Contact instructions or office address")}<textarea className={`${input} block w-full`} required={form.mode !== "online"} maxLength={500} value={form.instructions} onChange={e => setForm({ ...form, instructions: e.target.value })} /></label>
       {!advisors.length && <p>{t("يجب منح موظف نشط صلاحية الاستشارات أولًا من إدارة الموظفين.", "Grant an active employee the Consultations permission first.")}</p>}
+      {occurrences > 1 && form.startsAt && <ul className="list-inside list-disc">{recurrence.filter(date => Number.isFinite(date.getTime())).map((date, i) => <li key={i}>{when(date.toISOString())}</li>)}</ul>}
       <button className={button} disabled={busy || !advisors.length}>{t("نشر الموعد", "Publish slot")}</button>
     </form>}
     <section className="space-y-3"><h2 className="text-xl font-semibold">{staff ? t("الحجوزات", "Bookings") : t("مواعيدي", "My appointments")}</h2>
       {loading ? <p>{t("جارٍ التحميل…", "Loading…")}</p> : !bookings.length && <p>{t("لا توجد حجوزات", "No bookings")}</p>}
       {bookings.map(b => <article key={b._id} className="space-y-2 rounded-2xl border bg-white p-4">
-        <h3 className="font-semibold">{b.advisor?.name} {staff && `— ${b.student?.name || ""}`}</h3><p>{when(b.startsAt)} · {labels[b.slot?.mode]?.[ar ? 0 : 1]} · {b.status === "booked" ? t("مؤكد", "Confirmed") : t("ملغى", "Cancelled")}</p>
+        <h3 className="font-semibold">{b.advisor?.name} {staff && `— ${b.student?.name || ""}`}</h3><p>{when(b.startsAt)} · {labels[b.slot?.mode]?.[ar ? 0 : 1]} · {b.status === "completed" ? t("مكتملة", "Completed") : b.status === "no-show" ? t("لم يحضر الطالب", "Student did not attend") : b.status === "booked" ? t("مؤكد", "Confirmed") : t("ملغى", "Cancelled")}</p>
+        {b.outcome && <div className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3">
+          <h4 className="font-semibold">{t("نتيجة الاستشارة", "Consultation outcome")}</h4><p>{b.outcome.summary}</p>
+          {b.outcome.nextSteps && <><h4 className="mt-2 font-semibold">{t("الخطوات التالية", "Next steps")}</h4><p>{b.outcome.nextSteps}</p></>}
+        </div>}
+        {staff && b.status !== "cancelled" && new Date(b.startsAt).getTime() + 1800000 <= Date.now() && <button className={button} disabled={busy} onClick={() => {
+          setEditing(b); setOutcome(b.outcome || { result: "completed", summary: "", nextSteps: "" });
+        }}>{b.outcome ? t("تعديل النتيجة", "Edit outcome") : t("تسجيل النتيجة", "Record outcome")}</button>}
+        {editing?._id === b._id && <form className="space-y-3 rounded-xl border p-3" onSubmit={e => {
+          e.preventDefault();
+          if (!outcome.summary.trim() || !window.confirm(t("سيظهر الملخص والخطوات التالية للطالب. حفظ ومشاركة؟", "The student will see this summary and next steps. Save and share?"))) return;
+          void change(() => api.put(`/consultations/staff/bookings/${b._id}/outcome`, { ...outcome, version: editing.__v }), t("حُفظت نتيجة الاستشارة", "Outcome saved"));
+        }}>
+          <p>{t("هذه الملاحظات مشتركة مع الطالب وليست ملاحظات داخلية.", "These notes are shared with the student.")}</p>
+          <label className="block">{t("النتيجة", "Outcome")}<select disabled={busy} className={`${input} block w-full`} value={outcome.result} onChange={e => setOutcome({ ...outcome, result: e.target.value })}>
+            <option value="completed">{t("تمت الاستشارة", "Completed")}</option><option value="no-show">{t("لم يحضر الطالب", "Student did not attend")}</option>
+          </select></label>
+          <label className="block">{t("ملخص الاستشارة", "Summary")}<textarea disabled={busy} className={`${input} block w-full`} required maxLength={2000} value={outcome.summary} onChange={e => setOutcome({ ...outcome, summary: e.target.value })} /></label>
+          <label className="block">{t("الخطوات التالية", "Next steps")}<textarea disabled={busy} className={`${input} block w-full`} maxLength={2000} value={outcome.nextSteps} onChange={e => setOutcome({ ...outcome, nextSteps: e.target.value })} /></label>
+          <button className={button} disabled={busy || !outcome.summary.trim()}>{t("حفظ ومشاركة", "Save and share")}</button>
+          <button className="px-4 underline" type="button" disabled={busy} onClick={() => setEditing(null)}>{t("رجوع", "Cancel")}</button>
+        </form>}
         {b.status === "booked" && <><p>{b.slot?.instructions}</p>{b.slot?.meetingUrl?.startsWith("https://") && <a className="underline" href={b.slot.meetingUrl} target="_blank" rel="noopener noreferrer">{t("فتح الاجتماع", "Open meeting")}</a>}</>}
         {b.status === "booked" && new Date(b.startsAt) > new Date() && <div className="flex flex-wrap gap-3">
           {!staff && <button className={button} disabled={busy} onClick={() => { setMoving(b); setMode(""); setAdvisor(""); setDay(""); }}>{t("تغيير الموعد", "Reschedule")}</button>}
