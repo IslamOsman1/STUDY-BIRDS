@@ -10,6 +10,10 @@ String communityError(Object error, String fallback) {
   switch (error.statusCode) {
     case 400:
       return 'تحقق من البيانات المدخلة وحاول مجددًا.';
+    case 403:
+      return 'أنت موقوف حاليًا عن النشر في المجتمع.';
+    case 422:
+      return 'النص يحتوي كلمات غير مسموحة في المجتمع. عدّل النص وحاول مجددًا.';
     case 404:
       return 'هذا المحتوى لم يعد متاحًا.';
     case 409:
@@ -42,14 +46,25 @@ class _StudentCommunityScreenState extends State<StudentCommunityScreen> {
   final repo = CommunityRepository.instance;
   List<Map<String, dynamic>> posts = [];
   List<Map<String, dynamic>> countries = [], universities = [], fields = [];
+  Map<String, dynamic> suspension = const {'suspended': false};
   bool loading = true, mine = false;
   String? error, topic, country, university, studyField;
+
+  bool get canWrite => suspension['suspended'] != true;
 
   @override
   void initState() {
     super.initState();
     load();
     loadLookups();
+    loadStatus();
+  }
+
+  Future<void> loadStatus() async {
+    try {
+      final status = await repo.status();
+      if (mounted) setState(() => suspension = status);
+    } catch (_) {/* Reading still works; the server enforces on write. */}
   }
 
   Future<void> loadLookups() async {
@@ -124,7 +139,27 @@ class _StudentCommunityScreenState extends State<StudentCommunityScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('تم نشر موضوعك')));
       load();
+    } else {
+      loadStatus();
     }
+  }
+
+  Widget suspensionBanner() {
+    final until = DateTime.tryParse('${suspension['until']}')?.toLocal();
+    final reason = '${suspension['reason'] ?? ''}';
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: AppColors.orangeSoft,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.warning)),
+      child: Text(
+          'أنت موقوف عن النشر والتعليق والإبلاغ '
+          '${until == null ? 'حتى يرفعه فريق الإشراف' : 'حتى ${MaterialLocalizations.of(context).formatMediumDate(until)}'}.'
+          '${reason.isEmpty ? '' : ' السبب: $reason.'} ما زال بإمكانك القراءة.',
+          style: AppTextStyles.body.copyWith(fontSize: 13)),
+    );
   }
 
   Widget chip(String label, bool selected, VoidCallback onTap) => Padding(
@@ -136,15 +171,18 @@ class _StudentCommunityScreenState extends State<StudentCommunityScreen> {
   @override
   Widget build(BuildContext context) => AppScaffold(
         title: 'مجتمع الطلاب',
-        floatingActionButton: FloatingActionButton.extended(
-            onPressed: compose,
-            backgroundColor: AppColors.orange,
-            foregroundColor: Colors.white,
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('موضوع جديد')),
+        floatingActionButton: canWrite
+            ? FloatingActionButton.extended(
+                onPressed: compose,
+                backgroundColor: AppColors.orange,
+                foregroundColor: Colors.white,
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('موضوع جديد'))
+            : null,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (!canWrite) suspensionBanner(),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               // Wrap, not Row: on narrow phones or large text the filter
@@ -204,8 +242,8 @@ class _StudentCommunityScreenState extends State<StudentCommunityScreen> {
           message: mine
               ? 'شارك تجربتك أو اسأل زملاءك الطلاب.'
               : 'كن أول من يشارك في هذا القسم.',
-          ctaLabel: 'موضوع جديد',
-          onCta: compose);
+          ctaLabel: canWrite ? 'موضوع جديد' : null,
+          onCta: canWrite ? compose : null);
     }
     return RefreshIndicator(
       onRefresh: load,
@@ -221,8 +259,10 @@ class _StudentCommunityScreenState extends State<StudentCommunityScreen> {
                 : () async {
                     await Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => CommunityThreadScreen(
-                            postId: '${posts[index]['_id']}')));
+                            postId: '${posts[index]['_id']}',
+                            canWrite: canWrite)));
                     load();
+                    loadStatus();
                   }),
       ),
     );
@@ -538,7 +578,11 @@ class _CommunityComposeScreenState extends State<CommunityComposeScreen> {
 
 class CommunityThreadScreen extends StatefulWidget {
   final String postId;
-  const CommunityThreadScreen({super.key, required this.postId});
+
+  /// False for a suspended student: reading only, no comment/report controls.
+  final bool canWrite;
+  const CommunityThreadScreen(
+      {super.key, required this.postId, this.canWrite = true});
   @override
   State<CommunityThreadScreen> createState() => _CommunityThreadScreenState();
 }
@@ -648,20 +692,25 @@ class _CommunityThreadScreenState extends State<CommunityThreadScreen> {
         reload: false);
   }
 
-  Widget ownerAction(Map<String, dynamic> item, String type) => _isMine(item)
-      ? TextButton.icon(
-          onPressed: busy
-              ? null
-              : () => type == 'post' ? deletePost() : deleteComment(item),
-          icon: const Icon(Icons.delete_outline, size: 18),
-          label: Text(type == 'post' ? 'حذف موضوعي' : 'حذف تعليقي'),
-          style: TextButton.styleFrom(foregroundColor: AppColors.danger))
-      : TextButton.icon(
-          onPressed: busy ? null : () => report(type, '${item['_id']}'),
-          icon: const Icon(Icons.flag_outlined, size: 18),
-          label: const Text('إبلاغ'),
-          style:
-              TextButton.styleFrom(foregroundColor: AppColors.textSecondary));
+  Widget ownerAction(Map<String, dynamic> item, String type) =>
+      !_isMine(item) && !widget.canWrite
+          ? const SizedBox(height: 8)
+          : _isMine(item)
+              ? TextButton.icon(
+                  onPressed: busy
+                      ? null
+                      : () =>
+                          type == 'post' ? deletePost() : deleteComment(item),
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: Text(type == 'post' ? 'حذف موضوعي' : 'حذف تعليقي'),
+                  style:
+                      TextButton.styleFrom(foregroundColor: AppColors.danger))
+              : TextButton.icon(
+                  onPressed: busy ? null : () => report(type, '${item['_id']}'),
+                  icon: const Icon(Icons.flag_outlined, size: 18),
+                  label: const Text('إبلاغ'),
+                  style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary));
 
   @override
   Widget build(BuildContext context) => AppScaffold(
@@ -729,31 +778,33 @@ class _CommunityThreadScreenState extends State<CommunityThreadScreen> {
                         ),
                       ),
                     ),
-                    SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-                        child: Row(children: [
-                          Expanded(
-                              child: TextField(
-                                  controller: commentText,
-                                  maxLength: 2000,
-                                  minLines: 1,
-                                  maxLines: 4,
-                                  onChanged: (_) => setState(() {}),
-                                  decoration: const InputDecoration(
-                                      hintText: 'أضف تعليقًا',
-                                      counterText: ''))),
-                          const SizedBox(width: 8),
-                          IconButton.filled(
-                              tooltip: 'إرسال',
-                              onPressed: busy || commentText.text.trim().isEmpty
-                                  ? null
-                                  : sendComment,
-                              icon: const Icon(Icons.send_rounded)),
-                        ]),
+                    if (widget.canWrite)
+                      SafeArea(
+                        top: false,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                          child: Row(children: [
+                            Expanded(
+                                child: TextField(
+                                    controller: commentText,
+                                    maxLength: 2000,
+                                    minLines: 1,
+                                    maxLines: 4,
+                                    onChanged: (_) => setState(() {}),
+                                    decoration: const InputDecoration(
+                                        hintText: 'أضف تعليقًا',
+                                        counterText: ''))),
+                            const SizedBox(width: 8),
+                            IconButton.filled(
+                                tooltip: 'إرسال',
+                                onPressed:
+                                    busy || commentText.text.trim().isEmpty
+                                        ? null
+                                        : sendComment,
+                                icon: const Icon(Icons.send_rounded)),
+                          ]),
+                        ),
                       ),
-                    ),
                   ]),
       );
 }

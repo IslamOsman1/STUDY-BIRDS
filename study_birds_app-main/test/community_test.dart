@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:study_birds/core/api_client.dart';
 import 'package:study_birds/core/auth_session.dart';
 import 'package:study_birds/screens/services_support/community_screen.dart';
 
@@ -107,11 +108,61 @@ void main() {
                 return reply(lookups[r.url.path]!);
               }
               expect(r.headers['authorization'], 'Bearer test-session');
+              if (r.url.path == '/api/community/status') {
+                return reply({'suspended': false});
+              }
               expect(r.url.path, '/api/community/posts');
               queries.add(r.url.query);
               return reply(
                   r.url.query == 'mine=1' ? [hiddenMine] : [publicPost]);
             }));
+  });
+
+  testWidgets('a suspended student reads only and sees why', (tester) async {
+    phone(tester);
+    await http.runWithClient(() async {
+      await tester
+          .pumpWidget(const MaterialApp(home: StudentCommunityScreen()));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('أنت موقوف عن النشر والتعليق والإبلاغ'),
+          findsOneWidget);
+      expect(find.textContaining('حتى يرفعه فريق الإشراف'), findsOneWidget);
+      expect(find.textContaining('السبب: إساءة متكررة'), findsOneWidget);
+      expect(find.text('موضوع جديد'), findsNothing);
+      expect(find.text('سكن قريب من الجامعة'), findsOneWidget);
+
+      await tester.tap(find.text('سكن قريب من الجامعة'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CommunityThreadScreen), findsOneWidget);
+      expect(find.text('إبلاغ'), findsNothing);
+      expect(find.widgetWithText(TextField, 'أضف تعليقًا'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+        () => MockClient((r) async {
+              if (lookups.containsKey(r.url.path)) {
+                return reply(lookups[r.url.path]!);
+              }
+              if (r.url.path == '/api/community/status') {
+                return reply({
+                  'suspended': true,
+                  'until': null,
+                  'reason': 'إساءة متكررة'
+                });
+              }
+              if (r.url.path == '/api/community/posts/p1') {
+                return reply({'post': publicPost, 'comments': []});
+              }
+              expect(r.method, 'GET');
+              return reply([publicPost]);
+            }));
+  });
+
+  test('community errors explain blocked words and suspensions in Arabic', () {
+    expect(communityError(const ApiException(422, 'x'), 'f'),
+        'النص يحتوي كلمات غير مسموحة في المجتمع. عدّل النص وحاول مجددًا.');
+    expect(communityError(const ApiException(403, 'x'), 'f'),
+        'أنت موقوف حاليًا عن النشر في المجتمع.');
+    expect(communityError(Exception('offline'), 'f'), 'f');
   });
 
   testWidgets(
