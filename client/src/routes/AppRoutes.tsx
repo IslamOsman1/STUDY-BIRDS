@@ -7,6 +7,7 @@ import { useLanguage } from "../hooks/useLanguage";
 
 const ConsultationsPage = lazy(() => import("../pages/ConsultationsPage").then(m => ({ default: m.ConsultationsPage })));
 const VisaCenterPage = lazy(() => import("../pages/admin/VisaCenterPage").then(m => ({ default: m.VisaCenterPage })));
+const AccommodationPage = lazy(() => import("../pages/AccommodationPage").then(m => ({ default: m.AccommodationPage })));
 const AccountSecurityPage = lazy(() => import("../pages/auth/AccountSecurityPage").then(module => ({ default: module.AccountSecurityPage })));
 const HomePage = lazy(() => import("../pages/HomePage").then((module) => ({ default: module.HomePage })));
 const ProgramsPage = lazy(() => import("../pages/ProgramsPage").then((module) => ({ default: module.ProgramsPage })));
@@ -141,6 +142,7 @@ export const AppRoutes = () => (
           <Route path="/student/applications" element={<StudentApplicationsPage />} />
           <Route path="/student/notifications" element={<StudentNotificationsPage />} />
           <Route path="/student/consultations" element={<ConsultationsPage />} />
+          <Route path="/student/accommodation" element={<AccommodationPage />} />
           <Route path="/student/support" element={<StudentSupportPage />} />
           <Route path="/student/resources" element={<StudentResourcesPage />} />
           <Route path="/student/financials" element={<StudentFinancialsPage />} />
@@ -196,6 +198,7 @@ export const AppRoutes = () => (
           <Route path="/admin/payout-requests" element={<AdminPayoutRequestsPage />} />
           <Route path="/admin/consultations" element={<ConsultationsPage staff />} />
           <Route path="/admin/visa" element={<VisaCenterPage />} />
+          <Route path="/admin/accommodation" element={<AccommodationPage staff />} />
           <Route path="/admin/support-tickets" element={<AdminSupportTicketsPage />} />
           <Route path="/admin/knowledge-base" element={<AdminKnowledgeBasePage />} />
           <Route path="/admin/student-financials" element={<AdminStudentFinancialsPage />} />
