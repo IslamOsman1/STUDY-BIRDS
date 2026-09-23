@@ -95,6 +95,54 @@ class CommunityRepository {
         body: {'reason': reason, 'details': details.trim()});
   }
 
+  /// {'suspended': bool, 'until': ISO date or null, 'reason': String}
+  Future<Map<String, dynamic>> status() async => Map<String, dynamic>.from(
+      await ApiClient.instance.get('/community/status', token: _token) as Map);
+
+  // ---- Moderation (employees with the 'community' section, and admins) ----
+
+  Future<List<Map<String, dynamic>>> openReports() async =>
+      _rows(await ApiClient.instance
+          .get('/admin/community-reports?status=open', token: _token));
+
+  /// {'post', 'comments' (including hidden), 'reports', 'log'}
+  Future<Map<String, dynamic>> moderationDetail(String postId) async {
+    final data = await ApiClient.instance
+        .get('/admin/community-posts/$postId', token: _token);
+    return {
+      'post': Map<String, dynamic>.from(data['post'] as Map),
+      'comments': _rows(data['comments']),
+      'reports': _rows(data['reports']),
+      'log': _rows(data['log']),
+    };
+  }
+
+  /// [type] is 'post' or 'comment'; [status] is 'published' or 'hidden'.
+  Future<void> moderate(String type, String id,
+      {required String status, String note = ''}) async {
+    await ApiClient.instance.patch(
+        '/admin/community-${type == 'post' ? 'posts' : 'comments'}/$id',
+        token: _token,
+        body: {'status': status, 'moderationNote': note.trim()});
+  }
+
+  Future<List<Map<String, dynamic>>> suspensions() async =>
+      _rows(await ApiClient.instance
+          .get('/admin/community-suspensions', token: _token));
+
+  /// [days] null = until a moderator lifts it.
+  Future<void> suspend(String userId,
+      {required String reason, int? days}) async {
+    await ApiClient.instance.post('/admin/community-suspensions',
+        token: _token,
+        body: {'user': userId, 'reason': reason.trim(), 'days': days});
+  }
+
+  Future<void> liftSuspension(String userId) async {
+    await ApiClient.instance
+        .delete('/admin/community-suspensions/$userId', token: _token);
+  }
+
   /// Filter/tag lookups. Each is optional: a failed lookup only hides that
   /// filter, it never blocks the community itself.
   Future<List<Map<String, dynamic>>> countries() async =>

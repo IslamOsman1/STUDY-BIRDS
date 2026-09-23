@@ -358,7 +358,9 @@
       "community-posts",
       "community-comments",
       "community-reports",
-      "community-moderation-log"
+      "community-moderation-log",
+      "community-suspensions",
+      "community-settings"
     ]
   }
 ]

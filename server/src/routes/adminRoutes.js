@@ -110,7 +110,10 @@ const {
   getAccommodationBookingsAdmin, updateAccommodationBookingStatus,
 } = require("../controllers/accommodationController");
 const { getWalletEntriesAdmin, createWalletAdjustmentAdmin } = require("../controllers/studentWalletController");
-const { listPostsAdmin, getPostAdmin, listReportsAdmin, listModerationLogAdmin, moderatePost, moderateComment } = require("../controllers/communityController");
+const {
+  listPostsAdmin, getPostAdmin, listReportsAdmin, listModerationLogAdmin, moderatePost, moderateComment,
+  listSuspensionsAdmin, suspendUser, liftSuspension, getSettingsAdmin, updateSettingsAdmin,
+} = require("../controllers/communityController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -211,6 +214,11 @@ router.patch("/community-posts/:id", moderatePost);
 router.patch("/community-comments/:id", moderateComment);
 router.get("/community-reports", listReportsAdmin);
 router.get("/community-moderation-log", listModerationLogAdmin);
+router.get("/community-suspensions", listSuspensionsAdmin);
+router.post("/community-suspensions", suspendUser);
+router.delete("/community-suspensions/:userId", liftSuspension);
+router.get("/community-settings", getSettingsAdmin);
+router.put("/community-settings", updateSettingsAdmin);
 router.get("/student-arrival-requests", getArrivalRequestsAdmin);
 router.patch("/student-arrival-requests/:id", updateArrivalRequestAdmin);
 router.get("/student-favorites", getStudentFavoritesAdmin);

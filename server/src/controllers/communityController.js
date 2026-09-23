@@ -8,6 +8,10 @@ const Country = require("../models/Country");
 const University = require("../models/University");
 const StudyField = require("../models/StudyField");
 const Notification = require("../models/Notification");
+const User = require("../models/User");
+const CommunitySuspension = require("../models/CommunitySuspension");
+const CommunitySettings = require("../models/CommunitySettings");
+const { findBlockedTerm } = require("../utils/communityTerms");
 
 const { COMMUNITY_TOPICS } = CommunityPost;
 const { REPORT_REASONS } = CommunityReport;
@@ -16,7 +20,28 @@ const validId = (value) => typeof value === "string" && mongoose.isValidObjectId
 const populatePost = (query) => query
   .populate("author", "name").populate("country", "name").populate("university", "name").populate("studyField", "name");
 
+// Suspended students can still read, but not post, comment or report.
+async function rejectIfSuspended(req, res) {
+  const suspension = await CommunitySuspension.activeFor(req.user._id);
+  if (!suspension) return false;
+  res.status(403).json({ message: "You are suspended from posting in the community", suspendedUntil: suspension.until, reason: suspension.reason });
+  return true;
+}
+
+// 422 (not 400) so clients can tell "rephrase this" apart from invalid input.
+async function rejectIfBlocked(res, text) {
+  const settings = await CommunitySettings.findOne({ key: "community" }).lean();
+  if (!findBlockedTerm(text, settings?.blockedTerms)) return false;
+  res.status(422).json({ message: "Your text contains words that are not allowed in the community" });
+  return true;
+}
+
 // ---- Students: browse, post, comment, report --------------------------------
+
+const getMyStatus = asyncHandler(async (req, res) => {
+  const suspension = await CommunitySuspension.activeFor(req.user._id);
+  res.json(suspension ? { suspended: true, until: suspension.until, reason: suspension.reason } : { suspended: false });
+});
 
 const listPosts = asyncHandler(async (req, res) => {
   const { topic, country, university, studyField, mine } = req.query;
@@ -50,6 +75,7 @@ const createPost = asyncHandler(async (req, res) => {
     !studyField || StudyField.exists({ _id: studyField }),
   ]);
   if (!countryOk || !universityOk || !fieldOk) return res.status(400).json({ message: "Invalid post" });
+  if (await rejectIfSuspended(req, res) || await rejectIfBlocked(res, `${title}\n${body}`)) return;
   const post = await CommunityPost.create({
     author: req.user._id, title: title.trim(), body: body.trim(), topic,
     country: country || undefined, university: university || undefined, studyField: studyField || undefined,
@@ -81,6 +107,7 @@ const createComment = asyncHandler(async (req, res) => {
   if (typeof body !== "string" || !body.trim() || body.length > 2000) return res.status(400).json({ message: "Invalid comment" });
   const post = await CommunityPost.findOne({ _id: req.params.id, status: "published" });
   if (!post) return res.status(404).json({ message: "Post not found" });
+  if (await rejectIfSuspended(req, res) || await rejectIfBlocked(res, body)) return;
   const comment = await CommunityComment.create({ post: post._id, author: req.user._id, body: body.trim() });
   await CommunityPost.updateOne({ _id: post._id }, { $inc: { commentCount: 1 } });
   res.status(201).json(await CommunityComment.findById(comment._id).select("-moderationNote -moderatedBy -reportCount").populate("author", "name").lean());
@@ -110,6 +137,7 @@ async function report(req, res, targetType) {
     return res.status(404).json({ message: "Content not found" });
   }
   if (String(target.author) === String(req.user._id)) return res.status(400).json({ message: "You cannot report your own content" });
+  if (await rejectIfSuspended(req, res)) return;
   // The unique index is what enforces one report per student; make sure it exists.
   await CommunityReport.init();
   try {
@@ -169,8 +197,84 @@ const listReportsAdmin = asyncHandler(async (req, res) => {
 });
 
 const listModerationLogAdmin = asyncHandler(async (req, res) => {
-  const query = req.query.post && validId(req.query.post) ? { post: req.query.post } : {};
-  res.json(await CommunityModerationLog.find(query).populate("actor", "name").populate("post", "title").sort({ createdAt: -1 }).limit(300).lean());
+  const query = {};
+  if (req.query.post && validId(req.query.post)) query.post = req.query.post;
+  if (req.query.subject && validId(req.query.subject)) query.subject = req.query.subject;
+  res.json(await CommunityModerationLog.find(query).populate("actor", "name").populate("subject", "name email").populate("post", "title")
+    .sort({ createdAt: -1 }).limit(300).lean());
+});
+
+// ---- Suspensions -------------------------------------------------------------
+
+const listSuspensionsAdmin = asyncHandler(async (req, res) => {
+  const active = await CommunitySuspension.find({ $or: [{ until: null }, { until: { $gt: new Date() } }] })
+    .populate("user", "name email").populate("suspendedBy", "name").sort({ createdAt: -1 }).lean();
+  res.json(active);
+});
+
+const suspendUser = asyncHandler(async (req, res) => {
+  const { user: userId, days = null, reason } = req.body;
+  if (!validId(userId) || typeof reason !== "string" || !reason.trim() || reason.length > 500
+    || (days !== null && (!Number.isInteger(days) || days < 1 || days > 365))) {
+    return res.status(400).json({ message: "Invalid suspension" });
+  }
+  const student = await User.findOne({ _id: userId, role: "student" }).select("_id").lean();
+  if (!student) return res.status(404).json({ message: "Student not found" });
+  const until = days === null ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const wasActive = Boolean(await CommunitySuspension.activeFor(student._id));
+  const suspension = await CommunitySuspension.findOneAndUpdate(
+    { user: student._id },
+    { until, reason: reason.trim(), suspendedBy: req.user._id },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  await CommunityModerationLog.create({
+    actor: req.user._id, targetType: "user", target: student._id, subject: student._id,
+    fromStatus: wasActive ? "suspended" : "active", toStatus: "suspended", note: reason.trim(), suspendedUntil: until || undefined,
+  });
+  await Notification.create({
+    user: student._id,
+    title: "تم إيقافك عن النشر في مجتمع الطلاب",
+    message: `${until ? `حتى ${until.toISOString().slice(0, 10)}` : "حتى يرفعه فريق الإشراف"}. السبب: ${reason.trim()}. ما زال بإمكانك قراءة المجتمع.`,
+    type: "warning",
+    link: "/student/community",
+  });
+  res.status(201).json(await CommunitySuspension.findById(suspension._id).populate("user", "name email").lean());
+});
+
+const liftSuspension = asyncHandler(async (req, res) => {
+  if (!validId(req.params.userId)) return res.status(404).json({ message: "Suspension not found" });
+  const note = typeof req.body?.note === "string" ? req.body.note.trim().slice(0, 500) : "";
+  const removed = await CommunitySuspension.findOneAndDelete({ user: req.params.userId });
+  if (!removed) return res.status(404).json({ message: "Suspension not found" });
+  await CommunityModerationLog.create({
+    actor: req.user._id, targetType: "user", target: removed.user, subject: removed.user,
+    fromStatus: "suspended", toStatus: "active", note,
+  });
+  await Notification.create({
+    user: removed.user, title: "رُفع إيقافك في مجتمع الطلاب",
+    message: "يمكنك النشر والتعليق في المجتمع مجددًا.", type: "success", link: "/student/community",
+  });
+  res.json({ message: "Suspension lifted" });
+});
+
+// ---- Blocked terms -------------------------------------------------------------
+
+const getSettingsAdmin = asyncHandler(async (req, res) => {
+  const settings = await CommunitySettings.findOne({ key: "community" }).populate("updatedBy", "name").lean();
+  res.json(settings || { blockedTerms: [] });
+});
+
+const updateSettingsAdmin = asyncHandler(async (req, res) => {
+  const { blockedTerms } = req.body;
+  if (!Array.isArray(blockedTerms) || blockedTerms.length > 300
+    || blockedTerms.some((term) => typeof term !== "string" || !term.trim() || term.trim().length > 60)) {
+    return res.status(400).json({ message: "Invalid blocked terms (up to 300 terms, 60 characters each)" });
+  }
+  const terms = [...new Set(blockedTerms.map((term) => term.trim()))];
+  const settings = await CommunitySettings.findOneAndUpdate(
+    { key: "community" }, { blockedTerms: terms, updatedBy: req.user._id }, { upsert: true, new: true, setDefaultsOnInsert: true }
+  ).populate("updatedBy", "name").lean();
+  res.json(settings);
 });
 
 // Applies one moderation decision: status change (guarded against concurrent
@@ -211,7 +315,7 @@ async function moderate(req, res, targetType) {
   await Model.updateOne({ _id: current._id }, { reportCount: 0 });
 
   await CommunityModerationLog.create({
-    actor: req.user._id, targetType, target: current._id, post: postId,
+    actor: req.user._id, targetType, target: current._id, post: postId, subject: current.author,
     fromStatus, toStatus: status, note, reportsClosed: closed.modifiedCount,
   });
 
@@ -232,6 +336,7 @@ const moderatePost = asyncHandler((req, res) => moderate(req, res, "post"));
 const moderateComment = asyncHandler((req, res) => moderate(req, res, "comment"));
 
 module.exports = {
-  listPosts, createPost, getPost, deleteOwnPost, createComment, deleteOwnComment, reportPost, reportComment,
+  getMyStatus, listPosts, createPost, getPost, deleteOwnPost, createComment, deleteOwnComment, reportPost, reportComment,
   listPostsAdmin, getPostAdmin, listReportsAdmin, listModerationLogAdmin, moderatePost, moderateComment,
+  listSuspensionsAdmin, suspendUser, liftSuspension, getSettingsAdmin, updateSettingsAdmin,
 };

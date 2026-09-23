@@ -217,3 +217,92 @@ test('community topics and filters, student reports, audited moderation and auth
     await mongoose.disconnect(); await mongo.stop();
   }
 });
+
+test('blocked terms match whole words after Arabic normalisation', () => {
+  const { findBlockedTerm } = require('../src/utils/communityTerms');
+  assert.equal(findBlockedTerm('هذا نَصّ فيه كلمةٌ ممنوعة', ['كلمه']), 'كلمه');
+  assert.equal(findBlockedTerm('إعلان: اشترِ الآن', ['اعلان']), 'اعلان');
+  assert.equal(findBlockedTerm('Buy NOW!!', ['buy now']), 'buy now');
+  // No match inside a longer word, and blank/oversized terms are ignored.
+  assert.equal(findBlockedTerm('classic assessment', ['ass']), null);
+  assert.equal(findBlockedTerm('نص عادي', ['', '   ', 'x'.repeat(61)]), null);
+});
+
+test('community suspensions and blocked terms are enforced and audited', async () => {
+  process.env.JWT_SECRET = 'community-isolated-test';
+  const mongo = await MongoMemoryServer.create({ instance: { ip: '127.0.0.1' } });
+  let server;
+  try {
+    await mongoose.connect(mongo.getUri());
+    const User = require('../src/models/User');
+    const Notification = require('../src/models/Notification');
+    const CommunityModerationLog = require('../src/models/CommunityModerationLog');
+    const CommunitySuspension = require('../src/models/CommunitySuspension');
+    const student = await User.create({ name: 'Student', email: 'student@example.test' });
+    const peer = await User.create({ name: 'Peer', email: 'peer@example.test' });
+    const moderator = await User.create({ name: 'Moderator', email: 'moderator@example.test', role: 'employee', permissions: ['community'] });
+    const outsiderStaff = await User.create({ name: 'Support', email: 'support@example.test', role: 'employee', permissions: ['support'] });
+    server = await new Promise(resolve => { const s = require('../src/app').listen(0, '127.0.0.1', () => resolve(s)); });
+    const token = user => jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    async function call(method, endpoint, user, body, expected = 200) {
+      const response = await fetch(`http://127.0.0.1:${server.address().port}/api${endpoint}`, { method,
+        headers: { 'Content-Type': 'application/json', ...(user ? { Authorization: `Bearer ${token(user)}` } : {}) },
+        body: body ? JSON.stringify(body) : undefined });
+      const data = await response.json(); assert.equal(response.status, expected, JSON.stringify(data)); return data;
+    }
+
+    // Blocked terms: only community moderators manage them; validated; enforced on posts and comments.
+    await call('PUT', '/admin/community-settings', outsiderStaff, { blockedTerms: ['سبام'] }, 403);
+    await call('PUT', '/admin/community-settings', moderator, { blockedTerms: ['x'.repeat(61)] }, 400);
+    await call('PUT', '/admin/community-settings', moderator, { blockedTerms: 'سبام' }, 400);
+    const settings = await call('PUT', '/admin/community-settings', moderator, { blockedTerms: [' سبام ', 'سبام', 'buy now'] });
+    assert.deepEqual(settings.blockedTerms, ['سبام', 'buy now']);
+    assert.deepEqual((await call('GET', '/admin/community-settings', moderator)).blockedTerms, ['سبام', 'buy now']);
+    await call('POST', '/community/posts', student, { title: 'عرض', body: 'BUY NOW من هنا' }, 422);
+    const post = await call('POST', '/community/posts', peer, { title: 'سؤال', body: 'نص عادي' }, 201);
+    await call('POST', `/community/posts/${post._id}/comments`, student, { body: 'هذا سبام' }, 422);
+    await call('POST', `/community/posts/${post._id}/comments`, student, { body: 'تعليق مفيد' }, 201);
+
+    // Suspension: validated, students only, restricted to the community section.
+    await call('POST', '/admin/community-suspensions', outsiderStaff, { user: String(student._id), reason: 'x' }, 403);
+    await call('POST', '/admin/community-suspensions', moderator, { user: String(student._id), reason: '' }, 400);
+    await call('POST', '/admin/community-suspensions', moderator, { user: String(student._id), reason: 'x', days: 0 }, 400);
+    await call('POST', '/admin/community-suspensions', moderator, { user: String(moderator._id), reason: 'x' }, 404);
+    assert.deepEqual(await call('GET', '/community/status', student), { suspended: false });
+    const suspension = await call('POST', '/admin/community-suspensions', moderator, { user: String(student._id), reason: 'إساءة متكررة', days: 7 }, 201);
+    assert.equal(suspension.user.name, 'Student');
+
+    // A suspended student can read, but not post, comment or report; others are unaffected.
+    const status = await call('GET', '/community/status', student);
+    assert.equal(status.suspended, true);
+    assert.equal(status.reason, 'إساءة متكررة');
+    assert.ok(new Date(status.until) > new Date(Date.now() + 6 * 24 * 3600 * 1000));
+    assert.equal((await call('GET', '/community/posts', student)).length, 1);
+    await call('POST', '/community/posts', student, { title: 'T', body: 'B' }, 403);
+    await call('POST', `/community/posts/${post._id}/comments`, student, { body: 'x' }, 403);
+    await call('POST', `/community/posts/${post._id}/report`, student, { reason: 'spam' }, 403);
+    await call('POST', `/community/posts/${post._id}/comments`, peer, { body: 'ما زلت أستطيع' }, 201);
+    assert.equal(await Notification.countDocuments({ user: student._id, type: 'warning' }), 1);
+    assert.deepEqual((await call('GET', '/admin/community-suspensions', moderator)).map(s => s.user.name), ['Student']);
+
+    // An expired suspension no longer applies.
+    await CommunitySuspension.updateOne({ user: student._id }, { until: new Date(Date.now() - 1000) });
+    assert.deepEqual(await call('GET', '/community/status', student), { suspended: false });
+    assert.equal((await call('GET', '/admin/community-suspensions', moderator)).length, 0);
+
+    // Re-suspend until lifted, then lift: every decision is in the log.
+    await call('POST', '/admin/community-suspensions', moderator, { user: String(student._id), reason: 'مخالفة جديدة' }, 201);
+    assert.equal((await call('GET', '/community/status', student)).until, null);
+    await call('DELETE', `/admin/community-suspensions/${student._id}`, moderator, { note: 'بعد التواصل' });
+    await call('DELETE', `/admin/community-suspensions/${student._id}`, moderator, null, 404);
+    await call('POST', '/community/posts', student, { title: 'عدت', body: 'شكرًا' }, 201);
+    const log = await call('GET', `/admin/community-moderation-log?subject=${student._id}`, moderator);
+    assert.deepEqual(log.map(e => [e.fromStatus, e.toStatus]), [['suspended', 'active'], ['active', 'suspended'], ['active', 'suspended']]);
+    assert.equal(log[0].subject.name, 'Student');
+    assert.equal(log[0].note, 'بعد التواصل');
+    assert.equal(await CommunityModerationLog.countDocuments({ targetType: 'user' }), 3);
+  } finally {
+    if (server) await new Promise(resolve => server.close(resolve));
+    await mongoose.disconnect(); await mongo.stop();
+  }
+});

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { api } from "../../lib/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -39,7 +40,21 @@ export const StudentCommunityPage = () => {
   const [report, setReport] = useState({ reason: "spam", details: "" });
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
   const [error, setError] = useState(""), [success, setSuccess] = useState("");
+  const [suspension, setSuspension] = useState<{ suspended: boolean; until?: string | null; reason?: string }>({ suspended: false });
   const { user } = useAuth();
+  // Community-specific refusals get a clear message instead of the raw server text.
+  const communityError = (e: unknown, fallback: string) => {
+    const status = axios.isAxiosError(e) ? e.response?.status : undefined;
+    if (status === 422) return t("النص يحتوي كلمات غير مسموحة في المجتمع. عدّل النص وحاول مجددًا.", "Your text contains words that aren't allowed in the community. Please rephrase.");
+    if (status === 403) { void loadStatus(); return t("أنت موقوف حاليًا عن النشر في المجتمع.", "You are currently suspended from posting."); }
+    if (status === 409) return t("سبق أن أبلغت عن هذا المحتوى.", "You already reported this content.");
+    return getErrorMessage(e, fallback);
+  };
+  async function loadStatus() {
+    try { setSuspension((await api.get<typeof suspension>("/community/status")).data); } catch { /* reading still works */ }
+  }
+  useEffect(() => { void loadStatus(); }, []);
+  const canWrite = !suspension.suspended;
   const input = "rounded-xl border border-slate-300 bg-white p-3 text-slate-900";
   const button = "rounded-xl bg-brand-primary px-4 py-2 text-white disabled:opacity-50";
   const chip = (active: boolean) => `rounded-full px-3 py-1.5 text-sm ${active ? "bg-brand-primary text-white" : "border border-slate-300"}`;
@@ -67,7 +82,7 @@ export const StudentCommunityPage = () => {
       await api.post("/community/posts", Object.fromEntries(Object.entries(form).filter(([, v]) => v)));
       setForm(emptyForm); setShowForm(false); setSuccess(t("تم نشر موضوعك", "Your post was published"));
       await load();
-    } catch (e) { setError(getErrorMessage(e, t("تعذر نشر الموضوع", "Unable to publish the post"))); }
+    } catch (e) { setError(communityError(e, t("تعذر نشر الموضوع", "Unable to publish the post"))); }
     finally { setBusy(false); }
   }
 
@@ -87,7 +102,7 @@ export const StudentCommunityPage = () => {
       setCommentBody("");
       await openThread(openPost.post);
       await load();
-    } catch (e) { setError(getErrorMessage(e, t("تعذر إضافة التعليق", "Unable to add the comment"))); }
+    } catch (e) { setError(communityError(e, t("تعذر إضافة التعليق", "Unable to add the comment"))); }
     finally { setBusy(false); }
   }
 
@@ -114,7 +129,7 @@ export const StudentCommunityPage = () => {
       await api.post(`/community/${reporting.type === "post" ? "posts" : "comments"}/${reporting.id}/report`, report);
       setReporting(null); setReport({ reason: "spam", details: "" });
       setSuccess(t("شكرًا، وصل بلاغك لفريق الإشراف", "Thanks — your report was sent to the moderation team"));
-    } catch (e) { setError(getErrorMessage(e, t("تعذر إرسال البلاغ", "Unable to send the report"))); }
+    } catch (e) { setError(communityError(e, t("تعذر إرسال البلاغ", "Unable to send the report"))); }
     finally { setBusy(false); }
   }
 
@@ -140,14 +155,19 @@ export const StudentCommunityPage = () => {
     <p className="text-sm text-slate-600">{t("شارك تجربتك واسأل زملاءك الطلاب. المحتوى خاضع لمراجعة الفريق، ويمكنك الإبلاغ عن أي محتوى مخالف.", "Share your experience and ask fellow students. Content is reviewed by the team, and you can report anything inappropriate.")}</p>
     {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-red-800">{error}</p>}
     {success && <p role="status" className="rounded-xl bg-green-50 p-3 text-green-800">{success}</p>}
+    {suspension.suspended && <p role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+      {t("أنت موقوف عن النشر والتعليق والإبلاغ في المجتمع", "You are suspended from posting, commenting and reporting")}
+      {" "}{suspension.until ? `${t("حتى", "until")} ${new Date(suspension.until).toLocaleDateString(ar ? "ar" : "en")}` : t("حتى يرفعه فريق الإشراف", "until the moderation team lifts it")}.
+      {suspension.reason ? ` ${t("السبب", "Reason")}: ${suspension.reason}.` : ""} {t("ما زال بإمكانك القراءة.", "You can still read.")}
+    </p>}
 
     <div className="flex flex-wrap gap-2">
       <button className={chip(view === "all")} onClick={() => { setView("all"); setOpenPost(null); }}>{t("كل المواضيع", "All posts")}</button>
       <button className={chip(view === "mine")} onClick={() => { setView("mine"); setOpenPost(null); }}>{t("مواضيعي", "My posts")}</button>
-      <button className={button} onClick={() => setShowForm(!showForm)}>{showForm ? t("إلغاء", "Cancel") : t("موضوع جديد", "New post")}</button>
+      {canWrite && <button className={button} onClick={() => setShowForm(!showForm)}>{showForm ? t("إلغاء", "Cancel") : t("موضوع جديد", "New post")}</button>}
     </div>
 
-    {showForm && <div className="grid gap-3 rounded-2xl border bg-white p-5 md:grid-cols-2">
+    {showForm && canWrite && <div className="grid gap-3 rounded-2xl border bg-white p-5 md:grid-cols-2">
       <label className="md:col-span-2">{t("العنوان", "Title")}<input maxLength={150} className={`${input} block w-full`} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
       <label className="md:col-span-2">{t("النص", "Body")}<textarea rows={4} maxLength={5000} className={`${input} block w-full`} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></label>
       <label>{t("الموضوع", "Topic")}<select className={`${input} block w-full`} value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })}>
@@ -191,7 +211,7 @@ export const StudentCommunityPage = () => {
       <div className="flex gap-4">
         {openPost.post.author?._id === user?._id
           ? <button className="text-sm text-red-700" onClick={() => void deletePost(openPost.post)}>{t("حذف موضوعي", "Delete my post")}</button>
-          : reportButton({ type: "post", id: openPost.post._id })}
+          : canWrite && reportButton({ type: "post", id: openPost.post._id })}
       </div>
       {reportForm({ type: "post", id: openPost.post._id })}
       <div className="space-y-3 border-t pt-4">
@@ -200,13 +220,13 @@ export const StudentCommunityPage = () => {
           <p className="font-semibold">{c.author?.name}</p><p className="whitespace-pre-wrap">{c.body}</p>
           {c.author?._id === user?._id
             ? <button className="text-xs text-red-700" onClick={() => void deleteComment(c)}>{t("حذف تعليقي", "Delete my comment")}</button>
-            : reportButton({ type: "comment", id: c._id })}
+            : canWrite && reportButton({ type: "comment", id: c._id })}
           {reportForm({ type: "comment", id: c._id })}
         </div>)}
-        <div className="flex gap-2">
+        {canWrite && <div className="flex gap-2">
           <input maxLength={2000} className={`${input} flex-1`} value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder={t("أضف تعليقًا", "Add a comment")} />
           <button className={button} disabled={busy || !commentBody.trim()} onClick={() => void submitComment()}>{t("إرسال", "Send")}</button>
-        </div>
+        </div>}
       </div>
     </section> : <section className="space-y-3">
       {loading ? <p>{t("جارٍ التحميل…", "Loading…")}</p> : !posts.length && <p>{view === "mine" ? t("لم تنشر أي موضوع بعد.", "You haven't posted yet.") : t("لا توجد مواضيع مطابقة. كن أول من يشارك!", "No matching posts. Be the first to share!")}</p>}
