@@ -10,6 +10,8 @@ const VisaCenterPage = lazy(() => import("../pages/admin/VisaCenterPage").then(m
 const AccommodationPage = lazy(() => import("../pages/AccommodationPage").then(m => ({ default: m.AccommodationPage })));
 const StudentWalletPage = lazy(() => import("../pages/student/StudentWalletPage").then(m => ({ default: m.StudentWalletPage })));
 const AdminWalletPage = lazy(() => import("../pages/admin/AdminWalletPage").then(m => ({ default: m.AdminWalletPage })));
+const StudentCommunityPage = lazy(() => import("../pages/student/StudentCommunityPage").then(m => ({ default: m.StudentCommunityPage })));
+const AdminCommunityPage = lazy(() => import("../pages/admin/AdminCommunityPage").then(m => ({ default: m.AdminCommunityPage })));
 const AccountSecurityPage = lazy(() => import("../pages/auth/AccountSecurityPage").then(module => ({ default: module.AccountSecurityPage })));
 const HomePage = lazy(() => import("../pages/HomePage").then((module) => ({ default: module.HomePage })));
 const ProgramsPage = lazy(() => import("../pages/ProgramsPage").then((module) => ({ default: module.ProgramsPage })));
@@ -146,6 +148,7 @@ export const AppRoutes = () => (
           <Route path="/student/consultations" element={<ConsultationsPage />} />
           <Route path="/student/accommodation" element={<AccommodationPage />} />
           <Route path="/student/wallet" element={<StudentWalletPage />} />
+          <Route path="/student/community" element={<StudentCommunityPage />} />
           <Route path="/student/support" element={<StudentSupportPage />} />
           <Route path="/student/resources" element={<StudentResourcesPage />} />
           <Route path="/student/financials" element={<StudentFinancialsPage />} />
@@ -203,6 +206,7 @@ export const AppRoutes = () => (
           <Route path="/admin/visa" element={<VisaCenterPage />} />
           <Route path="/admin/accommodation" element={<AccommodationPage staff />} />
           <Route path="/admin/wallet" element={<AdminWalletPage />} />
+          <Route path="/admin/community" element={<AdminCommunityPage />} />
           <Route path="/admin/support-tickets" element={<AdminSupportTicketsPage />} />
           <Route path="/admin/knowledge-base" element={<AdminKnowledgeBasePage />} />
           <Route path="/admin/student-financials" element={<AdminStudentFinancialsPage />} />

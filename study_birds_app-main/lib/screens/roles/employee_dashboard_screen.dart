@@ -11,6 +11,7 @@ import 'employee_extra_screens.dart';
 import 'admin_users_access_screen.dart';
 import 'admin_parent_links_screen.dart';
 import 'admin_university_accounts_screen.dart';
+import 'employee_community_screen.dart';
 import 'admin_approval_screens.dart';
 import 'admin_applications_documents_screens.dart';
 import 'admin_simple_lists_screens.dart';
@@ -26,7 +27,7 @@ import 'admin_singleton_hub_screens.dart';
 /// the web's canAccessEmployeePage/employeeHome logic exactly.
 ///
 /// [_sectionScreens] is the registry mapping a section key to its real
-/// Flutter screen — all 28 sections in employeeSections.json now have one.
+/// Flutter screen — all 29 sections in employeeSections.json now have one.
 class EmployeeDashboardScreen extends StatefulWidget {
   final AuthUser user;
   const EmployeeDashboardScreen({super.key, required this.user});
@@ -79,6 +80,8 @@ final List<_SectionEntry> _sectionScreens = [
       (_) => const AdminPayoutRequestsScreen()),
   _SectionEntry('parent-links', Icons.family_restroom_outlined,
       'ربط أولياء الأمور', (_) => const AdminParentLinksScreen()),
+  _SectionEntry('community', Icons.forum_outlined, 'مجتمع الطلاب',
+      (_) => const EmployeeCommunityScreen()),
   _SectionEntry('university-accounts', Icons.school_outlined, 'حسابات الجامعات',
       (_) => const AdminUniversityAccountsScreen()),
   _SectionEntry('universities', Icons.account_balance_outlined, 'الجامعات',

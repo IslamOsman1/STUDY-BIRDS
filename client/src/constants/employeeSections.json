@@ -346,5 +346,21 @@
       "accommodation-listings",
       "accommodation-bookings"
     ]
+  },
+  {
+    "key": "community",
+    "ar": "مجتمع الطلاب",
+    "en": "Student community",
+    "pages": [
+      "community"
+    ],
+    "resources": [
+      "community-posts",
+      "community-comments",
+      "community-reports",
+      "community-moderation-log",
+      "community-suspensions",
+      "community-settings"
+    ]
   }
 ]
