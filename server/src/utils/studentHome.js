@@ -35,6 +35,7 @@ const CONTEXTS = {
   'in-progress': ['طلبك قيد المعالجة', 'Application in progress', 'فريقنا والجامعة يعملان على طلبك.', 'Our team and the university are working on your application.', 'applications'],
   visa: ['خطوتك القادمة: التأشيرة', 'Next step: Visa', 'مبروك القبول! الآن نجهز معك ملف التأشيرة.', 'Congratulations on your admission! Now we prepare your visa file together.', 'journey'],
   travel: ['رتّب سفرك ووصولك', 'Plan your travel and arrival', 'صدرت التأشيرة. حدد موعد وصولك لنرتب الاستقبال والسكن.', 'Your visa is ready. Set your arrival date so we can arrange pickup and housing.', 'travel'],
+  'confirm-arrival': ['هل وصلت؟', 'Have you arrived?', 'مرّ موعد وصولك المسجل. أكّد وصولك أو حدّث موعد السفر حتى نرتب خطوتك التالية.', 'Your planned arrival date has passed. Confirm your arrival or update your travel date so we can arrange your next step.', 'travel'],
   departure: ['جهّز حقائبك للسفر', 'Get ready for departure', 'موعد سفرك يقترب. راجع قائمة ما قبل السفر وتفاصيل الاستقبال.', 'Your trip is close. Review the pre-departure checklist and pickup details.', 'travel'],
   registration: ['استكمل تسجيلك الجامعي', 'Complete university registration', 'وصلت بالسلامة! الخطوة التالية تسجيلك في الجامعة.', 'Welcome! Your next step is registering at the university.', 'journey'],
   settled: ['رحلتك مكتملة', 'You are all set', 'أنهيت التسجيل. فريقنا معك للإقامة والدعم المستمر.', 'Registration is done. Our team stays with you for residence and ongoing support.', 'journey'],
@@ -95,9 +96,12 @@ function homeContext({ applications, arrivals, nextAction, main }, now) {
   if (nextAction && DOCUMENT_ACTIONS.has(nextAction.code)) return 'documents';
   const arrival = [...arrivals].filter(item => valid(item.arrivalDate) && item.status !== 'draft')
     .sort((a, b) => new Date(b.arrivalDate) - new Date(a.arrivalDate))[0];
-  const arrived = arrival && (arrival.status === 'completed' || ['arrived', 'completed'].includes(arrival.pickup?.status) || new Date(arrival.arrivalDate) <= now);
+  // Arrival counts only once confirmed (request completed or pickup reached);
+  // a planned date that has passed may mean a postponed trip.
+  const arrived = arrival && (arrival.status === 'completed' || ['arrived', 'completed'].includes(arrival.pickup?.status));
   const registration = main?.postAdmission?.registration?.status;
   if (arrived) return ['completed', 'not-required'].includes(registration) ? 'settled' : 'registration';
+  if (arrival && new Date(arrival.arrivalDate) <= now) return 'confirm-arrival';
   if (arrival && daysUntil(arrival.arrivalDate, now) <= DEPARTURE_WINDOW_DAYS) return 'departure';
   if (main && isPostAdmissionEligible(main)) {
     const visa = main.visaCase?.status || 'not-started';
