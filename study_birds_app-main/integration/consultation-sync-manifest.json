@@ -1,0 +1,62 @@
+[
+  {
+    "path": "server/src/app.js",
+    "before": "7a958bb15d7d2583b8c2661a15a31b4866ef3e7d4950c06b693b140f29073522",
+    "after": "17a1286cda7a419c97b915682de81adecd0b4f9bee52b04dc22f38626251e164"
+  },
+  {
+    "path": "server/src/server.js",
+    "before": "0c7c39c165c61a839ac5ece6038713ea09385b01c252ad675cd5ddcb9c7b5f09",
+    "after": "ceab9aeadc1587e4738b28b73a236701ae5c46f60baab7decf1c0b0853b322ad"
+  },
+  {
+    "path": "server/src/models/Consultation.js",
+    "before": "7f35c2bab9eec725a159387f03f783935fb08692bf58befee1e1315260fb2824",
+    "after": "cf1a29652582f3764d5bfbbf61c9acd05951b0aed3684a12d6cc20964bc0407d"
+  },
+  {
+    "path": "server/src/routes/consultationRoutes.js",
+    "before": "09ff3791121ff886cc881cb68c1acd6af668f89d9f6acf2dcf3f87e929155eaf",
+    "after": "eb67de1b5a97a87f58a09dfdb612975cb112b8c6be34aa6749e879baf673fce2"
+  },
+  {
+    "path": "server/src/utils/consultationReminders.js",
+    "before": null,
+    "after": "5d6b667fb3dfb6e54dd8d545946f1ffb08357c7f7cf18497f060cc57b9046264"
+  },
+  {
+    "path": "server/src/constants/employeeSections.json",
+    "before": "2647410cc193bdb4fd62323d4d7b8d1caa6fc05224516bd4c6ffefb043278872",
+    "after": "267ba0610b3ed139a2db4642c3f87ca3054c03104da04a816dbd461cbe4db146"
+  },
+  {
+    "path": "server/tests/consultationBooking.test.js",
+    "before": "6773684c81e831859bac92e71cb320b9f2e0c897103a23c3034b12d10a862b89",
+    "after": "5547ccd0468349fcef5dd570efe1fa59edcf91223a7391afc91d9e9d629bad94"
+  },
+  {
+    "path": "client/src/constants/employeeSections.json",
+    "before": "2647410cc193bdb4fd62323d4d7b8d1caa6fc05224516bd4c6ffefb043278872",
+    "after": "267ba0610b3ed139a2db4642c3f87ca3054c03104da04a816dbd461cbe4db146"
+  },
+  {
+    "path": "client/src/pages/ConsultationsPage.tsx",
+    "before": "4d0a5646076c4c257bf84597a3403744cfb3791af8f85b4ea825c543de66dc1c",
+    "after": "764f5b5ff89dd55ae3ff2b0b976f15b716e9005ffab1d1e7c9ced0f8b29d2dc8"
+  },
+  {
+    "path": "client/src/routes/AppRoutes.tsx",
+    "before": "12702d69174b7aee4c3b2de3e01dc3fa968c2238bb8bf9c3b7cd5c9bdf967be1",
+    "after": "133563111cb99b3dd88ece1db652905fa2df6a9085fdc454bf7df34b922719d2"
+  },
+  {
+    "path": "client/src/layouts/DashboardLayout.tsx",
+    "before": "4cf92ef964cccaa2508ba599c84dd764a380c7f00e09719bbd3c35ec45649d63",
+    "after": "9b95c03c6720afa38ebcc4b4cdac63dcb343243921161e427a89815cce041786"
+  },
+  {
+    "path": "CONSULTATION_BOOKING.md",
+    "before": "8996e71cff63995402d43ffb33f4998578a9d8e67cef7df4840d83319e2f360b",
+    "after": "fd885ec3895cf931f9f77cb14c35a3b6c120791320221dbb4ad9f19413737899"
+  }
+]

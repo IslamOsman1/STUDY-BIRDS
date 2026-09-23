@@ -18,6 +18,7 @@ import 'admin_support_knowledge_screens.dart';
 import 'admin_financials_marketing_screens.dart';
 import 'admin_content_crud_screens.dart';
 import 'admin_singleton_hub_screens.dart';
+import 'employee_consultations_screen.dart';
 
 /// Admin/Employee Home. HONESTY NOTE: the backend has no per-employee
 /// "tasks assigned to me" concept — role="admin" sees the whole platform
@@ -26,7 +27,7 @@ import 'admin_singleton_hub_screens.dart';
 /// the web's canAccessEmployeePage/employeeHome logic exactly.
 ///
 /// [_sectionScreens] is the registry mapping a section key to its real
-/// Flutter screen — all 28 sections in employeeSections.json now have one.
+/// Flutter screen — all 29 sections in employeeSections.json now have one.
 class EmployeeDashboardScreen extends StatefulWidget {
   final AuthUser user;
   const EmployeeDashboardScreen({super.key, required this.user});
@@ -81,6 +82,8 @@ final List<_SectionEntry> _sectionScreens = [
       'ربط أولياء الأمور', (_) => const AdminParentLinksScreen()),
   _SectionEntry('university-accounts', Icons.school_outlined, 'حسابات الجامعات',
       (_) => const AdminUniversityAccountsScreen()),
+  _SectionEntry('consultations', Icons.event_available_outlined,
+      'الاستشارات والمواعيد', (_) => const EmployeeConsultationsScreen()),
   _SectionEntry('universities', Icons.account_balance_outlined, 'الجامعات',
       (_) => const AdminUniversitiesCrudScreen()),
   _SectionEntry('programs', Icons.menu_book_outlined, 'التخصصات',

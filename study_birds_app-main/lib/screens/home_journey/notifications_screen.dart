@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
+import '../services_support/services_consultation_screens.dart';
 
 IconData _notificationIcon(String? type) {
   switch (type) {
@@ -78,7 +78,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _markAllRead() async {
-    final unread = _notifications.cast<Map<String, dynamic>>().where((n) => n['isRead'] != true).toList();
+    final unread = _notifications
+        .cast<Map<String, dynamic>>()
+        .where((n) => n['isRead'] != true)
+        .toList();
     for (final n in unread) {
       // ignore: use_build_context_synchronously
       await _markRead(n, 0);
@@ -92,7 +95,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       actions: [
         TextButton(
           onPressed: _markAllRead,
-          child: const Text('تعليم الكل كمقروء', style: TextStyle(color: Colors.white, fontSize: 12.5)),
+          child: const Text('تعليم الكل كمقروء',
+              style: TextStyle(color: Colors.white, fontSize: 12.5)),
         ),
       ],
       body: _loading
@@ -112,36 +116,60 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         final n = _notifications[i] as Map<String, dynamic>;
                         final isRead = n['isRead'] == true;
                         final color = _notificationColor(n['type'] as String?);
-                        final createdAt = (n['createdAt'] as String?)?.split('T').first ?? '';
+                        final createdAt =
+                            (n['createdAt'] as String?)?.split('T').first ?? '';
 
                         return AppCard(
-                          onTap: () => _markRead(n, i),
+                          onTap: () async {
+                            await _markRead(n, i);
+                            if (context.mounted &&
+                                n['link'] == '/student/consultations') {
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const ConsultationBookingScreen()));
+                            }
+                          },
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (!isRead)
                                 Container(
-                                  margin: const EdgeInsets.only(left: 6, top: 4),
+                                  margin:
+                                      const EdgeInsets.only(left: 6, top: 4),
                                   width: 8,
                                   height: 8,
-                                  decoration: const BoxDecoration(color: AppColors.orange, shape: BoxShape.circle),
+                                  decoration: const BoxDecoration(
+                                      color: AppColors.orange,
+                                      shape: BoxShape.circle),
                                 ),
                               Container(
                                 width: 38,
                                 height: 38,
-                                decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
-                                child: Icon(_notificationIcon(n['type'] as String?), size: 18, color: color),
+                                decoration: BoxDecoration(
+                                    color: color.withOpacity(0.12),
+                                    shape: BoxShape.circle),
+                                child: Icon(
+                                    _notificationIcon(n['type'] as String?),
+                                    size: 18,
+                                    color: color),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(n['title'] as String? ?? '', style: AppTextStyles.body.copyWith(fontWeight: isRead ? FontWeight.w400 : FontWeight.w700)),
+                                    Text(n['title'] as String? ?? '',
+                                        style: AppTextStyles.body.copyWith(
+                                            fontWeight: isRead
+                                                ? FontWeight.w400
+                                                : FontWeight.w700)),
                                     const SizedBox(height: 2),
-                                    Text(n['message'] as String? ?? '', style: AppTextStyles.caption),
+                                    Text(n['message'] as String? ?? '',
+                                        style: AppTextStyles.caption),
                                     const SizedBox(height: 4),
-                                    Text(createdAt, style: AppTextStyles.caption),
+                                    Text(createdAt,
+                                        style: AppTextStyles.caption),
                                   ],
                                 ),
                               ),

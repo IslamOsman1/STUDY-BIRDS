@@ -1,6 +1,6 @@
+import 'live_consultation_screen.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
-import '../../core/animations.dart';
 import '../../core/api_client.dart';
 import '../../core/student_repository.dart';
 import '../../core/catalog_repository.dart';
@@ -135,7 +135,9 @@ IconData _serviceIcon(String title) {
       value.contains('sim')) {
     return Icons.sim_card_rounded;
   }
-  if (value.contains('بنك') || value.contains('بنكي') || value.contains('bank')) {
+  if (value.contains('بنك') ||
+      value.contains('بنكي') ||
+      value.contains('bank')) {
     return Icons.account_balance_wallet_rounded;
   }
   if (value.contains('إقام') ||
@@ -262,160 +264,12 @@ class _Row extends StatelessWidget {
   }
 }
 
-class ConsultationBookingScreen extends StatefulWidget {
+class ConsultationBookingScreen extends StatelessWidget {
   final VoidCallback? onConfirm;
   const ConsultationBookingScreen({super.key, this.onConfirm});
-
   @override
-  State<ConsultationBookingScreen> createState() =>
-      _ConsultationBookingScreenState();
-}
-
-class _ConsultationBookingScreenState extends State<ConsultationBookingScreen> {
-  int _type = 1;
-  static const _types = ['مكتب', 'أونلاين', 'هاتف'];
-  DateTime? _date;
-  TimeOfDay? _time;
-  bool _submitting = false;
-  String? _error;
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now(),
-        lastDate: DateTime.now().add(const Duration(days: 90)));
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  Future<void> _pickTime() async {
-    final picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) setState(() => _time = picked);
-  }
-
-  Future<void> _confirm() async {
-    if (widget.onConfirm != null) {
-      widget.onConfirm!();
-      return;
-    }
-    if (_date == null || _time == null) {
-      setState(() => _error = 'اختر التاريخ والوقت أولًا');
-      return;
-    }
-    setState(() {
-      _submitting = true;
-      _error = null;
-    });
-    final dateLabel = '${_date!.year}-${_date!.month}-${_date!.day}';
-    final timeLabel = _time!.format(context);
-    try {
-      await StudentRepository.instance.createSupportTicket(
-        subject: 'طلب حجز استشارة (${_types[_type]})',
-        message:
-            'أرغب في حجز استشارة ${_types[_type]} بتاريخ $dateLabel الساعة $timeLabel.',
-        category: 'other',
-      );
-      if (!mounted) return;
-      Navigator.of(context).pop();
-      showSuccessModal(context,
-          title: 'تم إرسال طلب استشارتك',
-          message: 'سيتواصل معك فريقنا لتأكيد الموعد.');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error =
-          e is ApiException ? e.message : 'تعذر إرسال الطلب، حاول مرة أخرى');
-    } finally {
-      if (mounted) setState(() => _submitting = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      title: 'حجز استشارة',
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('نوع الاستشارة', style: AppTextStyles.sectionLabel),
-            const SizedBox(height: 10),
-            Row(
-              children: List.generate(_types.length, (i) {
-                final selected = i == _type;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _type = i),
-                    child: Container(
-                      margin:
-                          EdgeInsets.only(left: i == _types.length - 1 ? 0 : 8),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: selected ? AppColors.navy : Colors.white,
-                        borderRadius: BorderRadius.circular(AppRadius.button),
-                        border: Border.all(
-                            color:
-                                selected ? AppColors.navy : AppColors.border),
-                      ),
-                      child: Text(_types[i],
-                          style: TextStyle(
-                              color: selected
-                                  ? Colors.white
-                                  : AppColors.textPrimary,
-                              fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 20),
-            const Text('التاريخ والوقت', style: AppTextStyles.sectionLabel),
-            const SizedBox(height: 10),
-            AppCard(
-              onTap: _pickDate,
-              child: Row(
-                children: [
-                  const Icon(Icons.calendar_today_rounded,
-                      color: AppColors.navy, size: 18),
-                  const SizedBox(width: 10),
-                  Text(
-                      _date != null
-                          ? '${_date!.year}-${_date!.month}-${_date!.day}'
-                          : 'اختر التاريخ',
-                      style: AppTextStyles.body),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            AppCard(
-              onTap: _pickTime,
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time_rounded,
-                      color: AppColors.navy, size: 18),
-                  const SizedBox(width: 10),
-                  Text(_time != null ? _time!.format(context) : 'اختر الوقت',
-                      style: AppTextStyles.body),
-                ],
-              ),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 10),
-              Text(_error!,
-                  style:
-                      const TextStyle(color: AppColors.danger, fontSize: 12.5)),
-            ],
-            const Spacer(),
-            PrimaryButton(
-                label: _submitting ? 'جاري الإرسال...' : 'تأكيد الموعد',
-                onPressed: _submitting ? null : _confirm),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      LiveConsultationScreen(onBooked: onConfirm);
 }
 
 class ConsultationConfirmationScreen extends StatelessWidget {
