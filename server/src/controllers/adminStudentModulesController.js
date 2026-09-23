@@ -10,6 +10,9 @@ const OrientationTestResult = require("../models/OrientationTestResult");
 const SupportTicket = require("../models/SupportTicket");
 const Notification = require("../models/Notification");
 const asyncHandler = require("../utils/asyncHandler");
+const { expireDueDocuments } = require("../utils/documentExpiry");
+const { documentStatusInfo, documentStatusNotice, DOCUMENT_STATUSES_REQUIRING_REASON } = require("../constants/statusCatalog");
+const { ALL_DOCUMENT_DETAILED_STATUSES, DOCUMENT_DETAILED_TO_LEGACY_STATUS } = require("../constants/roles");
 const { hydrateApplicationsWithStudentProfiles } = require("../utils/hydrateApplications");
 
 const getStudentFinancialsAdmin = asyncHandler(async (req, res) => {
@@ -30,11 +33,57 @@ const getStudentFinancialsAdmin = asyncHandler(async (req, res) => {
 });
 
 const getStudentDocumentsAdmin = asyncHandler(async (req, res) => {
+  await expireDueDocuments();
   const documents = await Document.find()
     .populate("student", "name email")
-    .sort({ createdAt: -1 });
+    .populate("reviewedBy", "name")
+    .sort({ createdAt: -1 })
+    .lean();
 
-  res.json(documents);
+  res.json(documents.map((document) => ({ ...document, statusInfo: documentStatusInfo(document) })));
+});
+
+const DOCUMENT_TYPE_LABELS = {
+  passport: "جواز السفر", "biometric-photo": "الصورة الشخصية", "latest-qualification": "آخر مؤهل دراسي",
+  transcript: "كشف الدرجات", "language-certificate": "شهادة اللغة",
+};
+
+// Staff review of a student document: any of the 8 statuses, a reason when
+// the student must act, an optional expiry date, a history entry and a
+// plain-language notice to the student. `version` guards against overwriting
+// a colleague's decision made in the meantime.
+const reviewStudentDocumentAdmin = asyncHandler(async (req, res) => {
+  const { detailedStatus, reviewNote = "", expiresAt, version } = req.body;
+  if (!ALL_DOCUMENT_DETAILED_STATUSES.includes(detailedStatus) || typeof reviewNote !== "string" || reviewNote.length > 1000
+    || !Number.isInteger(version) || (expiresAt !== undefined && expiresAt !== null && Number.isNaN(new Date(expiresAt).getTime()))) {
+    return res.status(400).json({ message: "Invalid document review" });
+  }
+  const note = reviewNote.trim();
+  if (DOCUMENT_STATUSES_REQUIRING_REASON.includes(detailedStatus) && !note) {
+    return res.status(400).json({ message: "A reason is required so the student knows what to fix" });
+  }
+  const expiry = expiresAt ? new Date(expiresAt) : expiresAt === null ? null : undefined;
+  if (detailedStatus === "approved" && expiry && expiry <= new Date()) {
+    return res.status(400).json({ message: "An approved document cannot already be expired" });
+  }
+  const now = new Date();
+  const set = {
+    detailedStatus, status: DOCUMENT_DETAILED_TO_LEGACY_STATUS[detailedStatus], reviewNote: note,
+    reviewedBy: req.user._id, reviewedAt: now,
+    ...(expiry !== undefined ? { expiresAt: expiry } : {}),
+  };
+  const updated = await Document.findOneAndUpdate(
+    { _id: req.params.id, __v: version },
+    { $set: set, $inc: { __v: 1 }, $push: { reviewHistory: { detailedStatus, note, expiresAt: expiry || undefined, changedBy: req.user._id, changedAt: now } } },
+    { new: true }
+  ).populate("student", "name email").populate("reviewedBy", "name").lean();
+  if (!updated) {
+    const exists = await Document.exists({ _id: req.params.id });
+    return res.status(exists ? 409 : 404).json({ message: exists ? "This document was updated by someone else. Reload and try again." : "Document not found" });
+  }
+  const notice = documentStatusNotice(updated, DOCUMENT_TYPE_LABELS[updated.type] || updated.title);
+  await Notification.create({ user: updated.student._id, ...notice, link: "/student/documents" });
+  res.json({ ...updated, statusInfo: documentStatusInfo(updated) });
 });
 
 const getStudentNotificationsAdmin = asyncHandler(async (req, res) => {
@@ -320,6 +369,7 @@ const updateOrientationResultAdmin = asyncHandler(async (req, res) => {
 module.exports = {
   getStudentDetailsAdmin,
   getStudentDocumentsAdmin,
+  reviewStudentDocumentAdmin,
   getStudentNotificationsAdmin,
   getStudentFinancialsAdmin,
   createStudentInvoiceAdmin,

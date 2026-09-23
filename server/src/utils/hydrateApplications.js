@@ -1,4 +1,5 @@
 const StudentProfile = require("../models/StudentProfile");
+const { applicationStatusInfo, documentStatusInfo } = require("../constants/statusCatalog");
 
 const buildApplicantProfile = (application, studentProfile) => {
   const existingProfile = application.applicantProfile || {};
@@ -91,6 +92,16 @@ const hydrateApplicationsWithStudentProfiles = async (applications) => {
 
     return {
       ...plainApplication,
+      // Plain-language status copy for every screen (see constants/statusCatalog.js).
+      statusInfo: applicationStatusInfo(plainApplication),
+      ...(Array.isArray(plainApplication.documents) ? {
+        // Internal review history (staff ids) stays on the admin documents page.
+        documents: plainApplication.documents.map((document) => {
+          if (!document || typeof document !== "object" || !document.type) return document;
+          const { reviewHistory, reviewedBy, ...visible } = document;
+          return { ...visible, statusInfo: documentStatusInfo(document) };
+        }),
+      } : {}),
       applicantProfile: buildApplicantProfile(plainApplication, studentProfile),
       studentProfile: buildCurrentStudentProfile(plainApplication, studentProfile),
     };

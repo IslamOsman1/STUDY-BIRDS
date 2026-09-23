@@ -84,6 +84,7 @@ const {
 const {
   getStudentDetailsAdmin,
   getStudentDocumentsAdmin,
+  reviewStudentDocumentAdmin,
   getStudentNotificationsAdmin,
   getStudentFinancialsAdmin,
   createStudentInvoiceAdmin,
@@ -198,6 +199,7 @@ router.delete("/knowledge-base/:id", deleteKnowledgeBaseItemAdmin);
 router.get("/student-financials", getStudentFinancialsAdmin);
 router.get("/students/:id", getStudentDetailsAdmin);
 router.get("/student-documents", getStudentDocumentsAdmin);
+router.patch("/student-documents/:id", reviewStudentDocumentAdmin);
 router.get("/student-notifications", getStudentNotificationsAdmin);
 router.post("/student-financials/invoices", createStudentInvoiceAdmin);
 router.patch("/student-financials/invoices/:id", updateStudentInvoiceAdmin);

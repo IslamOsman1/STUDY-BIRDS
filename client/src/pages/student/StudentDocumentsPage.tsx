@@ -1,4 +1,5 @@
 import { DocumentFileLink } from '../../components/DocumentFileLink';
+import { StatusExplanation } from '../../components/StatusExplanation';
 import { useEffect, useState } from "react";
 import { FileUpload } from "../../components/forms/FileUpload";
 import type { DocumentItem } from "../../types";
@@ -64,13 +65,16 @@ export const StudentDocumentsPage = () => {
                   <div className="min-w-0 flex-1">
                     <p className="break-words font-semibold">{document.fileName}</p>
                     <p className="text-sm text-slate-500">{documentTypeLabels[document.type] || document.type}</p>
-                    <p className="mt-2 text-xs text-slate-500">{statusLabels[document.status] || document.status}</p>
+                    {document.expiresAt ? <p className="mt-2 text-xs text-slate-500">{isArabic ? "صالح حتى" : "Valid until"} {new Date(document.expiresAt).toLocaleDateString(isArabic ? "ar" : "en")}</p> : null}
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${document.status === "verified" ? "bg-emerald-100 text-emerald-700" : document.status === "rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>
-                    {statusLabels[document.status] || document.status}
+                    {document.statusInfo ? (isArabic ? document.statusInfo.ar.label : document.statusInfo.en.label) : statusLabels[document.status] || document.status}
                   </span>
                 </div>
-                {document.reviewNote ? <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">{document.reviewNote}</p> : null}
+                {/* What the status means, the reviewer's reason and what to do next. */}
+                {document.statusInfo
+                  ? <div className="mt-3"><StatusExplanation info={document.statusInfo} /></div>
+                  : document.reviewNote ? <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">{document.reviewNote}</p> : null}
                 <DocumentFileLink className="mt-3 inline-flex text-sm font-semibold text-brand-700" path={document.filePath}>
                   {dt(language, "viewFile")}
                 </DocumentFileLink>

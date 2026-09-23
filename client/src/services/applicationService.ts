@@ -14,7 +14,8 @@ export const applicationService = {
     const { data } = await api.get<Application>(`/applications/${id}`);
     return data;
   },
-  updateStatus: async (id: string, payload: { status: string; note?: string }) => {
+  // `status` = website review action, `detailedStatus` = any detailed lifecycle stage.
+  updateStatus: async (id: string, payload: { status?: string; detailedStatus?: string; note?: string }) => {
     const { data } = await api.put<Application>(`/applications/${id}/status`, payload);
     return data;
   },

@@ -48,9 +48,27 @@ const documentSchema = new mongoose.Schema(
       ],
       default: "uploaded",
     },
+    // Staff review. reviewNote is shown to the student as the reason
+    // (mandatory for rejected / needs-revision / needs-translation).
+    reviewNote: { type: String, default: "", trim: true, maxlength: 1000 },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    reviewedAt: Date,
+    // Optional validity end (passport, language certificate...). Past it the
+    // document is moved to "expired" — see utils/documentExpiry.js.
+    expiresAt: Date,
+    reviewHistory: [{
+      _id: false,
+      detailedStatus: String,
+      note: String,
+      expiresAt: Date,
+      changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      changedAt: { type: Date, default: Date.now },
+    }],
   },
   { timestamps: true }
 );
+
+documentSchema.index({ expiresAt: 1, detailedStatus: 1 });
 
 const { DOCUMENT_DETAILED_TO_LEGACY_STATUS } = require("../constants/roles");
 

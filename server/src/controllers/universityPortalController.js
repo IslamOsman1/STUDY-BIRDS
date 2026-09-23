@@ -68,9 +68,7 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
 
   await Notification.create({
     user: application.student._id || application.student,
-    title: "تحديث حالة الطلب",
-    message: `تم تحديث حالة طلبك: ${detailedStatus}`,
-    type: "info",
+    ...require("../constants/statusCatalog").applicationStatusNotice(application, application.program?.title),
     link: `/applications/${application._id}`,
   });
 

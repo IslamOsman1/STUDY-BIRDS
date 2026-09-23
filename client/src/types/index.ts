@@ -1,3 +1,5 @@
+import type { StatusInfo } from "../hooks/useStatusCatalog";
+
 export type Role = "student" | "admin" | "partner" | "parent" | "university" | "employee";
 
 export type EmployeeRole =
@@ -241,6 +243,12 @@ export interface DocumentItem {
   fileName: string;
   filePath: string;
   status: "pending" | "verified" | "rejected";
+  detailedStatus?: string;
+  statusInfo?: StatusInfo;
+  expiresAt?: string | null;
+  reviewedBy?: Pick<User, "_id" | "name">;
+  reviewedAt?: string;
+  __v?: number;
   mimeType?: string;
   size?: number;
   reviewNote?: string;
@@ -270,6 +278,7 @@ export interface Application {
   // NEW — already present in the API response; added here so the
   // university portal pages can read it with full type safety.
   detailedStatus?: string;
+  statusInfo?: StatusInfo;
   university?: { _id: string; name: string; city?: string } | string;
   notes?: string;
   submittedAt?: string;

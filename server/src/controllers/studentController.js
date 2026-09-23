@@ -18,6 +18,8 @@ const Program = require("../models/Program");
 const University = require("../models/University");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
+const { expireDueDocuments } = require("../utils/documentExpiry");
+const { applicationStatusInfo, documentStatusInfo } = require("../constants/statusCatalog");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
@@ -184,11 +186,13 @@ const uploadDocument = asyncHandler(async (req, res) => {
 });
 
 const getDocuments = asyncHandler(async (req, res) => {
-  const documents = await Document.find({ student: req.user._id }).sort({ createdAt: -1 });
-  res.json(documents);
+  await expireDueDocuments({ student: req.user._id });
+  const documents = await Document.find({ student: req.user._id }).select("-reviewHistory -reviewedBy").sort({ createdAt: -1 }).lean();
+  res.json(documents.map((document) => ({ ...document, statusInfo: documentStatusInfo(document) })));
 });
 
 const getApplications = asyncHandler(async (req, res) => {
+  await expireDueDocuments({ student: req.user._id });
   const applications = await Application.find({ student: req.user._id })
     .populate({
       path: "program",
@@ -205,6 +209,7 @@ const getApplications = asyncHandler(async (req, res) => {
 });
 
 const getDashboardOverview = asyncHandler(async (req, res) => {
+  await expireDueDocuments({ student: req.user._id });
   const [profile, applications, documents, notifications, invoices, unreadCount] = await Promise.all([
     StudentProfile.findOne({ user: req.user._id }).lean(),
     Application.find({ student: req.user._id })
@@ -218,7 +223,7 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
       })
       .sort({ createdAt: -1 })
       .lean(),
-    Document.find({ student: req.user._id }).sort({ createdAt: -1 }).lean(),
+    Document.find({ student: req.user._id }).select("-reviewHistory -reviewedBy").sort({ createdAt: -1 }).lean(),
     Notification.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(5).lean(),
     Invoice.find({ student: req.user._id }).lean(),
     Notification.countDocuments({ user: req.user._id, isRead: false }),
@@ -254,8 +259,8 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
       unreadNotifications: unreadCount,
     },
     latestNotification: notifications[0] || null,
-    recentApplications: applications.slice(0, 5),
-    recentDocuments: documents.slice(0, 6),
+    recentApplications: applications.slice(0, 5).map((application) => ({ ...application, statusInfo: applicationStatusInfo(application) })),
+    recentDocuments: documents.slice(0, 6).map((document) => ({ ...document, statusInfo: documentStatusInfo(document) })),
   });
 });
 
