@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const asyncHandler = require("../utils/asyncHandler");
 const AccommodationListing = require("../models/AccommodationListing");
 const AccommodationBooking = require("../models/AccommodationBooking");
+const { withLease } = require("../utils/leaseLock");
 
 const LISTING_TYPES = ["single", "shared", "apartment"];
 const BOOKING_STATUSES = ["pending", "confirmed", "rejected", "cancelled"];
@@ -84,11 +85,29 @@ const updateAccommodationBookingStatus = asyncHandler(async (req, res) => {
   if (booking.status !== "pending" && !(booking.status === "confirmed" && status === "cancelled")) {
     return res.status(409).json({ message: "This booking can no longer be updated" });
   }
-  const now = new Date();
-  const updated = await AccommodationBooking.findOneAndUpdate({ _id: booking._id, __v: version, status: booking.status }, {
-    $set: { status, staffNote: staffNote.trim() }, $inc: { __v: 1 },
-    $push: { history: { status, changedBy: req.user._id, changedAt: now } },
-  }, { new: true, runValidators: true }).lean();
+  const apply = async () => {
+    const now = new Date();
+    return AccommodationBooking.findOneAndUpdate({ _id: booking._id, __v: version, status: booking.status }, {
+      $set: { status, staffNote: staffNote.trim() }, $inc: { __v: 1 },
+      $push: { history: { status, changedBy: req.user._id, changedAt: now } },
+    }, { new: true, runValidators: true }).lean();
+  };
+  let updated;
+  if (status === "confirmed") {
+    // Capacity policy: a confirmed booking holds a place until cancelled (bookings
+    // have no end date). Count and confirm under one lease per listing so two
+    // staff members can't both fill the last place.
+    const result = await withLease(`housing:${booking.listing}`, async () => {
+      const listing = await AccommodationListing.findById(booking.listing).select("capacity").lean();
+      const taken = await AccommodationBooking.countDocuments({ listing: booking.listing, status: "confirmed" });
+      if (!listing || taken >= listing.capacity) return { full: true };
+      return { updated: await apply() };
+    });
+    if (result.full) return res.status(409).json({ message: "This accommodation is full. Reject the request or free a place first." });
+    updated = result.updated;
+  } else {
+    updated = await apply();
+  }
   if (!updated) return res.status(409).json({ message: "Booking changed. Refresh and retry." });
   res.json(updated);
 });
@@ -114,12 +133,19 @@ const createAccommodationBooking = asyncHandler(async (req, res) => {
   if (move && !Number.isFinite(move.getTime())) return res.status(400).json({ message: "Invalid move-in date" });
   const listing = await AccommodationListing.findOne({ _id: listingId, isActive: true }).lean();
   if (!listing) return res.status(404).json({ message: "Listing not available" });
-  const existing = await AccommodationBooking.exists({ student: req.user._id, status: { $in: ["pending", "confirmed"] } });
-  if (existing) return res.status(409).json({ message: "You already have an active housing request. Cancel it before booking another." });
-  const booking = await AccommodationBooking.create({
-    student: req.user._id, listing: listingId, moveInDate: move, notes: notes.trim(),
-    history: [{ status: "pending", changedBy: req.user._id, changedAt: new Date() }],
+  // A full listing takes no new requests; one active request per student,
+  // checked under a per-student lease so a double submit can't create two.
+  const taken = await AccommodationBooking.countDocuments({ listing: listingId, status: "confirmed" });
+  if (taken >= listing.capacity) return res.status(409).json({ message: "This accommodation is full" });
+  const booking = await withLease(`housing-student:${req.user._id}`, async () => {
+    const existing = await AccommodationBooking.exists({ student: req.user._id, status: { $in: ["pending", "confirmed"] } });
+    if (existing) return null;
+    return AccommodationBooking.create({
+      student: req.user._id, listing: listingId, moveInDate: move, notes: notes.trim(),
+      history: [{ status: "pending", changedBy: req.user._id, changedAt: new Date() }],
+    });
   });
+  if (!booking) return res.status(409).json({ message: "You already have an active housing request. Cancel it before booking another." });
   res.status(201).json(booking.toObject());
 });
 

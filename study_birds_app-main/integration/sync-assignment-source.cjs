@@ -20,7 +20,7 @@ function safePath(root, relative) {
   return file;
 }
 function sync({ target, apply = false, base = __dirname, bundle = 'assignment' }) {
-  if (!['assignment', 'journey'].includes(bundle)) throw new Error('Unknown reviewed bundle');
+  if (!['assignment', 'journey', 'consultation'].includes(bundle)) throw new Error('Unknown reviewed bundle');
   const source = fs.realpathSync(path.join(base, `${bundle}-release`));
   const destination = fs.realpathSync(target);
   const entries = JSON.parse(fs.readFileSync(path.join(base, `${bundle}-sync-manifest.json`), 'utf8'));
@@ -50,7 +50,7 @@ if (require.main === module) {
     if (bundleIndex >= 0) args.splice(bundleIndex, 2);
     const remaining = args.filter(arg => arg !== '--apply');
     if (remaining.length !== 2 || remaining[0] !== '--target') {
-      throw new Error('Usage: node integration/sync-assignment-source.cjs --target <website-root> [--bundle assignment|journey] [--apply]');
+      throw new Error('Usage: node integration/sync-assignment-source.cjs --target <website-root> [--bundle assignment|journey|consultation] [--apply]');
     }
     const files = sync({ target: remaining[1], apply, bundle });
     console.log(`${apply ? 'Synced' : 'Ready to sync'} ${files.length} files. No deployment performed.`);
