@@ -19,6 +19,7 @@ import '../services_support/support_team_ai_screens.dart';
 import '../services_support/community_screen.dart';
 import '../universities_programs_countries/programs_screens.dart';
 import '../visa_travel_accommodation/arrival_services_screen.dart';
+import '../visa_travel_accommodation/accommodation_arrival_screens.dart';
 import 'smart_home_sections.dart';
 
 /// Real, live Home Dashboard — fetches GET /api/students/overview on load.
@@ -182,6 +183,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     final Widget screen = switch (destination) {
       'journey' || 'visa' => const JourneyTrackerScreen(),
       'travel' || 'accommodation' => const ArrivalServicesScreen(),
+      'university-registration' => const UniversityRegistrationScreen(),
       'programs' || 'catalog' => const ProgramsExplorerScreen(),
       'universities' => const UniversitiesExplorerScreen(),
       'documents' || 'upload-document' => const MyDocumentsScreen(),
