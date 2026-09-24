@@ -78,11 +78,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
         ),
       ],
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل ملفك الشخصي...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _buildContent(context, user),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل ملفك الشخصي...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _buildContent(context, user),
+      ),
     );
   }
 

@@ -222,19 +222,23 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                   color: Colors.white),
         ),
       ],
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل مستنداتك...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _docs.isEmpty
-                  ? EmptyState(
-                      icon: Icons.folder_open_outlined,
-                      title: 'لا توجد مستندات بعد',
-                      message: 'ابدأ برفع أول مستند من زر الإضافة أعلى الشاشة.',
-                      ctaLabel: 'رفع مستند',
-                      onCta: _pickTypeAndUpload,
-                    )
-                  : ListView.builder(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل مستنداتك...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _docs.isEmpty
+                    ? EmptyState(
+                        icon: Icons.folder_open_outlined,
+                        title: 'لا توجد مستندات بعد',
+                        message:
+                            'ابدأ برفع أول مستند من زر الإضافة أعلى الشاشة.',
+                        ctaLabel: 'رفع مستند',
+                        onCta: _pickTypeAndUpload,
+                      )
+                    : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _docs.length,
                       itemBuilder: (context, i) {
@@ -289,6 +293,7 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                         );
                       },
                     ),
+      ),
     );
   }
 }

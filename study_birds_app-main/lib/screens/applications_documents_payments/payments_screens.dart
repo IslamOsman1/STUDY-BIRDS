@@ -90,11 +90,15 @@ class _PaymentsSummaryScreenState extends State<PaymentsSummaryScreen> {
               MaterialPageRoute(builder: (_) => const PaymentHistoryScreen())),
         ),
       ],
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل بياناتك المالية...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _buildContent(context, _financials!),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل بياناتك المالية...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _buildContent(context, _financials!),
+      ),
     );
   }
 
@@ -361,16 +365,19 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'سجل الدفعات',
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل السجل...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _proofs.isEmpty
-                  ? const EmptyState(
-                      icon: Icons.history_rounded,
-                      title: 'لا يوجد سجل بعد',
-                      message: 'ستظهر هنا كل إيصالات الدفع اللي رفعتها.')
-                  : ListView.builder(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل السجل...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _proofs.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.history_rounded,
+                        title: 'لا يوجد سجل بعد',
+                        message: 'ستظهر هنا كل إيصالات الدفع اللي رفعتها.')
+                    : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _proofs.length,
                       itemBuilder: (context, i) {
@@ -437,6 +444,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                         );
                       },
                     ),
+      ),
     );
   }
 }

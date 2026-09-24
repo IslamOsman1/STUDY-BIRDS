@@ -299,51 +299,56 @@ class _SupportTicketsListScreenState extends State<SupportTicketsListScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'تذاكري',
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل تذاكرك...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _tickets.isEmpty
-                  ? EmptyState(
-                      icon: Icons.confirmation_number_outlined,
-                      title: 'لا توجد تذاكر بعد',
-                      message: 'أنشئ تذكرة جديدة لو محتاج مساعدة.',
-                      ctaLabel: 'تذكرة دعم جديدة',
-                      onCta: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const NewSupportTicketScreen())))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _tickets.length,
-                      itemBuilder: (context, i) {
-                        final t = _tickets[i] as Map<String, dynamic>;
-                        final meta = ticketStatusMeta(t['status'] as String?);
-                        return AppCard(
-                          onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      SupportTicketDetailScreen(ticket: t))),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(t['subject'] as String? ?? '—',
-                                        style: AppTextStyles.cardTitle),
-                                    Text(
-                                        _categoryLabel(
-                                            t['category'] as String?),
-                                        style: AppTextStyles.caption),
-                                  ],
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل تذاكرك...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _tickets.isEmpty
+                    ? EmptyState(
+                        icon: Icons.confirmation_number_outlined,
+                        title: 'لا توجد تذاكر بعد',
+                        message: 'أنشئ تذكرة جديدة لو محتاج مساعدة.',
+                        ctaLabel: 'تذكرة دعم جديدة',
+                        onCta: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (_) => const NewSupportTicketScreen())))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _tickets.length,
+                        itemBuilder: (context, i) {
+                          final t = _tickets[i] as Map<String, dynamic>;
+                          final meta = ticketStatusMeta(t['status'] as String?);
+                          return AppCard(
+                            onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        SupportTicketDetailScreen(ticket: t))),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(t['subject'] as String? ?? '—',
+                                          style: AppTextStyles.cardTitle),
+                                      Text(
+                                          _categoryLabel(
+                                              t['category'] as String?),
+                                          style: AppTextStyles.caption),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              StatusBadge(label: meta.label, color: meta.color),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                                StatusBadge(
+                                    label: meta.label, color: meta.color),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+      ),
     );
   }
 }
