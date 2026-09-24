@@ -128,12 +128,15 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
             tooltip: 'تحديث',
             icon: const Icon(Icons.refresh))
       ],
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: StatusBadge(label: badge.label, color: badge.color),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: StatusBadge(label: badge.label, color: badge.color),
           ),
           const SizedBox(height: 8),
           AppCard(
@@ -187,6 +190,7 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
           const InlineNotice(
               'الموعد الدقيق لمقابلة القنصلية يُحدَّد من قِبل فريق Study Birds وسيتم إبلاغك عبر الإشعارات.'),
         ],
+        ),
       ),
     );
   }
@@ -263,13 +267,16 @@ class _VisaStepsScreenState extends State<VisaStepsScreen> {
       actions: [
         IconButton(onPressed: _load, tooltip: 'تحديث', icon: const Icon(Icons.refresh))
       ],
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: _visaStages.length,
-        itemBuilder: (context, i) {
-          final done = i < _currentStep;
-          final active = i == _currentStep;
-          final isLast = i == _visaStages.length - 1;
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: _visaStages.length,
+          itemBuilder: (context, i) {
+            final done = i < _currentStep;
+            final active = i == _currentStep;
+            final isLast = i == _visaStages.length - 1;
           return IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,7 +323,8 @@ class _VisaStepsScreenState extends State<VisaStepsScreen> {
               ],
             ),
           );
-        },
+          },
+        ),
       ),
     );
   }

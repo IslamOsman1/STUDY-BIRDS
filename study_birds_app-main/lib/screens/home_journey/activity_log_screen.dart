@@ -34,18 +34,22 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                     icon: Icons.history,
                     title: 'لا يوجد نشاط بعد',
                     message: 'ستظهر هنا طلباتك ومستنداتك وإشعاراتك.');
-              return ListView(padding: const EdgeInsets.all(16), children: [
-                const Text('أنشطة الطلبات والمستندات والإشعارات',
-                    style: AppTextStyles.caption),
-                for (final event in events)
-                  AppCard(
-                      child: ListTile(
-                    leading: const Icon(Icons.history, color: AppColors.navy),
-                    title: Text(event.title),
-                    subtitle: Text(
-                        '${event.date.year}/${event.date.month}/${event.date.day}\n${event.detail}'),
-                  )),
-              ]);
+              return RefreshIndicator(
+                onRefresh: () async { refresh(); await future; },
+                color: AppColors.navy,
+                child: ListView(padding: const EdgeInsets.all(16), children: [
+                  const Text('أنشطة الطلبات والمستندات والإشعارات',
+                      style: AppTextStyles.caption),
+                  for (final event in events)
+                    AppCard(
+                        child: ListTile(
+                      leading: const Icon(Icons.history, color: AppColors.navy),
+                      title: Text(event.title),
+                      subtitle: Text(
+                          '${event.date.year}/${event.date.month}/${event.date.day}\n${event.detail}'),
+                    )),
+                ]),
+              );
             }),
       );
 }

@@ -34,14 +34,18 @@ class _ImportantDatesScreenState extends State<ImportantDatesScreen> {
                     icon: Icons.event,
                     title: 'لا توجد مواعيد مسجلة',
                     message: 'ستظهر مواعيد الفواتير والوصول هنا.');
-              return ListView(padding: const EdgeInsets.all(16), children: [
-                for (final event in events)
-                  AppCard(
-                      child: ListTile(
-                          title: Text(event.title),
-                          subtitle: Text(
-                              '${event.date.year}/${event.date.month}/${event.date.day} ${event.detail}')))
-              ]);
+              return RefreshIndicator(
+                onRefresh: () async { refresh(); await future; },
+                color: AppColors.navy,
+                child: ListView(padding: const EdgeInsets.all(16), children: [
+                  for (final event in events)
+                    AppCard(
+                        child: ListTile(
+                            title: Text(event.title),
+                            subtitle: Text(
+                                '${event.date.year}/${event.date.month}/${event.date.day} ${event.detail}')))
+                ]),
+              );
             }),
       );
 }

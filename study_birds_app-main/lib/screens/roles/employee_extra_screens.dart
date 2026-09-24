@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/employee_repository.dart';
+import '../services_support/messaging_and_emergency_screens.dart' show ConversationThreadScreen;
 
 /// Real data from GET /api/admin/students — ALL students on the platform.
 /// Relabeled honestly: the backend has no per-employee assignment, so this
@@ -153,7 +154,8 @@ class MessagesInboxScreen extends StatelessWidget {
           final t = _threads[i - 1];
           return AppCard(
             margin: EdgeInsets.zero,
-            onTap: () {},
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => ConversationThreadScreen(contactName: t.name))),
             child: Row(
               children: [
                 const CircleAvatar(radius: 20, backgroundColor: AppColors.border, child: Icon(Icons.person_rounded, color: AppColors.navy, size: 18)),
