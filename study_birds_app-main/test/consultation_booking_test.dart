@@ -48,7 +48,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(booked, true);
       expect(confirmed, 1);
-      expect(find.text('الحجز مؤكد'), findsOneWidget);
+      // After booking the app navigates to ConsultationConfirmationScreen.
+      expect(find.text('تم تأكيد موعدك بنجاح'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
         () => MockClient((r) async {

@@ -2,6 +2,34 @@ import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
 import '../services_support/services_consultation_screens.dart';
+import '../services_support/support_team_ai_screens.dart';
+import '../services_support/community_screen.dart';
+import '../applications_documents_payments/applications_screens.dart';
+import '../applications_documents_payments/documents_screens.dart';
+import '../applications_documents_payments/payments_screens.dart';
+import '../visa_travel_accommodation/arrival_services_screen.dart';
+import '../visa_travel_accommodation/accommodation_arrival_screens.dart';
+import 'journey_tracker_screen.dart';
+
+/// Maps a backend notification link (e.g. '/student/documents') to the widget
+/// that should be pushed. Returns null for unknown or non-navigable links.
+Widget? notificationScreenForLink(String? link) {
+  if (link == null || !link.startsWith('/student/')) return null;
+  final dest = link.replaceFirst('/student/', '');
+  return switch (dest) {
+    'consultations' => const ConsultationBookingScreen(),
+    'journey' || 'visa' => const JourneyTrackerScreen(),
+    'travel' || 'accommodation' => const ArrivalServicesScreen(),
+    'university-registration' => const UniversityRegistrationScreen(),
+    'documents' || 'upload-document' => const MyDocumentsScreen(),
+    'payments' => const PaymentsSummaryScreen(),
+    'applications' => const ApplicationsListScreen(),
+    'support' => const SupportCenterScreen(),
+    'community' => const StudentCommunityScreen(),
+    'bird-ai' => const BirdAIChatScreen(),
+    _ => null,
+  };
+}
 
 IconData _notificationIcon(String? type) {
   switch (type) {
@@ -122,12 +150,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         return AppCard(
                           onTap: () async {
                             await _markRead(n, i);
-                            if (context.mounted &&
-                                n['link'] == '/student/consultations') {
+                            if (!context.mounted) return;
+                            final screen =
+                                notificationScreenForLink(n['link'] as String?);
+                            if (screen != null) {
                               await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          const ConsultationBookingScreen()));
+                                  MaterialPageRoute(builder: (_) => screen));
                             }
                           },
                           child: Row(
@@ -147,7 +175,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 width: 38,
                                 height: 38,
                                 decoration: BoxDecoration(
-                                    color: color.withOpacity(0.12),
+                                    color: color.withValues(alpha: 0.12),
                                     shape: BoxShape.circle),
                                 child: Icon(
                                     _notificationIcon(n['type'] as String?),

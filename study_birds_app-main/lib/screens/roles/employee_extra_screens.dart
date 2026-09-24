@@ -255,7 +255,7 @@ class _ManagerOverviewScreenState extends State<ManagerOverviewScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         const Text(
-          'أرقام المنصة بالكامل (مش مخصصة لك وحدك — الباك اند مفيهوش نظام "مهام لكل موظف" لسه).',
+          'إجماليات المنصة — نظرة عامة على جميع الحسابات والطلبات.',
           style: AppTextStyles.caption,
         ),
         const SizedBox(height: 12),
