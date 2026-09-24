@@ -68,6 +68,16 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<dynamic> deleteWithBody(String path,
+      {required Map<String, dynamic> body, String? token}) async {
+    final request = http.Request('DELETE', Uri.parse('$baseUrl$path'));
+    request.headers.addAll(_headers(token));
+    request.body = jsonEncode(body);
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    return _decode(response);
+  }
+
   /// Maps a file extension to the exact MIME type the backend's
   /// fileFilter allowlist expects (server/src/middleware/uploadMiddleware.js).
   /// CRITICAL: without this, http.MultipartFile defaults every upload to
