@@ -9,6 +9,7 @@ import '../services_support/messaging_and_emergency_screens.dart'
     show ConversationThreadScreen;
 import 'documents_screens.dart'
     show docStatusMeta, docTypeLabel, DocumentDetailScreen;
+import '../universities_programs_countries/explore_hub_screen.dart';
 
 /// Maps the backend's application status (legacy 5-value `status`, or the
 /// richer 14-value `detailedStatus` when present) to Arabic label + color.
@@ -115,12 +116,19 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
           : _error != null
               ? ErrorState(message: _error!, onRetry: _load)
               : _apps.isEmpty
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.description_outlined,
                       title: 'لا توجد طلبات بعد',
                       message: 'ابدأ رحلتك بتقديم طلبك الأول لجامعة تناسبك.',
+                      ctaLabel: 'استكشف الجامعات',
+                      onCta: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const ExploreHubScreen())),
                     )
-                  : ListView.builder(
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      color: AppColors.navy,
+                      child: ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _apps.length,
                       itemBuilder: (context, i) {
@@ -163,6 +171,7 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
                         );
                       },
                     ),
+                  ),
     );
   }
 }

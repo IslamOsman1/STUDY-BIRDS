@@ -124,17 +124,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               style: TextStyle(color: Colors.white, fontSize: 12.5)),
         ),
       ],
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل الإشعارات...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _notifications.isEmpty
-                  ? const EmptyState(
-                      icon: Icons.notifications_off_rounded,
-                      title: 'لا توجد إشعارات',
-                      message: 'ستصلك هنا كل التحديثات المهمة المتعلقة برحلتك.',
-                    )
-                  : ListView.builder(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل الإشعارات...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _notifications.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.notifications_off_rounded,
+                        title: 'لا توجد إشعارات',
+                        message:
+                            'ستصلك هنا كل التحديثات المهمة المتعلقة برحلتك.',
+                      )
+                    : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _notifications.length,
                       itemBuilder: (context, i) {
@@ -203,6 +207,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         );
                       },
                     ),
+      ),
     );
   }
 }

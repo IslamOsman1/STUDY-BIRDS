@@ -304,10 +304,14 @@ class _SupportTicketsListScreenState extends State<SupportTicketsListScreen> {
           : _error != null
               ? ErrorState(message: _error!, onRetry: _load)
               : _tickets.isEmpty
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.confirmation_number_outlined,
                       title: 'لا توجد تذاكر بعد',
-                      message: 'أنشئ تذكرة جديدة لو محتاج مساعدة.')
+                      message: 'أنشئ تذكرة جديدة لو محتاج مساعدة.',
+                      ctaLabel: 'تذكرة دعم جديدة',
+                      onCta: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const NewSupportTicketScreen())))
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _tickets.length,

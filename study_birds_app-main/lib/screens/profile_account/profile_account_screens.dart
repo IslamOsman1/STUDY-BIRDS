@@ -1,3 +1,4 @@
+import 'package:url_launcher/url_launcher.dart';
 import '../home_journey/notifications_screen.dart';
 import 'package:flutter/services.dart';
 import '../applications_documents_payments/payments_screens.dart';
@@ -8,6 +9,8 @@ import '../../core/student_repository.dart';
 import 'security_settings_screen.dart';
 import 'edit_profile_screen.dart';
 import 'delete_account_screen.dart';
+import '../services_support/support_team_ai_screens.dart' show SupportCenterScreen;
+import '../universities_programs_countries/explore_hub_screen.dart';
 
 /// Real Profile screen — fetches GET /api/students/profile. Sections shown
 /// match the ACTUAL StudentProfile schema on the backend; the previous
@@ -317,6 +320,20 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           AppCard(
+            onTap: () => showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                title: const Text('اللغة'),
+                content:
+                    const Text('التطبيق متاح باللغة العربية فقط حالياً.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('حسناً'),
+                  ),
+                ],
+              ),
+            ),
             child: Row(
               children: const [
                 Icon(Icons.language_rounded, color: AppColors.navy),
@@ -395,10 +412,14 @@ class _ReferralProgramScreenState extends State<ReferralProgramScreen> {
             final code =
                 snapshot.data?['referralCode']?.toString().trim() ?? '';
             if (code.isEmpty)
-              return const EmptyState(
+              return EmptyState(
                   icon: Icons.card_giftcard,
                   title: 'لا يوجد رمز إحالة لحسابك',
-                  message: 'تواصل مع الدعم لمعرفة شروط برنامج الإحالة.');
+                  message: 'تواصل مع الدعم لمعرفة شروط برنامج الإحالة.',
+                  ctaLabel: 'تواصل مع الدعم',
+                  onCta: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const SupportCenterScreen())));
             return Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(children: [
@@ -411,7 +432,31 @@ class _ReferralProgramScreenState extends State<ReferralProgramScreen> {
                         if (context.mounted)
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('تم نسخ الرمز')));
-                      })
+                      }),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.send_rounded, size: 18),
+                    label: const Text('مشاركة عبر واتساب'),
+                    onPressed: () async {
+                      final msg = Uri.encodeComponent(
+                          'انضم إلى Study Birds باستخدام رمز الإحالة الخاص بي: $code');
+                      final uri = Uri.parse('whatsapp://send?text=$msg');
+                      if (!await launchUrl(uri,
+                          mode: LaunchMode.externalApplication)) {
+                        if (context.mounted)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('تعذر فتح واتساب')));
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      side: const BorderSide(color: AppColors.navy),
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.button)),
+                    ),
+                  ),
                 ]));
           }));
 }
@@ -483,13 +528,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           : _error != null
               ? ErrorState(message: _error!, onRetry: _load)
               : _favorites.isEmpty
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.favorite_border_rounded,
                       title: 'لا يوجد لديك عناصر مفضلة',
                       message:
                           'احفظ الجامعات والبرامج اللي تعجبك عشان ترجعلها بسهولة.',
+                      ctaLabel: 'استكشف الجامعات',
+                      onCta: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const ExploreHubScreen())),
                     )
-                  : ListView.builder(
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      color: AppColors.navy,
+                      child: ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _favorites.length,
                       itemBuilder: (context, i) {
@@ -537,6 +589,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         );
                       },
                     ),
+                  ),
     );
   }
 }
