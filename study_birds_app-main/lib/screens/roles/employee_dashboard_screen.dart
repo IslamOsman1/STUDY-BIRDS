@@ -172,9 +172,12 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
                 builder: (_) => const SecuritySettingsScreen()))),
       ],
       title: _isFullAdmin ? 'لوحة الأدمن' : 'لوحة الموظف',
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
           AppCard(
             child: Row(
               children: [
@@ -254,6 +257,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
               message: 'لسه معندكش أي صلاحية. تواصل مع الأدمن.',
             ),
         ],
+        ),
       ),
     );
   }
