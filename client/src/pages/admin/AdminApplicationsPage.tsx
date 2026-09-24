@@ -12,6 +12,7 @@ import type { ApplicantProfileSnapshot, Application, DocumentItem } from "../../
 import { getErrorMessage } from "../../utils/errors";
 import { formatDate } from "../../utils/format";
 import { useLanguage } from "../../hooks/useLanguage";
+import { useStatusCatalog } from "../../hooks/useStatusCatalog";
 import { dt } from "../../utils/dashboardTranslations";
 import { AdminConfirmationModal } from "../../components/admin/AdminConfirmationModal";
 import { AdminToastViewport } from "../../components/admin/AdminToastViewport";
@@ -19,6 +20,7 @@ import { useAdminToasts } from "../../hooks/useAdminToasts";
 
 export const AdminApplicationsPage = () => {
   const { language, t } = useLanguage();
+  const statusCatalog = useStatusCatalog();
   const [applications, setApplications] = useState<Application[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
@@ -48,12 +50,16 @@ export const AdminApplicationsPage = () => {
     resume: dt(language, "resumeDocument"),
   };
 
-  const handleStatusChange = async (id: string, status: string) => {
+  // Values prefixed "detailed:" set a detailed lifecycle stage; others are the
+  // website review actions. No automatic note: the student reads the
+  // timeline, and a raw status code there means nothing to them.
+  const handleStatusChange = async (id: string, value: string) => {
     setFormError("");
+    const detailedStatus = value.startsWith("detailed:") ? value.slice("detailed:".length) : undefined;
     try {
       const updated = await applicationService.updateStatus(id, {
-        status,
-        note: noteDrafts[id] || `Updated to ${status}`,
+        ...(detailedStatus ? { detailedStatus } : { status: value }),
+        note: noteDrafts[id]?.trim() || undefined,
       });
       setApplications((current) => current.map((item) => (item._id === id ? updated : item)));
     } catch (error) {
@@ -309,7 +315,20 @@ export const AdminApplicationsPage = () => {
                       <option value="final-accepted">{dt(language, "finalAccepted")}</option>
                       <option value="file-completed-accepted">{dt(language, "fileCompletedAccepted")}</option>
                       <option value="file-completed-rejected">{dt(language, "fileCompletedRejected")}</option>
+                      {statusCatalog ? (
+                        <optgroup label={language === "ar" ? "المرحلة التفصيلية للطالب" : "Detailed student stage"}>
+                          {Object.entries(statusCatalog.applications).map(([key, entry]) => (
+                            <option key={key} value={`detailed:${key}`}>{language === "ar" ? entry.ar.label : entry.en.label}</option>
+                          ))}
+                        </optgroup>
+                      ) : null}
                     </select>
+                    {application.statusInfo ? (
+                      <p className="mt-2 text-xs text-slate-500">
+                        {language === "ar" ? "يراها الطالب الآن: " : "Student currently sees: "}
+                        {language === "ar" ? application.statusInfo.ar.label : application.statusInfo.en.label}
+                      </p>
+                    ) : null}
                   </div>
 
                   <button

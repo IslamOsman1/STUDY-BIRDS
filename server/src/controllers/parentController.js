@@ -107,6 +107,7 @@ const getChildOverview = asyncHandler(async (req, res) => {
       id: a._id,
       status: a.status,
       detailedStatus: a.detailedStatus,
+      statusInfo: require("../constants/statusCatalog").applicationStatusInfo(a),
       university: a.university,
       program: a.program,
       submittedAt: a.submittedAt,

@@ -1,4 +1,5 @@
 import { useLanguage } from "../hooks/useLanguage";
+import { useStatusCatalog } from "../hooks/useStatusCatalog";
 
 const styleMap: Record<string, string> = {
   submitted: "bg-brand-100 text-brand-700",
@@ -38,12 +39,22 @@ const statusKeyMap: Record<string, StatusTranslationKey> = {
   "file-completed-rejected": "statusFileCompletedRejected",
 };
 
+const toneStyle: Record<string, string> = {
+  neutral: styleMap.draft, info: "bg-sky-100 text-sky-700", action: "bg-amber-100 text-amber-700",
+  success: "bg-emerald-100 text-emerald-700", danger: "bg-rose-100 text-rose-700",
+};
+
+// Website review statuses keep their existing labels; detailed lifecycle
+// statuses (e.g. payment-verification) come from the shared status catalog
+// instead of silently falling back to "Draft".
 export const ApplicationStatusBadge = ({ status }: { status: string }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const catalog = useStatusCatalog();
+  const detailed = !statusKeyMap[status] ? catalog?.applications[status] : undefined;
 
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${styleMap[status] || styleMap.draft}`}>
-      {t(statusKeyMap[status] || "statusDraft")}
+    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${styleMap[status] || (detailed ? toneStyle[detailed.tone] : styleMap.draft)}`}>
+      {detailed ? (language === "ar" ? detailed.ar.label : detailed.en.label) : statusKeyMap[status] ? t(statusKeyMap[status]) : "…"}
     </span>
   );
 };

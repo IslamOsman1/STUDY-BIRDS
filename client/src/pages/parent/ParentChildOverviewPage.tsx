@@ -69,7 +69,7 @@ export const ParentChildOverviewPage = () => {
                       {isArabic ? "أُرسل في" : "Submitted"}: {formatDate(application.submittedAt)}
                     </p>
                   </div>
-                  <ApplicationStatusBadge status={application.status} />
+                  <ApplicationStatusBadge status={application.detailedStatus || application.status} />
                 </div>
               </div>
             ))

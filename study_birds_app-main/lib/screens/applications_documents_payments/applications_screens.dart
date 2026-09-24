@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/auth_session.dart';
 import 'application_documents_screen.dart';
 import '../../core/app_theme.dart';
+import '../../core/status_info.dart';
 import '../../core/student_repository.dart';
 import '../services_support/messaging_and_emergency_screens.dart'
     show ConversationThreadScreen;
@@ -17,6 +18,10 @@ class AppStatusMeta {
 }
 
 AppStatusMeta appStatusMeta(Map<String, dynamic> app) {
+  // The server's plain-language copy wins; the switch below is the fallback
+  // for older servers and for timeline entries, which carry only a code.
+  final info = StatusInfo.of(app);
+  if (info != null) return AppStatusMeta(info.label, info.color);
   final detailed = app['detailedStatus'] as String?;
   switch (detailed ?? app['status'] as String? ?? 'draft') {
     case 'draft':
@@ -42,10 +47,20 @@ AppStatusMeta appStatusMeta(Map<String, dynamic> app) {
     case 'visa-preparation':
       return const AppStatusMeta('تجهيز التأشيرة', AppColors.orange);
     case 'completed':
+    case 'file-completed-accepted':
+      return const AppStatusMeta('مكتمل', AppColors.success);
     case 'accepted':
       return const AppStatusMeta('مقبول', AppColors.success);
+    // Website review actions, as they appear in the status timeline.
+    case 'preliminary-accepted':
+      return const AppStatusMeta('قبول مبدئي', AppColors.orange);
+    case 'preliminary-accepted-first-payment':
+      return const AppStatusMeta('الدفع مطلوب', AppColors.warning);
+    case 'final-accepted':
+      return const AppStatusMeta('قبول نهائي', AppColors.success);
     case 'rejected':
-      return const AppStatusMeta('مرفوض', AppColors.danger);
+    case 'file-completed-rejected':
+      return const AppStatusMeta('غير مقبول', AppColors.danger);
     default:
       return const AppStatusMeta('قيد المراجعة', AppColors.info);
   }
@@ -254,6 +269,10 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                           value: program?['intake'] as String? ?? '—'),
                     ],
                   ),
+                  if (StatusInfo.of(a) != null) ...[
+                    const SizedBox(height: 12),
+                    StatusExplanationCard(info: StatusInfo.of(a)!),
+                  ],
                 ],
               ),
             ),

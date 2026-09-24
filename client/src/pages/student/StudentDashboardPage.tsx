@@ -175,7 +175,7 @@ export const StudentDashboardPage = () => {
                       <p className="mt-1 text-sm text-slate-500">{application.program?.title || (isArabic ? "تخصص غير محدد" : "Unknown program")}</p>
                       <p className="mt-2 text-xs text-slate-500">{isArabic ? "آخر تحديث:" : "Updated:"} {formatDate(application.createdAt)}</p>
                     </div>
-                    <ApplicationStatusBadge status={application.status} />
+                    <ApplicationStatusBadge status={application.detailedStatus || application.status} />
                   </div>
                   {application.notes ? <p className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">{application.notes}</p> : null}
                 </article>
