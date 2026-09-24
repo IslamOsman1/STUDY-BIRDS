@@ -125,6 +125,8 @@ const DOCUMENT_STATUS_COPY = Object.freeze({
   },
 });
 
+const { APPLICATION_STATUS_TO_DETAILED_STATUS } = require("./roles");
+
 // Statuses where the student must fix something, so a reason is mandatory.
 const DOCUMENT_STATUSES_REQUIRING_REASON = Object.freeze(["rejected", "needs-revision", "needs-translation"]);
 
@@ -136,7 +138,9 @@ function pick(entry, extra) {
 }
 
 function applicationStatusInfo(application) {
-  const key = application?.detailedStatus || application?.status;
+  const raw = application?.detailedStatus || application?.status;
+  // Website review codes (e.g. timeline entries "preliminary-accepted") map to their lifecycle stage.
+  const key = APPLICATION_STATUS_COPY[raw] ? raw : APPLICATION_STATUS_TO_DETAILED_STATUS[raw] || raw;
   const entry = APPLICATION_STATUS_COPY[key] || APPLICATION_STATUS_COPY.submitted;
   return { status: APPLICATION_STATUS_COPY[key] ? key : "submitted", ...pick(entry) };
 }

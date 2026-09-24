@@ -19,6 +19,9 @@ const University = require("../models/University");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
 const { expireDueDocuments } = require("../utils/documentExpiry");
+const { studentHome } = require("../utils/studentHome");
+const AccommodationBooking = require("../models/AccommodationBooking");
+const { Booking: ConsultationBooking } = require("../models/Consultation");
 const { applicationStatusInfo, documentStatusInfo } = require("../constants/statusCatalog");
 const {
   hydrateApplicationsWithStudentProfiles,
@@ -228,6 +231,15 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
     Invoice.find({ student: req.user._id }).lean(),
     Notification.countDocuments({ user: req.user._id, isRead: false }),
   ]);
+  // Extra records for the home screen (travel, housing, consultations, support).
+  const [arrivals, bookings, consultations, openTickets] = await Promise.all([
+    ArrivalServiceRequest.find({ student: req.user._id }).select("arrivalDate status pickup.status createdAt").lean(),
+    AccommodationBooking.find({ student: req.user._id }).select("moveInDate status createdAt").lean(),
+    ConsultationBooking.find({ student: req.user._id, status: "booked", startsAt: { $gte: new Date() } }).select("startsAt").sort({ startsAt: 1 }).limit(3).lean(),
+    SupportTicket.countDocuments({ user: req.user._id, status: { $in: ["open", "in-progress", "answered"] } }),
+  ]);
+  const nextAction = studentNextAction({ applications, documents, invoices });
+  const journeys = studentJourneys({ applications, documents, invoices });
 
   const currentStage = profile?.applicationStage || "file-received";
   const activeStageIndex = Math.max(
@@ -237,8 +249,12 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
 
   res.json({
     profile: profile || null,
-    nextAction: studentNextAction({ applications, documents, invoices }),
-    journeys: studentJourneys({ applications, documents, invoices }),
+    nextAction,
+    journeys,
+    home: studentHome({
+      user: req.user, applications, documents, invoices, arrivals, bookings, consultations, openTickets,
+      unreadNotifications: unreadCount, latestNotification: notifications[0] || null, nextAction, journeys,
+    }),
     progress: {
       currentStage,
       stages: STUDENT_DASHBOARD_STAGES.map((stage, index) => ({

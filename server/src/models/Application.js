@@ -106,6 +106,9 @@ const applicationSchema = new mongoose.Schema(
       changedAt: Date,
     }],
     followUpDueAt: { type: Date, default: null },
+    // First day of classes, set by staff with the registration stage; shown
+    // to the student as an important date with a countdown.
+    studiesStartAt: { type: Date, default: null },
     // Manually clearing an assignment excludes it until staff explicitly requeues it.
     autoAssignmentEligible: { type: Boolean, default: false },
     assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now }, source: { type: String, enum: ['manual', 'automatic', 'requeued'], default: 'manual' } }],

@@ -4,7 +4,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 import { AdminConfirmationModal } from './AdminConfirmationModal';
 
 type Stage = { key: string; titleAr: string; titleEn: string; recordedStatus: string; descriptionAr: string; dueAt: string | null; reference: string; updatedAt: string | null };
-type Journey = { version: number; eligible: boolean; stages: Stage[] };
+type Journey = { version: number; eligible: boolean; stages: Stage[]; studiesStartAt?: string | null };
 const statuses = [
   ['not-started', 'لم تبدأ', 'Not started'], ['in-progress', 'قيد التنفيذ', 'In progress'],
   ['action-required', 'مطلوب من الطالب', 'Student action required'], ['waiting-team', 'بانتظار الفريق', 'Waiting for team'],
@@ -18,6 +18,8 @@ export function ApplicationPostAdmission({ id }: { id: string }) {
   const [status, setStatus] = useState('not-started');
   const [note, setNote] = useState(''); const [reference, setReference] = useState('');
   const [due, setDue] = useState(''); const [busy, setBusy] = useState(false);
+  // First day of classes: shown to the student as an important date with a countdown.
+  const [studiesStart, setStudiesStart] = useState('');
   const [error, setError] = useState(''); const [confirm, setConfirm] = useState(false);
   function choose(key: string, journey = data) {
     setStage(key);
@@ -32,6 +34,7 @@ export function ApplicationPostAdmission({ id }: { id: string }) {
     try {
       const result = (await api.get<Journey>(`/applications/${id}/post-admission`)).data;
       setData(result); choose(stage, result);
+      setStudiesStart(result.studiesStartAt ? result.studiesStartAt.slice(0, 10) : '');
     } catch { setError(ar ? 'تعذر تحميل المراحل. أعد المحاولة.' : 'Unable to load stages. Retry.'); }
     finally { setBusy(false); }
   }
@@ -43,8 +46,10 @@ export function ApplicationPostAdmission({ id }: { id: string }) {
       const result = (await api.patch<Journey>(`/applications/${id}/post-admission`, {
         version: data.version, stage, status, note: note.trim(), reference: reference.trim(),
         dueAt: due ? new Date(due).toISOString() : null,
+        studiesStartAt: studiesStart ? new Date(`${studiesStart}T09:00:00`).toISOString() : null,
       })).data;
       setData(result); choose(stage, result);
+      setStudiesStart(result.studiesStartAt ? result.studiesStartAt.slice(0, 10) : '');
     } catch { setError(ar ? 'تعذر الحفظ. حدّث البيانات إذا تغير الطلب، وتحقق من الملاحظة ومرجع الإكمال.' : 'Unable to save. Refresh if the application changed; check the note and completion reference.'); }
     finally { setBusy(false); setConfirm(false); }
   }
@@ -58,6 +63,7 @@ export function ApplicationPostAdmission({ id }: { id: string }) {
       <label>{ar ? 'المرحلة' : 'Stage'}<select className={inputClass} disabled={busy} value={stage} onChange={e => choose(e.target.value)}>{data.stages.map(s => <option key={s.key} value={s.key}>{ar ? s.titleAr : s.titleEn}</option>)}</select></label>
       <label>{ar ? 'الحالة' : 'Status'}<select className={inputClass} disabled={busy} value={status} onChange={e => setStatus(e.target.value)}>{statuses.map(s => <option key={s[0]} value={s[0]}>{s[ar ? 1 : 2]}</option>)}</select></label>
       <label>{ar ? 'الموعد بتوقيت جهازك (اختياري)' : 'Deadline in local time (optional)'}<input type="datetime-local" className={inputClass} disabled={busy} value={due} onChange={e => setDue(e.target.value)} /></label>
+      <label>{ar ? 'تاريخ بدء الدراسة (اختياري، يظهر للطالب مع عدّ تنازلي)' : 'Classes start date (optional, shown to the student with a countdown)'}<input type="date" className={inputClass} disabled={busy} value={studiesStart} onChange={e => setStudiesStart(e.target.value)} /></label>
       <label>{ar ? 'مرجع التحقق (إلزامي عند الإكمال)' : 'Verification reference (required for completion)'}<input maxLength={250} className={inputClass} disabled={busy} value={reference} onChange={e => setReference(e.target.value)} /></label>
       <label className="sm:col-span-2">{ar ? 'ملاحظة واضحة للطالب والخطوة المطلوبة' : 'Student-facing note and required next step'}<textarea maxLength={2000} rows={3} className={inputClass} disabled={busy} value={note} onChange={e => setNote(e.target.value)} /></label>
       <button className="min-h-11 rounded-xl bg-slate-900 px-4 text-white disabled:opacity-50" disabled={busy || !ready} onClick={() => setConfirm(true)}>{ar ? 'حفظ المرحلة' : 'Save stage'}</button>
