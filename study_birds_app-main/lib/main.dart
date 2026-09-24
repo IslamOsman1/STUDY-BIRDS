@@ -355,8 +355,15 @@ class _ScreensGalleryState extends State<ScreensGallery> {
               })),
       _GalleryEntry(
           'Consultation Booking', () => const ConsultationBookingScreen()),
-      _GalleryEntry('Consultation Confirmation',
-          () => const ConsultationConfirmationScreen()),
+      _GalleryEntry(
+          'Consultation Confirmation',
+          () => const ConsultationConfirmationScreen(slot: {
+                '_id': 'demo',
+                'startsAt': '2026-09-25T09:00:00.000Z',
+                'mode': 'online',
+                'advisor': {'name': 'سارة أحمد'},
+                'meetingUrl': 'https://meet.studybirds.com/xyz',
+              })),
       _GalleryEntry('Support Center', () => const SupportCenterScreen()),
       _GalleryEntry('New Support Ticket', () => const NewSupportTicketScreen()),
       _GalleryEntry('My Support Tickets (live data)',

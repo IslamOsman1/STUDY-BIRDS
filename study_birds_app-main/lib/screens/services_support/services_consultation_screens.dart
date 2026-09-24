@@ -1,5 +1,6 @@
 import 'live_consultation_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/student_repository.dart';
@@ -268,15 +269,44 @@ class ConsultationBookingScreen extends StatelessWidget {
   final VoidCallback? onConfirm;
   const ConsultationBookingScreen({super.key, this.onConfirm});
   @override
-  Widget build(BuildContext context) =>
-      LiveConsultationScreen(onBooked: onConfirm);
+  Widget build(BuildContext context) => LiveConsultationScreen(
+        onBooked: onConfirm,
+        onSlotBooked: (slot) => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => ConsultationConfirmationScreen(slot: slot))),
+      );
 }
 
 class ConsultationConfirmationScreen extends StatelessWidget {
-  const ConsultationConfirmationScreen({super.key});
+  final Map<String, dynamic> slot;
+  const ConsultationConfirmationScreen({super.key, required this.slot});
+
+  String _formatDate(BuildContext ctx, dynamic raw) {
+    final date = DateTime.tryParse('$raw')?.toLocal();
+    if (date == null) return '—';
+    final local = MaterialLocalizations.of(ctx);
+    return '${local.formatCompactDate(date)} — ${local.formatTimeOfDay(TimeOfDay.fromDateTime(date), alwaysUse24HourFormat: true)}';
+  }
+
+  Future<void> _openMeeting(BuildContext ctx, String raw) async {
+    final uri = Uri.tryParse(raw);
+    try {
+      if (uri == null ||
+          uri.scheme != 'https' ||
+          !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw StateError('unavailable');
+      }
+    } catch (_) {
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+            const SnackBar(content: Text('تعذر فتح رابط الاجتماع.')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final meetingUrl = '${slot['meetingUrl'] ?? ''}';
+    final hasUrl = slot['mode'] == 'online' && meetingUrl.startsWith('https://');
     return AppScaffold(
       title: 'تأكيد الموعد',
       body: Padding(
@@ -287,7 +317,7 @@ class ConsultationConfirmationScreen extends StatelessWidget {
               width: 84,
               height: 84,
               decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.12),
+                  color: AppColors.success.withValues(alpha: 0.12),
                   shape: BoxShape.circle),
               child: const Icon(Icons.check_rounded,
                   color: AppColors.success, size: 42),
@@ -297,15 +327,33 @@ class ConsultationConfirmationScreen extends StatelessWidget {
             const SizedBox(height: 20),
             AppCard(
               child: Column(
-                children: const [
-                  _Row(label: 'التاريخ والوقت', value: '18 سبتمبر - 11:00 ص'),
-                  Divider(height: 20),
-                  _Row(label: 'نوع الاستشارة', value: 'أونلاين'),
-                  Divider(height: 20),
-                  _Row(label: 'المستشار', value: 'سارة أحمد'),
-                  Divider(height: 20),
+                children: [
                   _Row(
-                      label: 'رابط الاجتماع', value: 'meet.studybirds.com/xyz'),
+                      label: 'التاريخ والوقت',
+                      value: _formatDate(context, slot['startsAt'])),
+                  const Divider(height: 20),
+                  _Row(
+                      label: 'نوع الاستشارة',
+                      value:
+                          kConsultationModes[slot['mode']] ?? '${slot['mode']}'),
+                  const Divider(height: 20),
+                  _Row(
+                      label: 'المستشار',
+                      value: '${slot['advisor']?['name'] ?? '—'}'),
+                  if (hasUrl) ...[
+                    const Divider(height: 20),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('رابط الاجتماع',
+                              style: AppTextStyles.caption),
+                          TextButton.icon(
+                              onPressed: () =>
+                                  _openMeeting(context, meetingUrl),
+                              icon: const Icon(Icons.video_call, size: 18),
+                              label: const Text('فتح')),
+                        ]),
+                  ],
                 ],
               ),
             ),

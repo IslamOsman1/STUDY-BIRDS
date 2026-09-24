@@ -5,9 +5,16 @@ import '../../core/api_client.dart';
 import '../../core/consultation_repository.dart';
 import 'consultation_outcome.dart';
 
+const kConsultationModes = {
+  'online': 'أونلاين',
+  'phone': 'هاتف',
+  'office': 'مكتب',
+};
+
 class LiveConsultationScreen extends StatefulWidget {
   final VoidCallback? onBooked;
-  const LiveConsultationScreen({super.key, this.onBooked});
+  final void Function(Map<String, dynamic> slot)? onSlotBooked;
+  const LiveConsultationScreen({super.key, this.onBooked, this.onSlotBooked});
   @override
   State<LiveConsultationScreen> createState() => _LiveConsultationScreenState();
 }
@@ -20,7 +27,6 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
   String? error;
   String mode = 'all', advisor = 'all';
   DateTime? day;
-  static const modes = {'online': 'أونلاين', 'phone': 'هاتف', 'office': 'مكتب'};
 
   @override
   void initState() {
@@ -80,7 +86,7 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
     final previous = moving;
     if (!await confirm(
         previous == null ? 'تأكيد حجز الاستشارة' : 'تأكيد تغيير الموعد',
-        '${slot['advisor']?['name'] ?? 'المستشار'}\n${when(slot['startsAt'])}\n${modes[slot['mode']] ?? ''} — 30 دقيقة\nبتوقيت جهازك')) {
+        '${slot['advisor']?['name'] ?? 'المستشار'}\n${when(slot['startsAt'])}\n${kConsultationModes[slot['mode']] ?? ''} — 30 دقيقة\nبتوقيت جهازك')) {
       return;
     }
     if (!mounted) return;
@@ -89,7 +95,10 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
             ? repo.book(slot['_id'])
             : repo.reschedule(previous, slot['_id']),
         'تم تأكيد الموعد',
-        bookingConfirmed: true);
+        onSuccess: () {
+          widget.onBooked?.call();
+          widget.onSlotBooked?.call(slot);
+        });
   }
 
   Future<void> cancel(Map<String, dynamic> booking) async {
@@ -101,7 +110,7 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
   }
 
   Future<void> change(Future<void> Function() action, String message,
-      {bool bookingConfirmed = false}) async {
+      {VoidCallback? onSuccess}) async {
     if (busy) return;
     setState(() {
       busy = true;
@@ -115,7 +124,7 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
-      if (bookingConfirmed) widget.onBooked?.call();
+      onSuccess?.call();
     } catch (e) {
       if (mounted) {
         setState(() => error = e is ApiException
@@ -168,6 +177,7 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
               '${slot['advisor']?['_id']}' == selectedAdvisor) &&
           (day == null || (date != null && DateUtils.isSameDay(date, day)));
     }).toList();
+    const modes = kConsultationModes;
     return AppScaffold(
       title: 'حجز استشارة',
       actions: [
