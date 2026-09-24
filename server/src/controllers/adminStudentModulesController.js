@@ -43,10 +43,7 @@ const getStudentDocumentsAdmin = asyncHandler(async (req, res) => {
   res.json(documents.map((document) => ({ ...document, statusInfo: documentStatusInfo(document) })));
 });
 
-const DOCUMENT_TYPE_LABELS = {
-  passport: "جواز السفر", "biometric-photo": "الصورة الشخصية", "latest-qualification": "آخر مؤهل دراسي",
-  transcript: "كشف الدرجات", "language-certificate": "شهادة اللغة",
-};
+const { documentLabel } = require("../constants/documentTypes");
 
 // Staff review of a student document: any of the 8 statuses, a reason when
 // the student must act, an optional expiry date, a history entry and a
@@ -81,7 +78,7 @@ const reviewStudentDocumentAdmin = asyncHandler(async (req, res) => {
     const exists = await Document.exists({ _id: req.params.id });
     return res.status(exists ? 409 : 404).json({ message: exists ? "This document was updated by someone else. Reload and try again." : "Document not found" });
   }
-  const notice = documentStatusNotice(updated, DOCUMENT_TYPE_LABELS[updated.type] || updated.title);
+  const notice = documentStatusNotice(updated, documentLabel(updated.type));
   await Notification.create({ user: updated.student._id, ...notice, link: "/student/documents" });
   res.json({ ...updated, statusInfo: documentStatusInfo(updated) });
 });

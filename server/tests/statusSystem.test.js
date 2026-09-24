@@ -110,7 +110,8 @@ test('staff set all lifecycle statuses and review documents; students read plain
     assert.equal(studentDoc.statusInfo.ar.meaning, 'تم رفض المستند نظرًا لـ: الختم غير واضح، أعد رفعه بصورة واضحة عبر السكانر');
     assert.equal(studentDoc.statusInfo.code, 'DOC_05_REJECTED');
     assert.equal(studentDoc.reviewHistory, undefined);
-    assert.equal(studentDoc.reviewedBy, undefined);
+    // PRD 29: the student sees who reviewed the document, by name only.
+    assert.deepEqual(studentDoc.reviewedBy, { name: 'Reviewer' });
     const docNotice = await Notification.findOne({ user: student._id, title: /جواز السفر/ }).lean();
     assert.equal(docNotice.title, 'جواز السفر: مرفوض');
     assert.match(docNotice.message, /الختم غير واضح/);

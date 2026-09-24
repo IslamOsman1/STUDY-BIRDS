@@ -5,6 +5,7 @@ import { ApplicationDocumentUpdates } from '../../components/ApplicationDocument
 import { useEffect, useState } from "react";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
 import { StatusExplanation } from "../../components/StatusExplanation";
+import { ApplicationCardSummary } from "../../components/ApplicationCardSummary";
 import { EmptyState } from "../../components/EmptyState";
 import { useLanguage } from "../../hooks/useLanguage";
 import { studentService } from "../../services/studentService";
@@ -57,6 +58,7 @@ export const StudentApplicationsPage = () => {
 
                 {/* What this status means for the student now, and what happens next. */}
                 {application.statusInfo ? <div className="mt-4"><StatusExplanation info={application.statusInfo} /></div> : null}
+                {application.card ? <ApplicationCardSummary card={application.card} /> : null}
 
                 {application.notes ? (
                   <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">

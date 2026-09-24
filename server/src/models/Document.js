@@ -64,11 +64,18 @@ const documentSchema = new mongoose.Schema(
       changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       changedAt: { type: Date, default: Date.now },
     }],
+    // Version history (PRD 29): a re-upload points at the file it replaces,
+    // and the replaced file points forward. Old versions are never deleted.
+    replaces: { type: mongoose.Schema.Types.ObjectId, ref: "Document" },
+    supersededBy: { type: mongoose.Schema.Types.ObjectId, ref: "Document" },
+    // A certified translation uploaded for another document of the student.
+    translationOf: { type: mongoose.Schema.Types.ObjectId, ref: "Document" },
   },
   { timestamps: true }
 );
 
 documentSchema.index({ expiresAt: 1, detailedStatus: 1 });
+documentSchema.index({ student: 1, translationOf: 1 });
 
 const { DOCUMENT_DETAILED_TO_LEGACY_STATUS } = require("../constants/roles");
 

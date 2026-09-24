@@ -3,6 +3,7 @@ import '../../core/auth_session.dart';
 import 'application_documents_screen.dart';
 import '../../core/app_theme.dart';
 import '../../core/status_info.dart';
+import 'application_card_view.dart';
 import '../../core/student_repository.dart';
 import '../services_support/messaging_and_emergency_screens.dart'
     show ConversationThreadScreen;
@@ -155,6 +156,8 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
                                 '${program?['title'] ?? '—'} — ${country?['name'] ?? ''}',
                                 style: AppTextStyles.caption,
                               ),
+                              if (ApplicationCardFacts.of(a) case final card?)
+                                ApplicationCardFacts(card: card, compact: true),
                             ],
                           ),
                         );
@@ -273,6 +276,9 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                     const SizedBox(height: 12),
                     StatusExplanationCard(info: StatusInfo.of(a)!),
                   ],
+                  // Admission, documents, payment, visa, consultant (PRD 16).
+                  if (ApplicationCardFacts.of(a) case final card?)
+                    ApplicationCardFacts(card: card),
                 ],
               ),
             ),

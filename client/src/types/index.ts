@@ -228,6 +228,10 @@ export interface Program extends ArticleContent {
   applicationDeadline?: string;
   intake?: string;
   requirements?: string[];
+  careerOpportunities?: string[];
+  // Returned by GET /programs/:id only (PRD 21).
+  offeredAt?: Array<{ _id: string; title: string; university?: { name: string; city?: string; country?: { name: string } } }>;
+  relatedPrograms?: Array<{ _id: string; title: string; university?: { name: string } }>;
   summary?: string;
   popularity?: number;
   coverImage?: string;
@@ -246,9 +250,15 @@ export interface DocumentItem {
   detailedStatus?: string;
   statusInfo?: StatusInfo;
   expiresAt?: string | null;
-  reviewedBy?: Pick<User, "_id" | "name">;
+  reviewedBy?: Pick<User, "name"> & { _id?: string };
   reviewedAt?: string;
   __v?: number;
+  // Version history and translation (PRD 29), from GET /students/documents.
+  isLatest?: boolean;
+  replaces?: string;
+  translationOf?: string;
+  versions?: Array<{ _id: string; fileName: string; filePath: string; createdAt: string; statusInfo: StatusInfo }>;
+  translation?: { status: "required" | "uploaded" | "approved" | "needs-attention" | "not-required"; documentId: string | null; statusInfo?: StatusInfo } | null;
   mimeType?: string;
   size?: number;
   reviewNote?: string;
@@ -272,8 +282,22 @@ export interface ApplicantProfileSnapshot {
   };
 }
 
+// Per-application summary from GET /students/applications (PRD 15/16).
+export interface ApplicationStageSummary { status: string; labelAr: string; labelEn: string; tone: string }
+export interface ApplicationCard {
+  university: string; program: string; degreeLevel: string; language: string; duration: string;
+  country: string; city: string; campus: string; intake: string;
+  applicationStatus: StatusInfo;
+  admissionStatus: ApplicationStageSummary | null; documentsStatus: ApplicationStageSummary | null; paymentStatus: ApplicationStageSummary | null;
+  visaStatus: { status: string; labelAr: string; labelEn: string } | null;
+  consultant: string | null; lastUpdate: string | null;
+  nextAction: { code: string; titleAr: string; titleEn: string; descriptionAr: string; destination: string; waiting: boolean } | null;
+  applicationId: string;
+}
+
 export interface Application {
   _id: string;
+  card?: ApplicationCard;
   status: string;
   // NEW — already present in the API response; added here so the
   // university portal pages can read it with full type safety.
