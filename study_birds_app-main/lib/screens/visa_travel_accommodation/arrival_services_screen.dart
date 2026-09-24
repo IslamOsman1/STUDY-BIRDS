@@ -124,11 +124,15 @@ class _ArrivalServicesScreenState extends State<ArrivalServicesScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'خدمات الوصول',
-      body: _loading
-          ? const LoadingState(message: 'جاري التحميل...')
-          : _loadError != null
-              ? ErrorState(message: _loadError!, onRetry: _load)
-              : _buildForm(context),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري التحميل...')
+            : _loadError != null
+                ? ErrorState(message: _loadError!, onRetry: _load)
+                : _buildForm(context),
+      ),
     );
   }
 

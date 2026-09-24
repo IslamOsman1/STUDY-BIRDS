@@ -59,13 +59,19 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'مركز المعرفة',
-      body: _loading
-          ? const LoadingState(message: 'جاري التحميل...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _items.isEmpty
-                  ? const EmptyState(icon: Icons.menu_book_outlined, title: 'لا يوجد محتوى بعد', message: 'سيتم إضافة مقالات ومصادر مفيدة قريبًا.')
-                  : ListView.builder(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري التحميل...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _items.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.menu_book_outlined,
+                        title: 'لا يوجد محتوى بعد',
+                        message: 'سيتم إضافة مقالات ومصادر مفيدة قريبًا.')
+                    : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _items.length,
                       itemBuilder: (context, i) {
@@ -96,6 +102,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
                         );
                       },
                     ),
+      ),
     );
   }
 }
