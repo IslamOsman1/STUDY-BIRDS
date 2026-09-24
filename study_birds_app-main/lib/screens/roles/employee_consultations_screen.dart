@@ -182,6 +182,7 @@ class _EmployeeConsultationsScreenState
           ? const LoadingState()
           : RefreshIndicator(
               onRefresh: load,
+              color: AppColors.navy,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [

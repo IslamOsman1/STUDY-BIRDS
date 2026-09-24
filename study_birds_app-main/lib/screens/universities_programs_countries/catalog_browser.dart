@@ -373,6 +373,7 @@ class _CatalogBrowserState extends State<CatalogBrowser> {
                             onCta: rows.isEmpty ? load : clear))
                     : RefreshIndicator(
                         onRefresh: load,
+                        color: AppColors.navy,
                         child: ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),

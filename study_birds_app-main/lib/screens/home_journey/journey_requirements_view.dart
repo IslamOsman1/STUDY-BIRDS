@@ -7,6 +7,7 @@ import '../applications_documents_payments/payments_screens.dart';
 import '../services_support/support_team_ai_screens.dart';
 import 'calendar_screen.dart';
 import '../visa_travel_accommodation/arrival_services_screen.dart';
+import '../universities_programs_countries/explore_hub_screen.dart';
 
 class JourneyRequirementsView extends StatelessWidget {
   final List<Map<String, dynamic>> journeys;
@@ -77,11 +78,13 @@ class JourneyRequirementsView extends StatelessWidget {
                     style: AppTextStyles.caption),
                 const SizedBox(height: 16),
                 if (journeys.isEmpty)
-                  const EmptyState(
+                  Builder(builder: (context) => EmptyState(
                       icon: Icons.route_rounded,
                       title: 'لم تبدأ رحلة تقديم بعد',
                       message:
-                          'اختر برنامجك الدراسي وقدّم طلبك لتظهر متطلباته هنا.'),
+                          'اختر برنامجك الدراسي وقدّم طلبك لتظهر متطلباته هنا.',
+                      ctaLabel: 'استكشف الجامعات',
+                      onCta: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ExploreHubScreen())))),
                 for (final journey in journeys) ...[
                   AppCard(
                       child: Column(

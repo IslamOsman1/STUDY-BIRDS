@@ -190,6 +190,7 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
           ? const LoadingState()
           : RefreshIndicator(
               onRefresh: load,
+              color: AppColors.navy,
               child: ListView(padding: const EdgeInsets.all(16), children: [
                 const Text('مواعيدك بتوقيت جهازك — مدة الاستشارة 30 دقيقة',
                     style: AppTextStyles.caption),

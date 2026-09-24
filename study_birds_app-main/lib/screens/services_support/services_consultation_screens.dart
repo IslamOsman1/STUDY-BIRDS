@@ -45,6 +45,7 @@ class _ServicesCenterScreenState extends State<ServicesCenterScreen> {
             final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
             return RefreshIndicator(
                 onRefresh: refresh,
+                color: AppColors.navy,
                 child: GridView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(12, 16, 12, 20),

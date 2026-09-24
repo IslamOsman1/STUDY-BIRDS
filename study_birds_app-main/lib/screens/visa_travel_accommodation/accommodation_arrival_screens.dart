@@ -106,6 +106,7 @@ class _UniversityRegistrationScreenState
           ? const LoadingState()
           : RefreshIndicator(
               onRefresh: _load,
+              color: AppColors.navy,
               child: ListView(padding: const EdgeInsets.all(16), children: [
                 Align(
                     alignment: Alignment.centerRight,

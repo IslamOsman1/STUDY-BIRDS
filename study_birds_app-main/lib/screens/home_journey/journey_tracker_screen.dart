@@ -267,6 +267,7 @@ class _LiveJourneyScreenState extends State<LiveJourneyScreen> {
                 refresh();
                 await future;
               },
+              color: AppColors.navy,
               child: JourneyTrackerScreen(
                   currentStageKey: stage, useServer: false));
         },

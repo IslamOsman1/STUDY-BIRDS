@@ -247,6 +247,7 @@ class _StudentCommunityScreenState extends State<StudentCommunityScreen> {
     }
     return RefreshIndicator(
       onRefresh: load,
+      color: AppColors.navy,
       child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -723,6 +724,7 @@ class _CommunityThreadScreenState extends State<CommunityThreadScreen> {
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: load,
+                        color: AppColors.navy,
                         child: ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.all(16),
