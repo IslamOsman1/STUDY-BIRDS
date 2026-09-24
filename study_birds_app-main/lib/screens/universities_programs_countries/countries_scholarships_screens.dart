@@ -50,16 +50,19 @@ class _CountriesExplorerScreenState extends State<CountriesExplorerScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'استكشاف الدول',
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل الدول...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _countries.isEmpty
-                  ? const EmptyState(
-                      icon: Icons.public_off_rounded,
-                      title: 'لا توجد دول مضافة بعد',
-                      message: 'سيتم إضافتها من لوحة التحكم قريبًا.')
-                  : GridView.builder(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل الدول...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _countries.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.public_off_rounded,
+                        title: 'لا توجد دول مضافة بعد',
+                        message: 'سيتم إضافتها من لوحة التحكم قريبًا.')
+                    : GridView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _countries.length,
                       gridDelegate:
@@ -120,6 +123,7 @@ class _CountriesExplorerScreenState extends State<CountriesExplorerScreen> {
                         );
                       },
                     ),
+      ),
     );
   }
 }

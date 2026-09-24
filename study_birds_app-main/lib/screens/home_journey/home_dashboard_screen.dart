@@ -254,11 +254,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
-          child: _loading
-              ? const LoadingState(message: 'جاري تحميل رحلتك...')
-              : _error != null
-                  ? ErrorState(message: _error!, onRetry: _load)
-                  : _buildContent(context, _overview!),
+          child: RefreshIndicator(
+            onRefresh: _load,
+            color: AppColors.navy,
+            child: _loading
+                ? const LoadingState(message: 'جاري تحميل رحلتك...')
+                : _error != null
+                    ? ErrorState(message: _error!, onRetry: _load)
+                    : _buildContent(context, _overview!),
+          ),
         ),
         bottomNavigationBar: widget.embedInShell
             ? null
