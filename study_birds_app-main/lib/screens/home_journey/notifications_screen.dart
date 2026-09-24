@@ -110,10 +110,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         .cast<Map<String, dynamic>>()
         .where((n) => n['isRead'] != true)
         .toList();
-    for (final n in unread) {
-      // ignore: use_build_context_synchronously
-      await _markRead(n, 0);
-    }
+    await Future.wait(unread.map((n) => _markRead(n, 0)));
   }
 
   @override

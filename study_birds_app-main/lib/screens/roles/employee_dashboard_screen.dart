@@ -1,4 +1,4 @@
-import 'follow_up_reminders_screen.dart';
+﻿import 'follow_up_reminders_screen.dart';
 import 'admin_scholarships_screen.dart';
 import '../services_support/messaging_and_emergency_screens.dart';
 import '../profile_account/security_settings_screen.dart';
@@ -182,7 +182,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                      color: AppColors.navy.withOpacity(0.08),
+                      color: AppColors.navy.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10)),
                   child: const Icon(Icons.badge_rounded, color: AppColors.navy),
                 ),

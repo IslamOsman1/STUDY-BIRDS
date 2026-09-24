@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/auth_session.dart';
 import 'application_documents_screen.dart';
 import '../../core/app_theme.dart';
@@ -231,7 +231,7 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                         width: 46,
                         height: 46,
                         decoration: BoxDecoration(
-                            color: AppColors.navy.withOpacity(0.08),
+                            color: AppColors.navy.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(10)),
                         child: const Icon(Icons.account_balance_rounded,
                             color: AppColors.navy),

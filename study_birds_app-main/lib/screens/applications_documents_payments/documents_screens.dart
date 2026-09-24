@@ -1,4 +1,4 @@
-import 'package:url_launcher/url_launcher.dart';
+﻿import 'package:url_launcher/url_launcher.dart';
 import '../../core/document_access.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -52,23 +52,28 @@ const List<Map<String, String>> kDocumentTypes = [
   {'key': 'latest-qualification', 'label': 'آخر مؤهل دراسي'},
   {'key': 'transcript', 'label': 'كشف الدرجات'},
   {'key': 'language-certificate', 'label': 'شهادة اللغة'},
+  {'key': 'english-test', 'label': 'شهادة اختبار الإنجليزية'},
   {'key': 'high-school-certificate', 'label': 'شهادة الثانوية'},
   {'key': 'university-degree', 'label': 'الشهادة الجامعية'},
   {'key': 'birth-certificate', 'label': 'شهادة الميلاد'},
+  {'key': 'bank-statement', 'label': 'كشف حساب بنكي'},
+  {'key': 'no-criminal-record', 'label': 'شهادة عدم السوابق'},
   {'key': 'recommendation-letter', 'label': 'خطاب توصية'},
   {'key': 'personal-statement', 'label': 'خطاب الدافع'},
   {'key': 'cv', 'label': 'السيرة الذاتية'},
   {'key': 'other', 'label': 'أخرى'},
 ];
 
-// Labels for keys used by older website uploads and for translations.
+// Labels for keys returned by older website uploads and for translations.
+// Keys already in kDocumentTypes are intentionally omitted here.
 const Map<String, String> _extraDocumentLabels = {
   'translation': 'ترجمة معتمدة',
   'language-certificates': 'شهادات اللغة',
   'personal-photos': 'صور شخصية',
-  'english-test': 'شهادة اختبار الإنجليزية',
   'resume': 'السيرة الذاتية',
   'other-documents': 'مستندات أخرى',
+  'police-clearance': 'صحيفة الحالة الجنائية',
+  'financial-statement': 'إفادة مالية',
 };
 
 String docTypeLabel(String? key) {
@@ -255,7 +260,7 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                    color: AppColors.navy.withOpacity(0.08),
+                                    color: AppColors.navy.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(10)),
                                 child: const Icon(
                                     Icons.insert_drive_file_outlined,
@@ -331,7 +336,7 @@ class DocumentDetailScreen extends StatelessWidget {
               height: 180,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.navy.withOpacity(0.05),
+                color: AppColors.navy.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(AppRadius.card),
                 border: Border.all(color: AppColors.border),
               ),
@@ -422,9 +427,9 @@ class DocumentDetailScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.danger.withOpacity(0.08),
+                  color: AppColors.danger.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(AppRadius.card),
-                  border: Border.all(color: AppColors.danger.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

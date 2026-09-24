@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/animations.dart';
 import '../../core/student_repository.dart';
@@ -346,7 +346,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [AppColors.navy, AppColors.navy.withOpacity(0.92)],
+              colors: [AppColors.navy, AppColors.navy.withValues(alpha: 0.92)],
             ),
             borderRadius:
                 const BorderRadius.vertical(bottom: Radius.circular(28)),
@@ -688,7 +688,7 @@ class _HeroIconButton extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.12), shape: BoxShape.circle),
+              color: Colors.white.withValues(alpha: 0.12), shape: BoxShape.circle),
           child: IconButton(
               onPressed: onPressed,
               icon: Icon(icon, color: Colors.white, size: 20)),

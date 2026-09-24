@@ -1,4 +1,4 @@
-import 'browser_sign_in_screen.dart';
+﻿import 'browser_sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/app_theme.dart';
@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                        color: AppColors.navy.withOpacity(0.05),
+                        color: AppColors.navy.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(8)),
                     child:
                         Text(widget.prefillHint!, style: AppTextStyles.caption),

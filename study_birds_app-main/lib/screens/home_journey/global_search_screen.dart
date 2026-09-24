@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/catalog_repository.dart';
@@ -267,7 +267,7 @@ class _ResultTile extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-                color: AppColors.navy.withOpacity(0.08),
+                color: AppColors.navy.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, size: 17, color: AppColors.navy),
           ),

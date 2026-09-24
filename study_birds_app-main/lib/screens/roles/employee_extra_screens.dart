@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
@@ -146,7 +146,7 @@ class MessagesInboxScreen extends StatelessWidget {
           if (i == 0) {
             return Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
               child: const Text('بيانات توضيحية — الباك اند لسه مفيهوش نظام رسائل حقيقي بين الموظف والطالب.', style: TextStyle(color: AppColors.warning, fontSize: 12)),
             );
           }

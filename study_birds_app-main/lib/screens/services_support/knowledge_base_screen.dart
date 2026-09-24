@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
 
@@ -77,7 +77,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
                               Container(
                                 width: 40,
                                 height: 40,
-                                decoration: BoxDecoration(color: AppColors.navy.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                                decoration: BoxDecoration(color: AppColors.navy.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
                                 child: Icon(_resourceIcon(item['resourceType'] as String?), color: AppColors.navy, size: 19),
                               ),
                               const SizedBox(width: 12),

@@ -1,4 +1,4 @@
-import '../../core/api_client.dart';
+﻿import '../../core/api_client.dart';
 import 'catalog_detail.dart' show catalogArticleSections, catalogAssetUrl;
 import '../../core/auth_session.dart';
 import 'package:flutter/material.dart';
@@ -88,7 +88,7 @@ class _CountriesExplorerScreenState extends State<CountriesExplorerScreen> {
                                   width: 52,
                                   height: 52,
                                   decoration: BoxDecoration(
-                                      color: AppColors.navy.withOpacity(0.08),
+                                      color: AppColors.navy.withValues(alpha: 0.08),
                                       shape: BoxShape.circle),
                                   child: (c['heroImage'] as String?)
                                               ?.isNotEmpty ==
@@ -142,7 +142,7 @@ class CountryDetailScreen extends StatelessWidget {
           Container(
             height: 110,
             decoration: BoxDecoration(
-                color: AppColors.navy.withOpacity(0.06),
+                color: AppColors.navy.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(AppRadius.card)),
             child: heroImage != null
                 ? ClipRRect(
