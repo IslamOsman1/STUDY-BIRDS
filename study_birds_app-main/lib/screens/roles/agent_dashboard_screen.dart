@@ -137,11 +137,14 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
               builder: (_) => const AgentProgramPricingScreen())),
         ),
       ],
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل لوحتك...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : ListView(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل لوحتك...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
                     Row(
@@ -239,6 +242,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                       }),
                   ],
                 ),
+      ),
     );
   }
 }

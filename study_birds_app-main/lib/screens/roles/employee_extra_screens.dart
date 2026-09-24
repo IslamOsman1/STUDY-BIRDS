@@ -230,11 +230,15 @@ class _ManagerOverviewScreenState extends State<ManagerOverviewScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'نظرة عامة على المنصة',
-      body: _loading
-          ? const LoadingState(message: 'جاري التحميل...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _buildContent(_overview!),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري التحميل...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _buildContent(_overview!),
+      ),
     );
   }
 
