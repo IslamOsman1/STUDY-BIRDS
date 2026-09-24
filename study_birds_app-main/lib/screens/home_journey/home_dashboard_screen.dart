@@ -18,6 +18,7 @@ import '../services_support/services_consultation_screens.dart';
 import '../services_support/support_team_ai_screens.dart';
 import '../services_support/community_screen.dart';
 import '../universities_programs_countries/programs_screens.dart';
+import '../universities_programs_countries/explore_hub_screen.dart';
 import '../visa_travel_accommodation/arrival_services_screen.dart';
 import '../visa_travel_accommodation/accommodation_arrival_screens.dart';
 import 'smart_home_sections.dart';
@@ -266,6 +267,22 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 selectedItemColor: AppColors.navy,
                 unselectedItemColor: AppColors.textSecondary,
                 type: BottomNavigationBarType.fixed,
+                onTap: (i) {
+                  switch (i) {
+                    case 1:
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const JourneyTrackerScreen()));
+                    case 2:
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const ExploreHubScreen()));
+                    case 3:
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const ServicesCenterScreen()));
+                    case 4:
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const ProfileScreen()));
+                  }
+                },
                 items: const [
                   BottomNavigationBarItem(
                       icon: Icon(Icons.home_rounded), label: 'الرئيسية'),
