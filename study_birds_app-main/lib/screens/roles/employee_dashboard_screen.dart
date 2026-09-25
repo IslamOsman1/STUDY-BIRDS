@@ -116,12 +116,21 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
   bool _loading = true;
   String? _error;
 
+  int _overdueReminders = 0;
+  bool _remindersLoading = false;
+
   bool get _isFullAdmin => widget.user.role == UserRole.admin;
+  bool get _hasApplications =>
+      widget.user.permissions.contains('applications');
 
   @override
   void initState() {
     super.initState();
-    if (_isFullAdmin) _load();
+    if (_isFullAdmin) {
+      _load();
+    } else if (_hasApplications) {
+      _loadReminders();
+    }
   }
 
   Future<void> _load() async {
@@ -142,6 +151,35 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
         _error = e is ApiException ? e.message : 'تعذر تحميل بيانات المنصة.';
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _loadReminders() async {
+    setState(() => _remindersLoading = true);
+    try {
+      final data = await ApiClient.instance.get(
+          '/applications/follow-up-reminders',
+          token: AuthSession.instance.token);
+      if (!mounted) return;
+      final list = data as List<dynamic>;
+      final now = DateTime.now();
+      final overdue = list.where((r) {
+        final due =
+            DateTime.tryParse('${(r as Map)['dueDate'] ?? ''}')?.toLocal();
+        return due != null && due.isBefore(now.add(const Duration(hours: 24)));
+      }).length;
+      setState(() => _overdueReminders = overdue);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _remindersLoading = false);
+    }
+  }
+
+  Future<void> _refresh() async {
+    if (_isFullAdmin) {
+      await _load();
+    } else if (_hasApplications) {
+      await _loadReminders();
     }
   }
 
@@ -173,7 +211,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
       ],
       title: _isFullAdmin ? 'لوحة الأدمن' : 'لوحة الموظف',
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: _refresh,
         color: AppColors.navy,
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -204,6 +242,55 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
               ],
             ),
           ),
+          if (!_isFullAdmin && _hasApplications) ...[
+            const SizedBox(height: 8),
+            const Text('ما يجب عليك اليوم', style: AppTextStyles.sectionLabel),
+            const SizedBox(height: 10),
+            if (_remindersLoading)
+              const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.navy)))
+            else
+              AppCard(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const FollowUpRemindersScreen())),
+                child: Row(children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                        color: (_overdueReminders > 0
+                                ? AppColors.warning
+                                : AppColors.success)
+                            .withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Icon(Icons.notifications_active_outlined,
+                        color: _overdueReminders > 0
+                            ? AppColors.warning
+                            : AppColors.success,
+                        size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              _overdueReminders == 0
+                                  ? 'لا توجد متابعات مستحقة'
+                                  : '$_overdueReminders ${_overdueReminders == 1 ? 'متابعة مستحقة' : 'متابعات مستحقة'}',
+                              style: AppTextStyles.cardTitle),
+                          const Text('اضغط لعرض تذكيرات المتابعة',
+                              style: AppTextStyles.caption),
+                        ]),
+                  ),
+                  const Icon(Icons.arrow_back_ios_new_rounded,
+                      size: 14, color: AppColors.textSecondary),
+                ]),
+              ),
+          ],
           if (_isFullAdmin) ...[
             const Text('أرقام المنصة الآن', style: AppTextStyles.sectionLabel),
             const SizedBox(height: 10),
