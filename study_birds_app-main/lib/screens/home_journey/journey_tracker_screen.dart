@@ -250,17 +250,23 @@ class _LiveJourneyScreenState extends State<LiveJourneyScreen> {
                   IconButton(
                       onPressed: refresh, icon: const Icon(Icons.refresh))
                 ],
-                body: ListView(children: [
-                  for (final item in overview.stages)
-                    ListTile(
-                        title: Text(item.titleAr),
-                        subtitle: Text(item.descriptionAr),
-                        leading: Icon(item.status == 'completed'
-                            ? Icons.check_circle
-                            : item.status == 'current'
-                                ? Icons.radio_button_checked
-                                : Icons.circle_outlined)),
-                ]));
+                body: RefreshIndicator(
+                    onRefresh: () async {
+                      refresh();
+                      await future;
+                    },
+                    color: AppColors.navy,
+                    child: ListView(children: [
+                      for (final item in overview.stages)
+                        ListTile(
+                            title: Text(item.titleAr),
+                            subtitle: Text(item.descriptionAr),
+                            leading: Icon(item.status == 'completed'
+                                ? Icons.check_circle
+                                : item.status == 'current'
+                                    ? Icons.radio_button_checked
+                                    : Icons.circle_outlined)),
+                    ])));
           }
           return RefreshIndicator(
               onRefresh: () async {
