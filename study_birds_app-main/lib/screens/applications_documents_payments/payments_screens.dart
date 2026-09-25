@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
+import '../../core/notification_scheduler.dart';
 
 class InvoiceStatusMeta {
   final String label;
@@ -207,6 +208,28 @@ class PaymentDetailScreen extends StatefulWidget {
 
 class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   bool _uploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _schedulePaymentReminder();
+  }
+
+  void _schedulePaymentReminder() {
+    final inv = widget.invoice;
+    final id = '${inv['_id'] ?? ''}';
+    final dueRaw = inv['dueDate'] ?? inv['due_date'];
+    final due = DateTime.tryParse('$dueRaw');
+    final status = '${inv['status'] ?? ''}';
+    if (id.isEmpty || due == null) return;
+    if (status == 'verified' || status == 'paid') return;
+    final amount = inv['amount']?.toString() ?? '';
+    NotificationScheduler.instance.schedulePaymentDue(
+      invoiceId: id,
+      amount: amount,
+      dueDate: due,
+    );
+  }
 
   Future<void> _uploadProof() async {
     final result = await FilePicker.platform.pickFiles(

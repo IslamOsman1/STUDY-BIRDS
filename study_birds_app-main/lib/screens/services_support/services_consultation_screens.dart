@@ -5,6 +5,7 @@ import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/student_repository.dart';
 import '../../core/catalog_repository.dart';
+import '../../core/notification_scheduler.dart';
 
 class ServicesCenterScreen extends StatefulWidget {
   const ServicesCenterScreen({super.key});
@@ -277,9 +278,35 @@ class ConsultationBookingScreen extends StatelessWidget {
       );
 }
 
-class ConsultationConfirmationScreen extends StatelessWidget {
+class ConsultationConfirmationScreen extends StatefulWidget {
   final Map<String, dynamic> slot;
   const ConsultationConfirmationScreen({super.key, required this.slot});
+
+  @override
+  State<ConsultationConfirmationScreen> createState() =>
+      _ConsultationConfirmationScreenState();
+}
+
+class _ConsultationConfirmationScreenState
+    extends State<ConsultationConfirmationScreen> {
+  Map<String, dynamic> get slot => widget.slot;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleReminder();
+  }
+
+  void _scheduleReminder() {
+    final id = '${slot['_id'] ?? slot['bookingId'] ?? ''}';
+    final startsAt = DateTime.tryParse('${slot['startsAt'] ?? ''}');
+    if (id.isEmpty || startsAt == null) return;
+    NotificationScheduler.instance.scheduleConsultation(
+      id: id,
+      title: 'تذكير: استشارتك بعد ساعة',
+      at: startsAt,
+    );
+  }
 
   String _formatDate(BuildContext ctx, dynamic raw) {
     final date = DateTime.tryParse('$raw')?.toLocal();

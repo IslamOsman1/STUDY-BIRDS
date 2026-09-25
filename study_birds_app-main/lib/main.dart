@@ -1,6 +1,7 @@
 import 'core/device_lock.dart';
 import 'core/api_client.dart';
 import 'core/deep_link_service.dart';
+import 'core/notification_scheduler.dart';
 import 'screens/auth/email_challenge_screen.dart';
 import 'package:flutter/material.dart';
 import 'core/app_theme.dart';
@@ -77,6 +78,7 @@ class _StudyBirdsAppState extends State<StudyBirdsApp> {
   void initState() {
     super.initState();
     DeepLinkService.instance.init(rootNavigatorKey);
+    NotificationScheduler.instance.init();
   }
 
   @override
