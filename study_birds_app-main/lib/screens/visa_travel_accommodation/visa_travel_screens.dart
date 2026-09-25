@@ -5,6 +5,7 @@ import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/student_repository.dart';
 import '../../core/feature_ui.dart';
+import '../../core/analytics_service.dart';
 
 // ── Pure helpers (extracted for testability) ───────────────────────────────
 
@@ -68,6 +69,7 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('visa_center');
     _load();
   }
 
@@ -331,7 +333,7 @@ class _VisaStepsScreenState extends State<VisaStepsScreen> {
   }
 }
 
-// ── TravelCenterScreen ─────────────────────────────────────────────────────
+// ── TravelCenterScreen + AirportPickup analytics wired in initState ──────────
 
 class TravelCenterScreen extends StatefulWidget {
   const TravelCenterScreen({super.key});
@@ -348,6 +350,7 @@ class _TravelCenterScreenState extends State<TravelCenterScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('travel_center');
     _load();
   }
 

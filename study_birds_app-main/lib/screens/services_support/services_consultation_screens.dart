@@ -6,6 +6,7 @@ import '../../core/api_client.dart';
 import '../../core/student_repository.dart';
 import '../../core/catalog_repository.dart';
 import '../../core/notification_scheduler.dart';
+import '../../core/analytics_service.dart';
 
 class ServicesCenterScreen extends StatefulWidget {
   const ServicesCenterScreen({super.key});
@@ -15,6 +16,13 @@ class ServicesCenterScreen extends StatefulWidget {
 
 class _ServicesCenterScreenState extends State<ServicesCenterScreen> {
   late Future<List<dynamic>> future = CatalogRepository.instance.getServices();
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.instance.screenView('services_center');
+  }
+
   Future<void> refresh() async {
     final next = CatalogRepository.instance.getServices();
     setState(() => future = next);
@@ -294,6 +302,8 @@ class _ConsultationConfirmationScreenState
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.consultationBooked(
+        '${slot['advisor']?['_id'] ?? slot['advisorId'] ?? 'unknown'}');
     _scheduleReminder();
   }
 

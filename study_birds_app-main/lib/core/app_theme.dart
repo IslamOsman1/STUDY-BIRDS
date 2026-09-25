@@ -364,6 +364,76 @@ class LoadingState extends StatelessWidget {
   }
 }
 
+/// Skeleton shimmer placeholder — for loading states that need layout fidelity.
+/// Animates opacity 0.3→0.7→0.3 to communicate "loading in progress".
+class SkeletonBox extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+  const SkeletonBox(
+      {super.key,
+      this.width = double.infinity,
+      this.height = 16,
+      this.borderRadius = 8});
+  @override
+  State<SkeletonBox> createState() => _SkeletonBoxState();
+}
+
+class _SkeletonBoxState extends State<SkeletonBox>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900))
+      ..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.25, end: 0.65).animate(_ctrl);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _anim,
+        builder: (_, __) => Opacity(
+          opacity: _anim.value,
+          child: Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+            ),
+          ),
+        ),
+      );
+}
+
+/// A skeleton card that mimics an AppCard with two text lines.
+class SkeletonCard extends StatelessWidget {
+  const SkeletonCard({super.key});
+  @override
+  Widget build(BuildContext context) => AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            SkeletonBox(height: 14, width: 160),
+            SizedBox(height: 10),
+            SkeletonBox(height: 12),
+            SizedBox(height: 6),
+            SkeletonBox(height: 12, width: 120),
+          ],
+        ),
+      );
+}
+
 /// Standard error state — never a blank/broken screen, per spec point 69.
 class ErrorState extends StatelessWidget {
   final String message;
