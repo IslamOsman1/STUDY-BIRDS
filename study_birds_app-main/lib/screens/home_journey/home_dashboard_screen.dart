@@ -21,6 +21,7 @@ import '../universities_programs_countries/programs_screens.dart';
 import '../universities_programs_countries/explore_hub_screen.dart';
 import '../visa_travel_accommodation/arrival_services_screen.dart';
 import '../visa_travel_accommodation/accommodation_arrival_screens.dart';
+import '../visa_travel_accommodation/visa_travel_screens.dart' show InsuranceScreen, EquivalencyScreen;
 import 'smart_home_sections.dart';
 
 /// Real, live Home Dashboard — fetches GET /api/students/overview on load.
@@ -185,6 +186,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       'journey' || 'visa' => const JourneyTrackerScreen(),
       'travel' || 'accommodation' => const ArrivalServicesScreen(),
       'university-registration' => const UniversityRegistrationScreen(),
+      'insurance' => const InsuranceScreen(),
+      'equivalency' => const EquivalencyScreen(),
       'programs' || 'catalog' => const ProgramsExplorerScreen(),
       'universities' => const UniversitiesExplorerScreen(),
       'documents' || 'upload-document' => const MyDocumentsScreen(),

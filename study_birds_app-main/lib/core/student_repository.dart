@@ -404,4 +404,18 @@ class StudentRepository {
     });
     return data as Map<String, dynamic>;
   }
+
+  Future<Map<String, dynamic>?> getInsurance() async {
+    final data = await ApiClient.instance
+        .get('/students/insurance', token: _token);
+    if (data == null) return null;
+    return data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>?> getEquivalency() async {
+    final data = await ApiClient.instance
+        .get('/students/equivalency', token: _token);
+    if (data == null) return null;
+    return data as Map<String, dynamic>;
+  }
 }

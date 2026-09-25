@@ -1,5 +1,6 @@
 import 'arrival_services_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/student_repository.dart';
@@ -642,4 +643,348 @@ class _KV extends StatelessWidget {
               style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
         ],
       );
+}
+
+// ─── بند 42: التأمين الصحي ───────────────────────────────────────────────────
+
+class InsuranceScreen extends StatefulWidget {
+  const InsuranceScreen({super.key});
+  @override
+  State<InsuranceScreen> createState() => _InsuranceScreenState();
+}
+
+class _InsuranceScreenState extends State<InsuranceScreen> {
+  Map<String, dynamic>? _data;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final d = await StudentRepository.instance.getInsurance();
+      if (mounted) setState(() { _data = d; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _error = 'تعذر تحميل بيانات التأمين.'; _loading = false; });
+    }
+  }
+
+  String _statusLabel(String? s) {
+    switch (s) {
+      case 'active': return 'ساري';
+      case 'expired': return 'منتهي';
+      default: return 'في الانتظار';
+    }
+  }
+
+  Color _statusColor(String? s) {
+    switch (s) {
+      case 'active': return AppColors.success;
+      case 'expired': return AppColors.danger;
+      default: return AppColors.warning;
+    }
+  }
+
+  String _fmtDate(dynamic raw) {
+    final d = DateTime.tryParse('$raw')?.toLocal();
+    if (d == null) return '—';
+    return '${d.day}/${d.month}/${d.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) => AppScaffold(
+        title: 'التأمين الصحي',
+        body: RefreshIndicator(
+          onRefresh: _load,
+          color: AppColors.navy,
+          child: _loading
+              ? const LoadingState(message: 'جاري التحميل...')
+              : _error != null
+                  ? ErrorState(message: _error!, onRetry: _load)
+                  : _data == null
+                      ? const EmptyState(
+                          icon: Icons.health_and_safety_outlined,
+                          title: 'لا تتوفر بيانات التأمين بعد',
+                          message: 'سيقوم الفريق بإضافة تفاصيل وثيقة تأمينك الصحي هنا.')
+                      : ListView(
+                          padding: const EdgeInsets.all(16),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            _InsuranceStatusCard(data: _data!, statusLabel: _statusLabel(_data!['status'] as String?), statusColor: _statusColor(_data!['status'] as String?)),
+                            const SizedBox(height: 16),
+                            AppCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('تفاصيل الوثيقة', style: AppTextStyles.sectionLabel),
+                                  const SizedBox(height: 12),
+                                  _InfoRow('مزود التأمين', _data!['provider']?.toString() ?? '—'),
+                                  const Divider(height: 20),
+                                  _InfoRow('رقم الوثيقة', _data!['policyNumber']?.toString() ?? '—'),
+                                  const Divider(height: 20),
+                                  _InfoRow('نطاق التغطية', _data!['coverage']?.toString() ?? '—'),
+                                  const Divider(height: 20),
+                                  _InfoRow('تاريخ البداية', _fmtDate(_data!['startDate'])),
+                                  const Divider(height: 20),
+                                  _InfoRow('تاريخ الانتهاء', _fmtDate(_data!['endDate'])),
+                                ],
+                              ),
+                            ),
+                            if ((_data!['notes'] as String?)?.isNotEmpty == true) ...[
+                              const SizedBox(height: 12),
+                              AppCard(
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text('ملاحظات', style: AppTextStyles.sectionLabel),
+                                  const SizedBox(height: 8),
+                                  Text(_data!['notes'] as String, style: AppTextStyles.body),
+                                ]),
+                              ),
+                            ],
+                            if ((_data!['cardFileUrl'] as String?)?.isNotEmpty == true) ...[
+                              const SizedBox(height: 16),
+                              PrimaryButton(
+                                onPressed: () async {
+                                  final url = Uri.tryParse(_data!['cardFileUrl'] as String);
+                                  if (url != null && !await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('تعذر فتح بطاقة التأمين.')));
+                                    }
+                                  }
+                                },
+                                label: 'تحميل بطاقة التأمين',
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+        ),
+      );
+}
+
+class _InsuranceStatusCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+  final String statusLabel;
+  final Color statusColor;
+  const _InsuranceStatusCard({required this.data, required this.statusLabel, required this.statusColor});
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+        child: Row(children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14)),
+            child: const Icon(Icons.health_and_safety_rounded, color: AppColors.success, size: 28),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('التأمين الصحي', style: AppTextStyles.cardTitle),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6)),
+                child: Text(statusLabel,
+                    style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+          ),
+        ]),
+      );
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _InfoRow(this.label, this.value);
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTextStyles.caption),
+          const SizedBox(width: 16),
+          Flexible(child: Text(value, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600), textAlign: TextAlign.end)),
+        ],
+      );
+}
+
+// ─── بند 43: معادلة الشهادة ──────────────────────────────────────────────────
+
+class EquivalencyScreen extends StatefulWidget {
+  const EquivalencyScreen({super.key});
+  @override
+  State<EquivalencyScreen> createState() => _EquivalencyScreenState();
+}
+
+class _EquivalencyScreenState extends State<EquivalencyScreen> {
+  Map<String, dynamic>? _data;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final d = await StudentRepository.instance.getEquivalency();
+      if (mounted) setState(() { _data = d; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _error = 'تعذر تحميل بيانات المعادلة.'; _loading = false; });
+    }
+  }
+
+  static const _statusLabels = <String, String>{
+    'not-started': 'لم تبدأ بعد',
+    'documents-collected': 'تم جمع المستندات',
+    'submitted': 'مقدّم',
+    'under-review': 'قيد المراجعة',
+    'completed': 'مكتمل',
+    'rejected': 'مرفوض',
+  };
+
+  static const _statusColors = <String, Color>{
+    'not-started': AppColors.textSecondary,
+    'documents-collected': AppColors.info,
+    'submitted': AppColors.navy,
+    'under-review': AppColors.warning,
+    'completed': AppColors.success,
+    'rejected': AppColors.danger,
+  };
+
+  String _fmtDate(dynamic raw) {
+    final d = DateTime.tryParse('$raw')?.toLocal();
+    if (d == null) return '—';
+    return '${d.day}/${d.month}/${d.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _data?['status'] as String? ?? 'not-started';
+    final statusLabel = _statusLabels[status] ?? status;
+    final statusColor = _statusColors[status] ?? AppColors.textSecondary;
+    final docs = (_data?['requiredDocuments'] as List?)?.cast<String>() ?? [];
+
+    return AppScaffold(
+      title: 'معادلة الشهادة',
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري التحميل...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _data == null
+                    ? const EmptyState(
+                        icon: Icons.verified_outlined,
+                        title: 'لا تتوفر بيانات المعادلة بعد',
+                        message: 'سيقوم الفريق بإضافة تفاصيل إجراءات معادلة شهادتك هنا.')
+                    : ListView(
+                        padding: const EdgeInsets.all(16),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          AppCard(
+                            child: Row(children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                    color: statusColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(14)),
+                                child: Icon(Icons.verified_rounded, color: statusColor, size: 28),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text('معادلة الشهادة', style: AppTextStyles.cardTitle),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6)),
+                                  child: Text(statusLabel,
+                                      style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w700)),
+                                ),
+                              ])),
+                            ]),
+                          ),
+                          const SizedBox(height: 16),
+                          AppCard(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text('تفاصيل الطلب', style: AppTextStyles.sectionLabel),
+                              const SizedBox(height: 12),
+                              _InfoRow('الجهة المختصة', _data!['authority']?.toString() ?? '—'),
+                              const Divider(height: 20),
+                              _InfoRow('رقم الطلب', _data!['applicationNumber']?.toString() ?? '—'),
+                              const Divider(height: 20),
+                              _InfoRow('تاريخ التقديم', _fmtDate(_data!['submittedAt'])),
+                              const Divider(height: 20),
+                              _InfoRow('الموعد المتوقع للانتهاء', _fmtDate(_data!['expectedCompletionDate'])),
+                              const Divider(height: 20),
+                              _InfoRow('الرسوم', _data!['fees']?.toString() ?? '—'),
+                            ]),
+                          ),
+                          if (docs.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            AppCard(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text('المستندات المطلوبة', style: AppTextStyles.sectionLabel),
+                                const SizedBox(height: 10),
+                                for (final doc in docs)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Row(children: [
+                                      const Icon(Icons.check_circle_outline_rounded, color: AppColors.navy, size: 18),
+                                      const SizedBox(width: 8),
+                                      Expanded(child: Text(doc, style: AppTextStyles.body)),
+                                    ]),
+                                  ),
+                              ]),
+                            ),
+                          ],
+                          if ((_data!['notes'] as String?)?.isNotEmpty == true) ...[
+                            const SizedBox(height: 12),
+                            AppCard(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text('ملاحظات', style: AppTextStyles.sectionLabel),
+                                const SizedBox(height: 8),
+                                Text(_data!['notes'] as String, style: AppTextStyles.body),
+                              ]),
+                            ),
+                          ],
+                          if ((_data!['resultFileUrl'] as String?)?.isNotEmpty == true) ...[
+                            const SizedBox(height: 16),
+                            PrimaryButton(
+                              onPressed: () async {
+                                final url = Uri.tryParse(_data!['resultFileUrl'] as String);
+                                if (url != null && !await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('تعذر فتح الملف.')));
+                                  }
+                                }
+                              },
+                              label: 'تحميل وثيقة المعادلة',
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+      ),
+    );
+  }
 }

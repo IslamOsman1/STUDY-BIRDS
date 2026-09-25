@@ -43,6 +43,7 @@ class SupportCenterScreen extends StatelessWidget {
     {'label': 'تذاكري', 'icon': Icons.list_alt_rounded},
     {'label': 'فريقي', 'icon': Icons.groups_outlined},
     {'label': 'مركز المعرفة', 'icon': Icons.menu_book_outlined},
+    {'label': 'محطة المعارض', 'icon': Icons.article_outlined},
     {'label': 'مساعدة عاجلة', 'icon': Icons.emergency_share_rounded},
     {'label': 'الأسئلة الشائعة', 'icon': Icons.help_outline_rounded},
   ];
@@ -75,6 +76,9 @@ class SupportCenterScreen extends StatelessWidget {
               } else if (o['label'] == 'مركز المعرفة') {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const KnowledgeBaseScreen()));
+              } else if (o['label'] == 'محطة المعارض') {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ExhibitionsScreen()));
               } else if (o['label'] == 'مساعدة عاجلة') {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const EmergencySupportScreen()));

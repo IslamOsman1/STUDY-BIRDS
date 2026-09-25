@@ -1,5 +1,3 @@
-import 'arrival_services_screen.dart';
-import '../services_support/support_team_ai_screens.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
@@ -678,16 +676,4 @@ class _DocRow extends StatelessWidget {
   }
 }
 
-class InsuranceScreen extends StatelessWidget {
-  const InsuranceScreen({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      const NewSupportTicketScreen(initialSubject: 'طلب تأمين');
-}
-
-class EquivalencyScreen extends StatelessWidget {
-  const EquivalencyScreen({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      const NewSupportTicketScreen(initialSubject: 'طلب معادلة');
-}
+// InsuranceScreen and EquivalencyScreen are defined in visa_travel_screens.dart

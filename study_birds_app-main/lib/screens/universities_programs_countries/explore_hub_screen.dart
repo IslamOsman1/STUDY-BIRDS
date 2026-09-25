@@ -4,6 +4,7 @@ import 'universities_screens.dart';
 import 'programs_screens.dart';
 import 'countries_scholarships_screens.dart';
 import 'compare_list_screen.dart';
+import '../services_support/knowledge_base_screen.dart' show ExhibitionsScreen;
 
 class ExploreHubScreen extends StatelessWidget {
   const ExploreHubScreen({super.key});
@@ -51,6 +52,11 @@ class ExploreHubScreen extends StatelessWidget {
               icon: Icons.compare_arrows_rounded,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const CompareListScreen()))),
+          _ExploreCard(
+              label: 'محطة المعارض',
+              icon: Icons.article_rounded,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const ExhibitionsScreen()))),
         ],
       ),
     );

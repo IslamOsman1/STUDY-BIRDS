@@ -9,6 +9,7 @@ import '../applications_documents_payments/documents_screens.dart';
 import '../applications_documents_payments/payments_screens.dart';
 import '../visa_travel_accommodation/arrival_services_screen.dart';
 import '../visa_travel_accommodation/accommodation_arrival_screens.dart';
+import '../visa_travel_accommodation/visa_travel_screens.dart' show InsuranceScreen, EquivalencyScreen;
 import 'journey_tracker_screen.dart';
 
 /// Maps a backend notification link (e.g. '/student/documents') to the widget
@@ -21,6 +22,8 @@ Widget? notificationScreenForLink(String? link) {
     'journey' || 'visa' => const JourneyTrackerScreen(),
     'travel' || 'accommodation' => const ArrivalServicesScreen(),
     'university-registration' => const UniversityRegistrationScreen(),
+    'insurance' => const InsuranceScreen(),
+    'equivalency' => const EquivalencyScreen(),
     'documents' || 'upload-document' => const MyDocumentsScreen(),
     'payments' => const PaymentsSummaryScreen(),
     'applications' => const ApplicationsListScreen(),
