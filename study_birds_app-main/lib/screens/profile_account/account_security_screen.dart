@@ -50,7 +50,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
     finally { if (mounted) setState(() => busy = false); }
   }
   @override
-  Widget build(BuildContext context) => AppScaffold(title: 'حماية الحساب والأجهزة', actions: [IconButton(onPressed: busy ? null : load, tooltip: 'تحديث', icon: const Icon(Icons.refresh))], body: loading ? const LoadingState() : error != null ? ErrorState(message: error!, onRetry: load) : FeatureBody(children: [
+  Widget build(BuildContext context) => AppScaffold(title: 'حماية الحساب والأجهزة', actions: [IconButton(onPressed: busy ? null : load, tooltip: 'تحديث', icon: const Icon(Icons.refresh))], body: RefreshIndicator(onRefresh: load, color: AppColors.navy, child: loading ? const LoadingState() : error != null ? ErrorState(message: error!, onRetry: load) : FeatureBody(children: [
     const FeatureIntro(title: 'طبقة حماية إضافية', subtitle: 'تحكم في التحقق بخطوتين والأجهزة التي تستخدم حسابك.', icon: Icons.verified_user_outlined),
     FeaturePanel(child: SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('التحقق بخطوتين', style: AppTextStyles.cardTitle), subtitle: const Text('رمز بالبريد بعد كلمة المرور'), value: enabled, onChanged: busy ? null : change)),
     const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Text('الجلسات النشطة', style: AppTextStyles.cardTitle)),
@@ -60,5 +60,5 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
       const SizedBox(height: 8), Text('آخر نشاط: ${DateTime.tryParse(row['lastSeen']?.toString() ?? '')?.toLocal().toString().split('.').first ?? 'غير محدد'}', style: AppTextStyles.caption),
       TextButton(onPressed: busy ? null : () => revoke(row as Map), child: const Text('إنهاء الجلسة', style: TextStyle(color: AppColors.danger))),
     ])),
-  ]));
+  ])));
 }
