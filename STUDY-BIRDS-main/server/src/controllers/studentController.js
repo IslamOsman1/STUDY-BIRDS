@@ -12,6 +12,8 @@ const KnowledgeBaseItem = require("../models/KnowledgeBaseItem");
 const Invoice = require("../models/Invoice");
 const PaymentProof = require("../models/PaymentProof");
 const ArrivalServiceRequest = require("../models/ArrivalServiceRequest");
+const StudentInsurance = require("../models/StudentInsurance");
+const StudentEquivalency = require("../models/StudentEquivalency");
 const FavoriteItem = require("../models/FavoriteItem");
 const OrientationTestResult = require("../models/OrientationTestResult");
 const Program = require("../models/Program");
@@ -674,6 +676,44 @@ const submitOrientationTest = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
+// ---- Insurance ---------------------------------------------------------------
+
+const getStudentInsurance = asyncHandler(async (req, res) => {
+  const record = await StudentInsurance.findOne({ student: req.user._id }).lean();
+  res.json(record || null);
+});
+
+// ---- Equivalency -------------------------------------------------------------
+
+const getStudentEquivalency = asyncHandler(async (req, res) => {
+  const record = await StudentEquivalency.findOne({ student: req.user._id }).lean();
+  res.json(record || null);
+});
+
+// ---- Admin/staff: upsert insurance for a student ----------------------------
+
+const upsertStudentInsurance = asyncHandler(async (req, res) => {
+  const { studentId } = req.params;
+  const record = await StudentInsurance.findOneAndUpdate(
+    { student: studentId },
+    { ...req.body, updatedBy: req.user._id },
+    { new: true, upsert: true, runValidators: true }
+  );
+  res.json(record);
+});
+
+// ---- Admin/staff: upsert equivalency for a student --------------------------
+
+const upsertStudentEquivalency = asyncHandler(async (req, res) => {
+  const { studentId } = req.params;
+  const record = await StudentEquivalency.findOneAndUpdate(
+    { student: studentId },
+    { ...req.body, updatedBy: req.user._id },
+    { new: true, upsert: true, runValidators: true }
+  );
+  res.json(record);
+});
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -697,4 +737,8 @@ module.exports = {
   removeStudentFavorite,
   getOrientationTestResult,
   submitOrientationTest,
+  getStudentInsurance,
+  getStudentEquivalency,
+  upsertStudentInsurance,
+  upsertStudentEquivalency,
 };

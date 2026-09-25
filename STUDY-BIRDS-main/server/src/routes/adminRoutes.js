@@ -240,4 +240,12 @@ router.delete("/accommodation-listings/:id", deleteAccommodationListing);
 router.get("/accommodation-bookings", getAccommodationBookingsAdmin);
 router.patch("/accommodation-bookings/:id/status", updateAccommodationBookingStatus);
 
+// بند 42/43: التأمين الصحي ومعادلة الشهادة (إدارة)
+const {
+  upsertStudentInsurance,
+  upsertStudentEquivalency,
+} = require("../controllers/studentController");
+router.put("/students/:studentId/insurance", upsertStudentInsurance);
+router.put("/students/:studentId/equivalency", upsertStudentEquivalency);
+
 module.exports = router;

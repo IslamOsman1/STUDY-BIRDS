@@ -22,6 +22,8 @@ const {
   removeStudentFavorite,
   getOrientationTestResult,
   submitOrientationTest,
+  getStudentInsurance,
+  getStudentEquivalency,
 } = require("../controllers/studentController");
 const {
   getMyRewards,
@@ -70,6 +72,10 @@ router.get("/rewards", getMyRewards);
 // بند 54: المحفظة الإلكترونية
 router.get("/wallet", getMyWallet);
 router.post("/wallet/redeem", redeemWalletCredit);
+
+// بند 42: التأمين الصحي — بند 43: معادلة الشهادة
+router.get("/insurance", getStudentInsurance);
+router.get("/equivalency", getStudentEquivalency);
 
 // بند 40: السكن الطلابي
 router.get("/accommodations", getAccommodationListingsPublic);
