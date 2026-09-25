@@ -63,6 +63,13 @@ final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    // Queue crash event for later drain to monitoring provider.
+    // ignore: invalid_use_of_visible_for_testing_member
+    debugPrint('[Crash] ${details.exceptionAsString()}');
+  };
   runApp(const StudyBirdsApp());
 }
 

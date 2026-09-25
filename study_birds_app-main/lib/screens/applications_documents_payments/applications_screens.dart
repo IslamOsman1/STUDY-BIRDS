@@ -3,6 +3,7 @@ import '../../core/auth_session.dart';
 import 'application_documents_screen.dart';
 import '../../core/app_theme.dart';
 import '../../core/status_info.dart';
+import '../../core/analytics_service.dart';
 import 'application_card_view.dart';
 import '../../core/student_repository.dart';
 import '../services_support/messaging_and_emergency_screens.dart'
@@ -83,6 +84,7 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('applications');
     _load();
   }
 

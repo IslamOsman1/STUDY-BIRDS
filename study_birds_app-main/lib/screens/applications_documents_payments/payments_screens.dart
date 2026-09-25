@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
 import '../../core/notification_scheduler.dart';
+import '../../core/analytics_service.dart';
 
 class InvoiceStatusMeta {
   final String label;
@@ -55,6 +56,7 @@ class _PaymentsSummaryScreenState extends State<PaymentsSummaryScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('payments_summary');
     _load();
   }
 

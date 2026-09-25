@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/app_theme.dart';
 import '../../core/status_info.dart';
 import '../../core/student_repository.dart';
+import '../../core/analytics_service.dart';
 
 /// Maps the backend's document status (legacy 3-value `status`, or the
 /// richer 8-value `detailedStatus` when present) to Arabic label + color.
@@ -109,6 +110,20 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type,
     return false;
   }
 
+  if (context.mounted) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(children: [
+          CircularProgressIndicator(color: AppColors.navy),
+          SizedBox(width: 16),
+          Text('جاري رفع المستند...'),
+        ]),
+      ),
+    );
+  }
+
   try {
     await StudentRepository.instance.uploadDocument(
         fileBytes: file.bytes!,
@@ -117,6 +132,7 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type,
         replaces: replaces,
         translationOf: translationOf);
     if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('تم رفع المستند بنجاح'),
           backgroundColor: AppColors.success));
@@ -124,6 +140,7 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type,
     return true;
   } catch (_) {
     if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('تعذر رفع المستند، حاول مرة أخرى'),
           backgroundColor: AppColors.danger));
@@ -188,6 +205,7 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('my_documents');
     _load();
   }
 

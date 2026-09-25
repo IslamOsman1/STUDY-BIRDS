@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/animations.dart';
 import '../../core/student_repository.dart';
@@ -42,6 +43,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   DashboardOverview? _overview;
   bool _loading = true;
   String? _error;
+  Timer? _pollTimer;
 
   // Mock — in production this list comes from the admin panel/CMS (spec
   // points 75/76). No /banners endpoint exists on the backend yet.
@@ -61,6 +63,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     super.initState();
     _load();
     AnalyticsService.instance.screenView('home_dashboard');
+    _pollTimer = Timer.periodic(const Duration(minutes: 3), (_) {
+      StudentRepository.instance
+          .getOverview(forceRefresh: true)
+          .then((data) { if (mounted) setState(() => _overview = data); })
+          .catchError((_) {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {

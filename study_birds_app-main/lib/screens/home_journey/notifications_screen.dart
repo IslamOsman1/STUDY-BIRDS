@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
+import '../../core/analytics_service.dart';
 import '../services_support/services_consultation_screens.dart';
 import '../services_support/support_team_ai_screens.dart';
 import '../services_support/community_screen.dart';
@@ -92,6 +93,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('notifications');
     _load();
   }
 

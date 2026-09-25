@@ -1,5 +1,5 @@
 import 'package:url_launcher/url_launcher.dart';
-import '../home_journey/notifications_screen.dart';
+import 'notification_preferences_screen.dart';
 import 'package:flutter/services.dart';
 import '../applications_documents_payments/payments_screens.dart';
 import 'package:flutter/material.dart';
@@ -375,15 +375,17 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           AppCard(
-            onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const NotificationPreferencesScreen())),
             child: Row(
               children: const [
                 Icon(Icons.notifications_none_rounded, color: AppColors.navy),
                 SizedBox(width: 12),
                 Expanded(
-                    child: Text('الإشعارات', style: AppTextStyles.cardTitle)),
-                Icon(Icons.chevron_left),
+                    child: Text('تفضيلات الإشعارات',
+                        style: AppTextStyles.cardTitle)),
+                Icon(Icons.arrow_back_ios_new_rounded,
+                    size: 14, color: AppColors.textSecondary),
               ],
             ),
           ),
