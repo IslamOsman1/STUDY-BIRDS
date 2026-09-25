@@ -128,91 +128,179 @@ class _CountriesExplorerScreenState extends State<CountriesExplorerScreen> {
   }
 }
 
-class CountryDetailScreen extends StatelessWidget {
+class CountryDetailScreen extends StatefulWidget {
   final Map<String, dynamic> country;
   const CountryDetailScreen({super.key, required this.country});
+  @override
+  State<CountryDetailScreen> createState() => _CountryDetailScreenState();
+}
+
+class _CountryDetailScreenState extends State<CountryDetailScreen> {
+  late Map<String, dynamic> _country;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _country = widget.country;
+  }
+
+  Future<void> _load() async {
+    if (_country['_id'] == null) return;
+    setState(() => _loading = true);
+    try {
+      final list = await CatalogRepository.instance.getCountries();
+      final updated = list.firstWhere(
+              (c) => (c as Map)['_id'] == _country['_id'],
+              orElse: () => _country) as Map<String, dynamic>;
+      if (mounted) setState(() => _country = updated);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Widget _infoSection(String title, String body) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Text(title, style: AppTextStyles.sectionLabel),
+        const SizedBox(height: 10),
+        AppCard(child: Text(body, style: AppTextStyles.body)),
+      ]);
 
   @override
   Widget build(BuildContext context) {
-    final description = country['description'] as String?;
-    final visaNotes = country['visaNotes'] as String?;
-    final heroImage = catalogAssetUrl(country['heroImage']);
+    final description = _country['description'] as String?;
+    final visaNotes = _country['visaNotes'] as String?;
+    final livingCostNotes = _country['livingCostNotes'] as String?;
+    final housingNotes = _country['housingNotes'] as String?;
+    final studentLifeNotes = _country['studentLifeNotes'] as String?;
+    final transportNotes = _country['transportNotes'] as String?;
+    final healthInsuranceNotes = _country['healthInsuranceNotes'] as String?;
+    final language = _country['language'] as String?;
+    final currency = _country['currency'] as String?;
+    final faqs = _country['faqs'] is List ? _country['faqs'] as List : null;
+    final heroImage = catalogAssetUrl(_country['heroImage']);
 
     return AppScaffold(
-      title: country['name'] as String? ?? 'دولة',
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            height: 110,
-            decoration: BoxDecoration(
-                color: AppColors.navy.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(AppRadius.card)),
-            child: heroImage != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                    child: Image.network(
-                      heroImage,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      errorBuilder: (_, __, ___) => const Center(
-                          child: Icon(Icons.flag_rounded,
-                              size: 40, color: AppColors.navy)),
+      title: _country['name'] as String? ?? 'دولة',
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState()
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  Container(
+                    height: 110,
+                    decoration: BoxDecoration(
+                        color: AppColors.navy.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(AppRadius.card)),
+                    child: heroImage != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(AppRadius.card),
+                            child: Image.network(
+                              heroImage,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              errorBuilder: (_, __, ___) => const Center(
+                                  child: Icon(Icons.flag_rounded,
+                                      size: 40, color: AppColors.navy)),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(Icons.flag_rounded,
+                                size: 40, color: AppColors.navy)),
+                  ),
+                  const SizedBox(height: 16),
+                  if (description != null && description.isNotEmpty) ...[
+                    AppCard(child: Text(description, style: AppTextStyles.body)),
+                    const SizedBox(height: 12),
+                  ],
+                  AppCard(
+                    child: Wrap(
+                      spacing: 20,
+                      runSpacing: 10,
+                      children: [
+                        _Fact(
+                            label: 'عدد الجامعات',
+                            value: '${_country['universityCount'] ?? 0}'),
+                        _Fact(
+                            label: 'عدد التخصصات',
+                            value: '${_country['specialtyCount'] ?? 0}'),
+                        if (_country['averageTuition'] != null)
+                          _Fact(
+                              label: 'متوسط الرسوم السنوية',
+                              value: '\$${_country['averageTuition']}'),
+                        if (language != null && language.isNotEmpty)
+                          _Fact(label: 'لغة الدراسة', value: language),
+                        if (currency != null && currency.isNotEmpty)
+                          _Fact(label: 'العملة', value: currency),
+                      ],
                     ),
-                  )
-                : const Center(
-                    child: Icon(Icons.flag_rounded,
-                        size: 40, color: AppColors.navy)),
-          ),
-          const SizedBox(height: 16),
-          if (description != null && description.isNotEmpty) ...[
-            AppCard(child: Text(description, style: AppTextStyles.body)),
-            const SizedBox(height: 12),
-          ],
-          AppCard(
-            child: Wrap(
-              spacing: 20,
-              runSpacing: 10,
-              children: [
-                _Fact(
-                    label: 'عدد الجامعات',
-                    value: '${country['universityCount'] ?? 0}'),
-                _Fact(
-                    label: 'عدد التخصصات',
-                    value: '${country['specialtyCount'] ?? 0}'),
-                if (country['averageTuition'] != null)
-                  _Fact(
-                      label: 'متوسط الرسوم',
-                      value: '\$${country['averageTuition']}'),
-              ],
-            ),
-          ),
-          if (visaNotes != null && visaNotes.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text('ملاحظات التأشيرة', style: AppTextStyles.sectionLabel),
-            const SizedBox(height: 10),
-            AppCard(child: Text(visaNotes, style: AppTextStyles.body)),
-          ],
-          ...catalogArticleSections(country),
-          const SizedBox(height: 16),
-          AppCard(
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => UniversitiesExplorerScreen(
-                    countryId: country['_id'] as String?))),
-            child: Row(
-              children: [
-                const Icon(Icons.account_balance_rounded,
-                    color: AppColors.navy, size: 20),
-                const SizedBox(width: 12),
-                const Expanded(
-                    child: Text('عرض جامعات هذه الدولة',
-                        style: AppTextStyles.cardTitle)),
-                const Icon(Icons.arrow_back_ios_new_rounded,
-                    size: 14, color: AppColors.textSecondary),
-              ],
-            ),
-          ),
-        ],
+                  ),
+                  if (visaNotes != null && visaNotes.isNotEmpty)
+                    _infoSection('إجراءات التأشيرة', visaNotes),
+                  if (livingCostNotes != null && livingCostNotes.isNotEmpty)
+                    _infoSection('تكاليف المعيشة والدراسة', livingCostNotes),
+                  if (housingNotes != null && housingNotes.isNotEmpty)
+                    _infoSection('السكن الطلابي', housingNotes),
+                  if (transportNotes != null && transportNotes.isNotEmpty)
+                    _infoSection('وسائل النقل', transportNotes),
+                  if (healthInsuranceNotes != null &&
+                      healthInsuranceNotes.isNotEmpty)
+                    _infoSection('التأمين الصحي', healthInsuranceNotes),
+                  if (studentLifeNotes != null && studentLifeNotes.isNotEmpty)
+                    _infoSection('الحياة الطلابية', studentLifeNotes),
+                  if (faqs != null && faqs.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text('الأسئلة الشائعة',
+                        style: AppTextStyles.sectionLabel),
+                    const SizedBox(height: 10),
+                    for (final faq in faqs)
+                      if (faq is Map)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: AppCard(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                if ((faq['question'] as String?)?.isNotEmpty ==
+                                    true)
+                                  Text(faq['question'] as String,
+                                      style: AppTextStyles.cardTitle),
+                                if ((faq['answer'] as String?)?.isNotEmpty ==
+                                    true) ...[
+                                  const SizedBox(height: 8),
+                                  Text(faq['answer'] as String,
+                                      style: AppTextStyles.body),
+                                ],
+                              ])),
+                        ),
+                  ],
+                  ...catalogArticleSections(_country),
+                  const SizedBox(height: 16),
+                  AppCard(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => UniversitiesExplorerScreen(
+                            countryId: _country['_id'] as String?))),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.account_balance_rounded,
+                            color: AppColors.navy, size: 20),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                            child: Text('عرض جامعات هذه الدولة',
+                                style: AppTextStyles.cardTitle)),
+                        const Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 14, color: AppColors.textSecondary),
+                      ],
+                    ),
+                  ),
+                ]),
       ),
     );
   }

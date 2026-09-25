@@ -102,6 +102,12 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type,
           const SnackBar(content: Text('تعذر قراءة الملف المختار')));
     return false;
   }
+  if (file.size > 10 * 1024 * 1024) {
+    if (context.mounted)
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('حجم الملف كبير جدًا (الحد الأقصى 10 ميجابايت)')));
+    return false;
+  }
 
   try {
     await StudentRepository.instance.uploadDocument(
@@ -123,6 +129,46 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type,
           backgroundColor: AppColors.danger));
     }
     return false;
+  }
+}
+
+class _DocThumb extends StatelessWidget {
+  final Map<String, dynamic> document;
+  const _DocThumb({required this.document});
+  @override
+  Widget build(BuildContext context) {
+    final name = (document['fileName'] as String? ?? '').toLowerCase();
+    final isPdf = name.endsWith('.pdf');
+    final isImg = name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png');
+    final thumbUrl = document['thumbnailUrl'] as String?;
+    final color = isPdf ? AppColors.danger : isImg ? AppColors.orange : AppColors.navy;
+    final icon = isPdf
+        ? Icons.picture_as_pdf_outlined
+        : isImg
+            ? Icons.image_outlined
+            : Icons.insert_drive_file_outlined;
+    if (isImg && thumbUrl != null && thumbUrl.isNotEmpty) {
+      return ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.network(thumbUrl,
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Icon(icon, color: color, size: 19))));
+    }
+    return Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, color: color, size: 19));
   }
 }
 
@@ -260,17 +306,7 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                           },
                           child: Row(
                             children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                    color: AppColors.navy.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: const Icon(
-                                    Icons.insert_drive_file_outlined,
-                                    color: AppColors.navy,
-                                    size: 19),
-                              ),
+                              _DocThumb(document: d),
                               const SizedBox(width: 12),
                               Expanded(
                                   child: Column(
