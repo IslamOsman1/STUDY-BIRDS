@@ -421,10 +421,150 @@ class SupportTicketDetailScreen extends StatelessWidget {
   }
 }
 
-class MyTeamScreen extends StatelessWidget {
+class MyTeamScreen extends StatefulWidget {
   const MyTeamScreen({super.key});
   @override
-  Widget build(BuildContext context) => const ConversationThreadScreen();
+  State<MyTeamScreen> createState() => _MyTeamScreenState();
+}
+
+class _MyTeamScreenState extends State<MyTeamScreen> {
+  DashboardOverview? _overview;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final data = await StudentRepository.instance.getOverview();
+      if (mounted) setState(() => _overview = data);
+    } catch (e) {
+      if (mounted) setState(() => _error = 'تعذر تحميل بيانات الفريق.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final home = _overview?.home;
+    final consultantName = home?['consultantName'] as String?
+        ?? home?['consultant'] as String?
+        ?? _overview?.profile?['consultantName'] as String?;
+
+    return AppScaffold(
+      title: 'فريقي',
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري تحميل الفريق...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : ListView(
+                    padding: const EdgeInsets.all(16),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      const Text(
+                          'هذا هو الفريق المخصص لك في Study Birds. يمكنك التواصل معهم مباشرة عبر المحادثة.',
+                          style: AppTextStyles.body),
+                      const SizedBox(height: 20),
+                      _TeamMemberCard(
+                        role: 'المستشار التعليمي',
+                        name: consultantName?.isNotEmpty == true
+                            ? consultantName!
+                            : 'سيتم تعيين مستشارك قريبًا',
+                        icon: Icons.school_rounded,
+                        available: consultantName?.isNotEmpty == true,
+                        onMessage: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const ConversationThreadScreen())),
+                      ),
+                      const SizedBox(height: 12),
+                      _TeamMemberCard(
+                        role: 'مسؤول القبول',
+                        name: 'فريق القبول',
+                        icon: Icons.assignment_ind_rounded,
+                        available: true,
+                        onMessage: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const ConversationThreadScreen())),
+                      ),
+                      const SizedBox(height: 12),
+                      _TeamMemberCard(
+                        role: 'منسق الدعم',
+                        name: 'فريق الدعم',
+                        icon: Icons.support_agent_rounded,
+                        available: true,
+                        onMessage: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const ConversationThreadScreen())),
+                      ),
+                    ],
+                  ),
+      ),
+    );
+  }
+}
+
+class _TeamMemberCard extends StatelessWidget {
+  final String role;
+  final String name;
+  final IconData icon;
+  final bool available;
+  final VoidCallback onMessage;
+
+  const _TeamMemberCard({
+    required this.role,
+    required this.name,
+    required this.icon,
+    required this.available,
+    required this.onMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+                color: AppColors.navy.withValues(alpha: 0.08),
+                shape: BoxShape.circle),
+            child: Icon(icon, color: AppColors.navy, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(role, style: AppTextStyles.caption),
+                const SizedBox(height: 2),
+                Text(name, style: AppTextStyles.cardTitle),
+              ],
+            ),
+          ),
+          if (available)
+            IconButton(
+              onPressed: onMessage,
+              icon: const Icon(Icons.chat_bubble_outline_rounded,
+                  color: AppColors.navy),
+              tooltip: 'مراسلة',
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class BirdAIChatScreen extends StatelessWidget {
