@@ -433,19 +433,20 @@ class _AlumniNetworkScreenState extends State<AlumniNetworkScreen> {
         ),
       );
 
-  List<Widget> _alumniCards(BuildContext context) => const [
-        _InfoCard(
+  List<Widget> _alumniCards(BuildContext context) => [
+        const _InfoCard(
           icon: Icons.work_outline_rounded,
           title: 'فرص العمل والتدريب',
           body:
               'نربطك بأفضل فرص العمل والتدريب المهني في مجالك بعد التخرج. ترقّب الإعلانات في مجتمع الطلاب.',
         ),
-        SizedBox(height: 12),
-        _InfoCard(
+        const SizedBox(height: 12),
+        _TappableInfoCard(
           icon: Icons.school_outlined,
           title: 'منح الدراسات العليا',
-          body:
-              'فرص منح الماجستير والدكتوراه والبرامج المتقدمة. متابعة منتظمة من فريق Study Birds.',
+          body: 'تصفّح المنح المتاحة وقدّم طلبك مباشرة.',
+          onTap: (ctx) => Navigator.of(ctx).push(
+              MaterialPageRoute(builder: (_) => const ScholarshipsScreen())),
         ),
       ];
 }
@@ -478,4 +479,375 @@ class _InfoCard extends StatelessWidget {
               ])),
         ]),
       );
+}
+
+class _TappableInfoCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final void Function(BuildContext) onTap;
+  const _TappableInfoCard(
+      {required this.icon,
+      required this.title,
+      required this.body,
+      required this.onTap});
+  @override
+  Widget build(BuildContext context) => AppCard(
+        onTap: () => onTap(context),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+                color: AppColors.navy.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, color: AppColors.navy, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(title, style: AppTextStyles.cardTitle),
+                const SizedBox(height: 4),
+                Text(body, style: AppTextStyles.body),
+              ])),
+          const Icon(Icons.arrow_back_ios_new_rounded,
+              size: 14, color: AppColors.textSecondary),
+        ]),
+      );
+}
+
+// ─── شاشة المنح الدراسية ──────────────────────────────────────────────────────
+
+class ScholarshipsScreen extends StatefulWidget {
+  const ScholarshipsScreen({super.key});
+  @override
+  State<ScholarshipsScreen> createState() => _ScholarshipsScreenState();
+}
+
+class _ScholarshipsScreenState extends State<ScholarshipsScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs;
+  List<dynamic> _all = [];
+  List<dynamic> _mine = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = TabController(length: 2, vsync: this);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final token = AuthSession.instance.token;
+      final results = await Future.wait([
+        ApiClient.instance.get('/scholarships'),
+        ApiClient.instance.get('/scholarships/mine', token: token),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _all = results[0] as List? ?? [];
+        _mine = results[1] as List? ?? [];
+      });
+    } catch (e) {
+      if (mounted) setState(() => _error = 'تعذر تحميل المنح. أعد المحاولة.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.navy,
+            elevation: 0,
+            centerTitle: true,
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: const Text(
+              'المنح الدراسية',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 17),
+            ),
+            bottom: TabBar(
+              controller: _tabs,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              indicatorColor: Colors.white,
+              tabs: const [Tab(text: 'المنح المتاحة'), Tab(text: 'طلباتي')],
+            ),
+          ),
+          body: SafeArea(
+            child: _loading
+                ? const LoadingState(message: 'جاري تحميل المنح...')
+                : _error != null
+                    ? ErrorState(message: _error!, onRetry: _load)
+                    : RefreshIndicator(
+                        onRefresh: _load,
+                        color: AppColors.navy,
+                        child: TabBarView(
+                          controller: _tabs,
+                          children: [
+                            _AllScholarshipsTab(
+                                items: _all,
+                                appliedIds: _mine
+                                    .map((e) =>
+                                        '${(e is Map && e['scholarship'] is Map) ? (e['scholarship'] as Map)['_id'] : ''}')
+                                    .toSet(),
+                                onApplied: _load),
+                            _MyScholarshipsTab(items: _mine),
+                          ],
+                        ),
+                      ),
+          ),
+        ),
+      );
+}
+
+class _AllScholarshipsTab extends StatelessWidget {
+  final List items;
+  final Set<String> appliedIds;
+  final VoidCallback onApplied;
+  const _AllScholarshipsTab(
+      {required this.items,
+      required this.appliedIds,
+      required this.onApplied});
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const Center(
+        child: EmptyState(
+          icon: Icons.school_outlined,
+          title: 'لا توجد منح متاحة حاليًا',
+          message: 'تابع هذه الصفحة للاطلاع على المنح عند إضافتها.',
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: items.length,
+      itemBuilder: (ctx, i) {
+        final item = items[i] as Map;
+        final id = '${item['_id']}';
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _ScholarshipCard(
+            item: item,
+            applied: appliedIds.contains(id),
+            onApplied: onApplied,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ScholarshipCard extends StatefulWidget {
+  final Map item;
+  final bool applied;
+  final VoidCallback onApplied;
+  const _ScholarshipCard(
+      {required this.item, required this.applied, required this.onApplied});
+
+  @override
+  State<_ScholarshipCard> createState() => _ScholarshipCardState();
+}
+
+class _ScholarshipCardState extends State<_ScholarshipCard> {
+  bool _applying = false;
+
+  Future<void> _apply() async {
+    setState(() => _applying = true);
+    try {
+      await ApiClient.instance.post(
+        '/scholarships/${widget.item['_id']}/apply',
+        token: AuthSession.instance.token,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم تقديم طلب المنحة بنجاح')),
+        );
+        widget.onApplied();
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('حدث خطأ. أعد المحاولة.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _applying = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.item;
+    final deadline = s['deadline'] != null ? _fmtDate(s['deadline']) : '';
+    return AppCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('${s['title']}', style: AppTextStyles.cardTitle),
+        const SizedBox(height: 6),
+        if ('${s['university']}'.isNotEmpty) ...[
+          Row(children: [
+            const Icon(Icons.school_rounded,
+                size: 14, color: AppColors.textSecondary),
+            const SizedBox(width: 4),
+            Text('${s['university']}', style: AppTextStyles.caption),
+            if ('${s['country']}'.isNotEmpty) ...[
+              const Text(' · ', style: AppTextStyles.caption),
+              Text('${s['country']}', style: AppTextStyles.caption),
+            ],
+          ]),
+          const SizedBox(height: 4),
+        ],
+        if ('${s['degree']}'.isNotEmpty) ...[
+          Text('الدرجة: ${s['degree']}', style: AppTextStyles.caption),
+          const SizedBox(height: 4),
+        ],
+        if ('${s['funding']}'.isNotEmpty) ...[
+          Text('التمويل: ${s['funding']}',
+              style: const TextStyle(
+                  color: AppColors.success,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13)),
+          const SizedBox(height: 4),
+        ],
+        if ('${s['eligibility']}'.isNotEmpty) ...[
+          const SizedBox(height: 2),
+          Text('الشروط: ${s['eligibility']}',
+              style: AppTextStyles.body, maxLines: 2, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 4),
+        ],
+        if (deadline.isNotEmpty) ...[
+          Row(children: [
+            const Icon(Icons.event_rounded,
+                size: 14, color: AppColors.warning),
+            const SizedBox(width: 4),
+            Text('آخر موعد: $deadline',
+                style: const TextStyle(
+                    color: AppColors.warning, fontSize: 12)),
+          ]),
+          const SizedBox(height: 8),
+        ] else
+          const SizedBox(height: 8),
+        widget.applied
+            ? Row(children: [
+                const Icon(Icons.check_circle_rounded,
+                    size: 18, color: AppColors.success),
+                const SizedBox(width: 6),
+                const Text('تم التقديم',
+                    style: TextStyle(
+                        color: AppColors.success, fontWeight: FontWeight.w600)),
+              ])
+            : _applying
+                ? const Center(
+                    child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.navy)))
+                : ElevatedButton(
+                    onPressed: _apply,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.navy,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 40),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.button)),
+                    ),
+                    child: const Text('تقديم طلب المنحة'),
+                  ),
+      ]),
+    );
+  }
+}
+
+class _MyScholarshipsTab extends StatelessWidget {
+  final List items;
+  const _MyScholarshipsTab({required this.items});
+
+  static const _statusLabels = {
+    'submitted': 'تم التقديم',
+    'reviewing': 'قيد المراجعة',
+    'accepted': 'مقبول',
+    'rejected': 'مرفوض',
+  };
+  static const _statusColors = {
+    'submitted': AppColors.warning,
+    'reviewing': AppColors.info,
+    'accepted': AppColors.success,
+    'rejected': AppColors.danger,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const Center(
+        child: EmptyState(
+          icon: Icons.assignment_outlined,
+          title: 'لم تتقدم لأي منحة بعد',
+          message: 'تصفّح المنح المتاحة وقدّم طلبك.',
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: items.length,
+      itemBuilder: (ctx, i) {
+        final e = items[i] as Map;
+        final s = e['scholarship'] is Map ? e['scholarship'] as Map : null;
+        final status = '${e['status'] ?? 'submitted'}';
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: AppCard(
+            child: Row(children: [
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(s != null ? '${s['title']}' : 'منحة',
+                        style: AppTextStyles.cardTitle),
+                    if (s != null && '${s['university']}'.isNotEmpty)
+                      Text('${s['university']}',
+                          style: AppTextStyles.caption),
+                    Text(_fmtDate(e['createdAt']),
+                        style: AppTextStyles.caption),
+                  ])),
+              StatusBadge(
+                label: _statusLabels[status] ?? status,
+                color: _statusColors[status] ?? AppColors.neutral,
+              ),
+            ]),
+          ),
+        );
+      },
+    );
+  }
 }

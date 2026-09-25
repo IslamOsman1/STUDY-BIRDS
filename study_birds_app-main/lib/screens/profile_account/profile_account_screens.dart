@@ -318,6 +318,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 size: 14, color: AppColors.textSecondary)
           ]),
         ),
+        AppCard(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const ScholarshipsScreen())),
+          child: Row(children: const [
+            Icon(Icons.workspace_premium_outlined, color: AppColors.navy),
+            SizedBox(width: 12),
+            Expanded(
+                child:
+                    Text('المنح الدراسية', style: AppTextStyles.cardTitle)),
+            Icon(Icons.arrow_back_ios_new_rounded,
+                size: 14, color: AppColors.textSecondary)
+          ]),
+        ),
       ],
     );
   }
