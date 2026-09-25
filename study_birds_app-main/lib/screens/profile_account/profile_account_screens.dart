@@ -258,6 +258,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ]),
         ),
         AppCard(
+          onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const StudentWalletScreen())),
+          child: Row(children: const [
+            Icon(Icons.account_balance_wallet_rounded, color: AppColors.navy),
+            SizedBox(width: 12),
+            Expanded(
+                child: Text('محفظتي الإلكترونية', style: AppTextStyles.cardTitle)),
+            Icon(Icons.arrow_back_ios_new_rounded,
+                size: 14, color: AppColors.textSecondary)
+          ]),
+        ),
+        AppCard(
           onTap: () => Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => const MyWalletScreen())),
           child: Row(children: const [

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_client.dart';
@@ -477,4 +478,287 @@ class _CurrencyDropdown extends StatelessWidget {
           ),
         ],
       );
+}
+
+// ─── بند 54: المحفظة الإلكترونية ─────────────────────────────────────────────
+
+class StudentWalletScreen extends StatefulWidget {
+  const StudentWalletScreen({super.key});
+  @override
+  State<StudentWalletScreen> createState() => _StudentWalletScreenState();
+}
+
+class _StudentWalletScreenState extends State<StudentWalletScreen> {
+  Map<String, dynamic>? _data;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await ApiClient.instance.get(
+        '/students/wallet',
+        token: AuthSession.instance.token,
+      );
+      if (!mounted) return;
+      setState(() => _data = data as Map<String, dynamic>);
+    } catch (e) {
+      if (mounted) setState(() => _error = 'تعذر تحميل المحفظة. أعد المحاولة.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AppScaffold(
+        title: 'محفظتي',
+        body: RefreshIndicator(
+          onRefresh: _load,
+          color: AppColors.navy,
+          child: _loading
+              ? const LoadingState(message: 'جاري تحميل المحفظة...')
+              : _error != null
+                  ? ErrorState(message: _error!, onRetry: _load)
+                  : _buildBody(),
+        ),
+      );
+
+  Widget _buildBody() {
+    final d = _data!;
+    final balance = (d['balance'] as num?)?.toDouble() ?? 0;
+    final referralCode = '${d['referralCode'] ?? ''}';
+    final referrals = (d['referrals'] as List?) ?? [];
+    final transactions = (d['transactions'] as List?) ?? [];
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        _WalletBalanceCard(balance: balance, referralCode: referralCode),
+        const SizedBox(height: 20),
+        if (referrals.isNotEmpty) ...[
+          const Text('إحالاتك', style: AppTextStyles.sectionLabel),
+          const SizedBox(height: 10),
+          AppCard(
+            child: Column(
+              children: [
+                for (int i = 0; i < referrals.length; i++) ...[
+                  if (i > 0) const Divider(height: 1),
+                  _ReferralRow(referral: referrals[i] as Map),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+        const Text('حركات المحفظة', style: AppTextStyles.sectionLabel),
+        const SizedBox(height: 10),
+        if (transactions.isEmpty)
+          const AppCard(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: EmptyState(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'لا توجد حركات بعد',
+                  message: 'ستظهر هنا عمليات الإضافة والخصم من محفظتك.',
+                ),
+              ),
+            ),
+          )
+        else
+          AppCard(
+            child: Column(
+              children: [
+                for (int i = 0; i < transactions.length; i++) ...[
+                  if (i > 0) const Divider(height: 1),
+                  _TransactionRow(tx: transactions[i] as Map),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _WalletBalanceCard extends StatelessWidget {
+  final double balance;
+  final String referralCode;
+  const _WalletBalanceCard({required this.balance, required this.referralCode});
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+        child: Column(children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.navy, Color(0xFF3D7DC8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(36),
+            ),
+            child: const Icon(Icons.account_balance_wallet_rounded,
+                color: Colors.white, size: 36),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            balance.toStringAsFixed(2),
+            style: const TextStyle(
+                fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.navy),
+          ),
+          const Text('نقطة رصيد', style: AppTextStyles.caption),
+          if (referralCode.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            const Text('كود الإحالة الخاص بك', style: AppTextStyles.caption),
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: referralCode));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تم نسخ الكود')),
+                );
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.navy.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(referralCode,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.navy,
+                          letterSpacing: 2)),
+                  const SizedBox(width: 10),
+                  const Icon(Icons.copy_rounded,
+                      size: 18, color: AppColors.navy),
+                ]),
+              ),
+            ),
+          ],
+        ]),
+      );
+}
+
+class _ReferralRow extends StatelessWidget {
+  final Map referral;
+  const _ReferralRow({required this.referral});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = '${referral['name'] ?? 'طالب'}';
+    final status = '${referral['status'] ?? 'pending'}';
+    final date = _fmtDate(referral['createdAt']);
+    final isQualified = status == 'qualified';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor:
+              (isQualified ? AppColors.success : AppColors.warning).withValues(alpha: 0.15),
+          child: Icon(
+            isQualified ? Icons.check_rounded : Icons.hourglass_top_rounded,
+            size: 18,
+            color: isQualified ? AppColors.success : AppColors.warning,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(name, style: AppTextStyles.cardTitle),
+          if (date.isNotEmpty) Text(date, style: AppTextStyles.caption),
+        ])),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: (isQualified ? AppColors.success : AppColors.warning)
+                .withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            isQualified ? 'مؤهّل' : 'قيد الانتظار',
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isQualified ? AppColors.success : AppColors.warning),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  String _fmtDate(dynamic raw) {
+    final d = DateTime.tryParse('$raw')?.toLocal();
+    if (d == null) return '';
+    return '${d.day}/${d.month}/${d.year}';
+  }
+}
+
+class _TransactionRow extends StatelessWidget {
+  final Map tx;
+  const _TransactionRow({required this.tx});
+
+  @override
+  Widget build(BuildContext context) {
+    final direction = '${tx['direction'] ?? 'credit'}';
+    final amount = (tx['amount'] as num?)?.toDouble() ?? 0;
+    final notes = '${tx['notes'] ?? ''}';
+    final date = _fmtDate(tx['createdAt']);
+    final isCredit = direction == 'credit';
+    final color = isCredit ? AppColors.success : AppColors.danger;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: color.withValues(alpha: 0.12),
+          child: Icon(
+            isCredit ? Icons.add_rounded : Icons.remove_rounded,
+            size: 20,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(
+            notes.isNotEmpty ? notes : (isCredit ? 'إضافة رصيد' : 'خصم رصيد'),
+            style: AppTextStyles.body,
+          ),
+          if (date.isNotEmpty) Text(date, style: AppTextStyles.caption),
+        ])),
+        Text(
+          '${isCredit ? '+' : '-'}${amount.toStringAsFixed(0)}',
+          style: TextStyle(
+              color: color, fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+      ]),
+    );
+  }
+
+  String _fmtDate(dynamic raw) {
+    final d = DateTime.tryParse('$raw')?.toLocal();
+    if (d == null) return '';
+    return '${d.day}/${d.month}/${d.year}';
+  }
 }
