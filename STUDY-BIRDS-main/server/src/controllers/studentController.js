@@ -128,6 +128,14 @@ const updateProfile = asyncHandler(async (req, res) => {
 
   await user.save();
 
+  // بند 8: حقول ولي الأمر وجهة الاتصال الطارئة واللغات
+  const {
+    parentInfo,
+    emergencyContact,
+    nativeLanguage,
+    otherLanguages,
+  } = req.body;
+
   const profilePayload = {
     phone,
     englishFullName: String(englishFullName || "").trim(),
@@ -144,6 +152,31 @@ const updateProfile = asyncHandler(async (req, res) => {
     bio,
     address,
   };
+
+  if (parentInfo && typeof parentInfo === "object") {
+    profilePayload.parentInfo = {
+      name: String(parentInfo.name || "").trim().slice(0, 200),
+      phone: String(parentInfo.phone || "").trim().slice(0, 30),
+      relationship: String(parentInfo.relationship || "").trim().slice(0, 100),
+    };
+  }
+  if (emergencyContact && typeof emergencyContact === "object") {
+    profilePayload.emergencyContact = {
+      name: String(emergencyContact.name || "").trim().slice(0, 200),
+      phone: String(emergencyContact.phone || "").trim().slice(0, 30),
+      relationship: String(emergencyContact.relationship || "").trim().slice(0, 100),
+    };
+  }
+  if (typeof nativeLanguage === "string") {
+    profilePayload.nativeLanguage = nativeLanguage.trim().slice(0, 80);
+  }
+  if (Array.isArray(otherLanguages)) {
+    profilePayload.otherLanguages = otherLanguages
+      .filter((l) => typeof l === "string")
+      .map((l) => l.trim().slice(0, 80))
+      .filter(Boolean)
+      .slice(0, 20);
+  }
 
   if (typeof applicationStage === "string" && applicationStage.trim()) {
     profilePayload.applicationStage = applicationStage.trim();

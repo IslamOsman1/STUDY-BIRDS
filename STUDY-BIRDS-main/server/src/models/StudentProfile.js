@@ -33,6 +33,19 @@ const studentProfileSchema = new mongoose.Schema(
     website: String,
     location: String,
     taxId: String,
+    // بند 8: معلومات ولي الأمر وجهة الاتصال الطارئة واللغات
+    parentInfo: {
+      name: { type: String, trim: true, maxlength: 200, default: "" },
+      phone: { type: String, trim: true, maxlength: 30, default: "" },
+      relationship: { type: String, trim: true, maxlength: 100, default: "" },
+    },
+    emergencyContact: {
+      name: { type: String, trim: true, maxlength: 200, default: "" },
+      phone: { type: String, trim: true, maxlength: 30, default: "" },
+      relationship: { type: String, trim: true, maxlength: 100, default: "" },
+    },
+    nativeLanguage: { type: String, trim: true, maxlength: 80, default: "" },
+    otherLanguages: { type: [String], default: [] },
     verificationStatus: {
       type: String,
       enum: ["pending", "verified", "rejected"],
