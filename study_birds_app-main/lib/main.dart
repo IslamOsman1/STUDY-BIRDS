@@ -86,8 +86,9 @@ class _StudyBirdsAppState extends State<StudyBirdsApp> {
     return MaterialApp(
       title: 'Study Birds',
       navigatorKey: rootNavigatorKey,
-      builder: (context, child) =>
-          DeviceLockGate(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => DeviceLockGate(
+          child: OfflineBannerWrapper(
+              child: child ?? const SizedBox.shrink())),
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
 /// Study Birds shared design system.
@@ -515,6 +517,74 @@ class EmptyState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Wraps a [child] and shows a persistent banner at the top when the device
+/// has no internet connection. Listens to connectivity changes in real time.
+///
+/// PRD بند 69 — Offline Banner.
+class OfflineBannerWrapper extends StatefulWidget {
+  final Widget child;
+  const OfflineBannerWrapper({super.key, required this.child});
+
+  @override
+  State<OfflineBannerWrapper> createState() => _OfflineBannerWrapperState();
+}
+
+class _OfflineBannerWrapperState extends State<OfflineBannerWrapper> {
+  bool _offline = false;
+  StreamSubscription<List<ConnectivityResult>>? _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    Connectivity().checkConnectivity().then(_update);
+    _sub = Connectivity().onConnectivityChanged.listen(_update);
+  }
+
+  void _update(List<ConnectivityResult> results) {
+    final offline = results.every((r) => r == ConnectivityResult.none);
+    if (mounted && offline != _offline) setState(() => _offline = offline);
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_offline) return widget.child;
+    return Column(
+      children: [
+        Material(
+          color: AppColors.warning,
+          child: SafeArea(
+            bottom: false,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(children: [
+                const Icon(Icons.wifi_off_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'لا يوجد اتصال بالإنترنت — تعرض البيانات المحفوظة',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ),
+        Expanded(child: widget.child),
+      ],
     );
   }
 }

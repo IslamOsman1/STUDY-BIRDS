@@ -3,6 +3,7 @@ import '../../core/app_theme.dart';
 import '../../core/animations.dart';
 import '../../core/student_repository.dart';
 import '../../core/auth_session.dart';
+import '../../core/analytics_service.dart';
 import '../../main.dart' show RootChooserScreen;
 import '../profile_account/profile_account_screens.dart';
 import 'notifications_screen.dart';
@@ -59,6 +60,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   void initState() {
     super.initState();
     _load();
+    AnalyticsService.instance.screenView('home_dashboard');
   }
 
   Future<void> _load() async {
