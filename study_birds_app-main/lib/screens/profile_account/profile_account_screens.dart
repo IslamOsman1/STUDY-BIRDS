@@ -11,6 +11,8 @@ import 'edit_profile_screen.dart';
 import 'delete_account_screen.dart';
 import '../services_support/support_team_ai_screens.dart' show SupportCenterScreen;
 import '../universities_programs_countries/explore_hub_screen.dart';
+import 'student_rewards_currency_screens.dart';
+import '../services_support/student_life_alumni_screens.dart';
 
 /// Real Profile screen — fetches GET /api/students/profile. Sections shown
 /// match the ACTUAL StudentProfile schema on the backend; the previous
@@ -244,6 +246,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ]),
         ),
         AppCard(
+          onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const StudentRewardsScreen())),
+          child: Row(children: const [
+            Icon(Icons.workspace_premium_rounded, color: AppColors.navy),
+            SizedBox(width: 12),
+            Expanded(
+                child: Text('مكافآتي', style: AppTextStyles.cardTitle)),
+            Icon(Icons.arrow_back_ios_new_rounded,
+                size: 14, color: AppColors.textSecondary)
+          ]),
+        ),
+        AppCard(
           onTap: () => Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => const MyWalletScreen())),
           child: Row(children: const [
@@ -263,6 +277,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(Icons.favorite_border_rounded, color: AppColors.navy),
             SizedBox(width: 12),
             Expanded(child: Text('المفضلة', style: AppTextStyles.cardTitle)),
+            Icon(Icons.arrow_back_ios_new_rounded,
+                size: 14, color: AppColors.textSecondary)
+          ]),
+        ),
+        AppCard(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const StudentLifeOffersScreen())),
+          child: Row(children: const [
+            Icon(Icons.celebration_rounded, color: AppColors.navy),
+            SizedBox(width: 12),
+            Expanded(
+                child: Text('الحياة الطلابية والفعاليات',
+                    style: AppTextStyles.cardTitle)),
+            Icon(Icons.arrow_back_ios_new_rounded,
+                size: 14, color: AppColors.textSecondary)
+          ]),
+        ),
+        AppCard(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const AlumniNetworkScreen())),
+          child: Row(children: const [
+            Icon(Icons.school_rounded, color: AppColors.navy),
+            SizedBox(width: 12),
+            Expanded(
+                child: Text('شبكة الخريجين', style: AppTextStyles.cardTitle)),
             Icon(Icons.arrow_back_ios_new_rounded,
                 size: 14, color: AppColors.textSecondary)
           ]),
@@ -344,6 +383,21 @@ class SettingsScreen extends StatelessWidget {
                 SizedBox(width: 12),
                 Expanded(child: Text('اللغة', style: AppTextStyles.cardTitle)),
                 Text('العربية', style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+          AppCard(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const CurrencyConverterScreen())),
+            child: Row(
+              children: const [
+                Icon(Icons.currency_exchange_rounded, color: AppColors.navy),
+                SizedBox(width: 12),
+                Expanded(
+                    child: Text('تحويل العملات',
+                        style: AppTextStyles.cardTitle)),
+                Icon(Icons.arrow_back_ios_new_rounded,
+                    size: 14, color: AppColors.textSecondary),
               ],
             ),
           ),
