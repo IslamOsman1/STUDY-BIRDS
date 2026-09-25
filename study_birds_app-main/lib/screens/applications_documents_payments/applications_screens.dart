@@ -114,7 +114,11 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
     return AppScaffold(
       title: 'طلباتي',
       body: _loading
-          ? const LoadingState(message: 'جاري تحميل طلباتك...')
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 4,
+              itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
           : _error != null
               ? ErrorState(message: _error!, onRetry: _load)
               : _apps.isEmpty

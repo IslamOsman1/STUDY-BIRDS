@@ -152,7 +152,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري تحميل الإشعارات...')
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 6,
+                itemBuilder: (_, __) =>
+                    const Padding(padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _notifications.isEmpty

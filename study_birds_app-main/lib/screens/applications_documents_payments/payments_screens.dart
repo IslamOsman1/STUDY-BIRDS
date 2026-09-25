@@ -214,6 +214,9 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.paymentInitiated(
+        '${widget.invoice['_id'] ?? ''}',
+        widget.invoice['amount']?.toDouble() ?? 0.0);
     _schedulePaymentReminder();
   }
 
