@@ -26,6 +26,16 @@ const {
 const {
   getMyRewards,
 } = require("../controllers/studentRewardsController");
+const {
+  getMyWallet,
+  redeemWalletCredit,
+} = require("../controllers/studentWalletController");
+const {
+  getAccommodationListingsPublic,
+  getMyAccommodationBookings,
+  createAccommodationBooking,
+  cancelAccommodationBooking,
+} = require("../controllers/accommodationController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -56,5 +66,15 @@ router.delete("/favorites/:id", removeStudentFavorite);
 router.get("/orientation-test", getOrientationTestResult);
 router.post("/orientation-test", submitOrientationTest);
 router.get("/rewards", getMyRewards);
+
+// بند 54: المحفظة الإلكترونية
+router.get("/wallet", getMyWallet);
+router.post("/wallet/redeem", redeemWalletCredit);
+
+// بند 40: السكن الطلابي
+router.get("/accommodations", getAccommodationListingsPublic);
+router.get("/accommodation-bookings", getMyAccommodationBookings);
+router.post("/accommodation-bookings", createAccommodationBooking);
+router.post("/accommodation-bookings/:id/cancel", cancelAccommodationBooking);
 
 module.exports = router;

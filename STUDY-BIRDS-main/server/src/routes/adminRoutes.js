@@ -216,4 +216,28 @@ router.patch("/employees/:id/role", updateEmployeeRoleAdmin);
 const { creditStudentRewards } = require("../controllers/studentRewardsController");
 router.post("/students/:id/rewards/credit", creditStudentRewards);
 
+// بند 54: المحفظة الإلكترونية (إدارة)
+const {
+  getWalletEntriesAdmin,
+  createWalletAdjustmentAdmin,
+} = require("../controllers/studentWalletController");
+router.get("/wallet-entries", getWalletEntriesAdmin);
+router.post("/wallet-adjustments", createWalletAdjustmentAdmin);
+
+// بند 40: السكن الطلابي (إدارة)
+const {
+  getAccommodationListingsAdmin,
+  createAccommodationListing,
+  updateAccommodationListing,
+  deleteAccommodationListing,
+  getAccommodationBookingsAdmin,
+  updateAccommodationBookingStatus,
+} = require("../controllers/accommodationController");
+router.get("/accommodation-listings", getAccommodationListingsAdmin);
+router.post("/accommodation-listings", createAccommodationListing);
+router.put("/accommodation-listings/:id", updateAccommodationListing);
+router.delete("/accommodation-listings/:id", deleteAccommodationListing);
+router.get("/accommodation-bookings", getAccommodationBookingsAdmin);
+router.patch("/accommodation-bookings/:id/status", updateAccommodationBookingStatus);
+
 module.exports = router;
