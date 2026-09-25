@@ -1,5 +1,6 @@
 import 'core/device_lock.dart';
 import 'core/api_client.dart';
+import 'core/deep_link_service.dart';
 import 'screens/auth/email_challenge_screen.dart';
 import 'package:flutter/material.dart';
 import 'core/app_theme.dart';
@@ -56,15 +57,33 @@ import 'screens/roles/admin_users_access_screen.dart';
 /// already been disposed and its own context is no longer valid.
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-void main() => runApp(const StudyBirdsApp());
+/// Navigator key shared with DeepLinkService so incoming links can push
+/// screens without a BuildContext.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
-class StudyBirdsApp extends StatelessWidget {
+void main() {
+  runApp(const StudyBirdsApp());
+}
+
+class StudyBirdsApp extends StatefulWidget {
   const StudyBirdsApp({super.key});
+
+  @override
+  State<StudyBirdsApp> createState() => _StudyBirdsAppState();
+}
+
+class _StudyBirdsAppState extends State<StudyBirdsApp> {
+  @override
+  void initState() {
+    super.initState();
+    DeepLinkService.instance.init(rootNavigatorKey);
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Study Birds',
+      navigatorKey: rootNavigatorKey,
       builder: (context, child) =>
           DeviceLockGate(child: child ?? const SizedBox.shrink()),
       scaffoldMessengerKey: rootScaffoldMessengerKey,

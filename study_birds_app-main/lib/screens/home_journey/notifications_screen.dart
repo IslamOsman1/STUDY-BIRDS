@@ -12,6 +12,25 @@ import '../visa_travel_accommodation/accommodation_arrival_screens.dart';
 import '../visa_travel_accommodation/visa_travel_screens.dart' show InsuranceScreen, EquivalencyScreen;
 import 'journey_tracker_screen.dart';
 
+/// Returns a short action label for a notification link, or null if no action.
+String? notificationActionLabel(String? link) {
+  if (link == null || !link.startsWith('/student/')) return null;
+  final dest = link.replaceFirst('/student/', '');
+  return switch (dest) {
+    'documents' || 'upload-document' => 'رفع المستند الآن',
+    'payments'                       => 'عرض الفاتورة',
+    'applications'                   => 'عرض الطلب',
+    'support'                        => 'فتح الدعم',
+    'journey' || 'visa'              => 'متابعة الرحلة',
+    'travel' || 'accommodation'      => 'خدمات الوصول',
+    'university-registration'        => 'التسجيل الجامعي',
+    'insurance'                      => 'التأمين الصحي',
+    'equivalency'                    => 'معادلة الشهادة',
+    'consultations'                  => 'حجز استشارة',
+    _                                => null,
+  };
+}
+
 /// Maps a backend notification link (e.g. '/student/documents') to the widget
 /// that should be pushed. Returns null for unknown or non-navigable links.
 Widget? notificationScreenForLink(String? link) {
@@ -151,60 +170,87 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         final createdAt =
                             (n['createdAt'] as String?)?.split('T').first ?? '';
 
+                        final link = n['link'] as String?;
+                        final actionLabel = notificationActionLabel(link);
+                        void navigate() async {
+                          await _markRead(n, i);
+                          if (!context.mounted) return;
+                          final screen = notificationScreenForLink(link);
+                          if (screen != null) {
+                            await Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => screen));
+                          }
+                        }
+
                         return AppCard(
-                          onTap: () async {
-                            await _markRead(n, i);
-                            if (!context.mounted) return;
-                            final screen =
-                                notificationScreenForLink(n['link'] as String?);
-                            if (screen != null) {
-                              await Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => screen));
-                            }
-                          },
-                          child: Row(
+                          onTap: navigate,
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (!isRead)
-                                Container(
-                                  margin:
-                                      const EdgeInsets.only(left: 6, top: 4),
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                      color: AppColors.orange,
-                                      shape: BoxShape.circle),
-                                ),
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                    color: color.withValues(alpha: 0.12),
-                                    shape: BoxShape.circle),
-                                child: Icon(
-                                    _notificationIcon(n['type'] as String?),
-                                    size: 18,
-                                    color: color),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (!isRead)
+                                    Container(
+                                      margin: const EdgeInsets.only(left: 6, top: 4),
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                          color: AppColors.orange,
+                                          shape: BoxShape.circle),
+                                    ),
+                                  Container(
+                                    width: 38,
+                                    height: 38,
+                                    decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.12),
+                                        shape: BoxShape.circle),
+                                    child: Icon(
+                                        _notificationIcon(n['type'] as String?),
+                                        size: 18,
+                                        color: color),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(n['title'] as String? ?? '',
+                                            style: AppTextStyles.body.copyWith(
+                                                fontWeight: isRead
+                                                    ? FontWeight.w400
+                                                    : FontWeight.w700)),
+                                        const SizedBox(height: 2),
+                                        Text(n['message'] as String? ?? '',
+                                            style: AppTextStyles.caption),
+                                        const SizedBox(height: 4),
+                                        Text(createdAt,
+                                            style: AppTextStyles.caption),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(n['title'] as String? ?? '',
-                                        style: AppTextStyles.body.copyWith(
-                                            fontWeight: isRead
-                                                ? FontWeight.w400
-                                                : FontWeight.w700)),
-                                    const SizedBox(height: 2),
-                                    Text(n['message'] as String? ?? '',
-                                        style: AppTextStyles.caption),
-                                    const SizedBox(height: 4),
-                                    Text(createdAt,
-                                        style: AppTextStyles.caption),
-                                  ],
+                              if (actionLabel != null) ...[
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton(
+                                    onPressed: navigate,
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      side: const BorderSide(color: AppColors.navy),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(AppRadius.button)),
+                                    ),
+                                    child: Text(actionLabel,
+                                        style: const TextStyle(
+                                            color: AppColors.navy,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 13)),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/api_client.dart';
 import '../../core/auth_session.dart';
 import '../../core/app_theme.dart';
@@ -651,6 +652,27 @@ class _WalletBalanceCard extends StatelessWidget {
                   const Icon(Icons.copy_rounded,
                       size: 18, color: AppColors.navy),
                 ]),
+              ),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () {
+                final msg = Uri.encodeComponent(
+                    'سجّل في Study Birds باستخدام كود الإحالة الخاص بي: $referralCode 🎓\nhttps://studybirds.app');
+                launchUrl(
+                  Uri.parse('https://wa.me/?text=$msg'),
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+              icon: const Icon(Icons.share_rounded, size: 16),
+              label: const Text('مشاركة عبر واتساب'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.success,
+                side: const BorderSide(color: AppColors.success),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button)),
               ),
             ),
           ],
