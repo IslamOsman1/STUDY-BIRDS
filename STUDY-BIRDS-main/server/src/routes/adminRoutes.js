@@ -212,4 +212,8 @@ router.patch("/university-accounts/:id", updateUniversityAccountAdmin);
 router.get("/employees", getEmployeesAdmin);
 router.patch("/employees/:id/role", updateEmployeeRoleAdmin);
 
+// بند 53: مكافآت الطلاب
+const { creditStudentRewards } = require("../controllers/studentRewardsController");
+router.post("/students/:id/rewards/credit", creditStudentRewards);
+
 module.exports = router;

@@ -23,6 +23,9 @@ const {
   getOrientationTestResult,
   submitOrientationTest,
 } = require("../controllers/studentController");
+const {
+  getMyRewards,
+} = require("../controllers/studentRewardsController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -52,5 +55,6 @@ router.post("/favorites/toggle", toggleStudentFavorite);
 router.delete("/favorites/:id", removeStudentFavorite);
 router.get("/orientation-test", getOrientationTestResult);
 router.post("/orientation-test", submitOrientationTest);
+router.get("/rewards", getMyRewards);
 
 module.exports = router;
