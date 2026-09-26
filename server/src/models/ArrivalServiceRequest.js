@@ -27,6 +27,13 @@ const arrivalServiceRequestSchema = new mongoose.Schema(
       index: true,
     },
     adminNote: String,
+    travelAlert: { type: String, default: "", trim: true },
+    pickup: {
+      status: { type: String, enum: ["not-assigned", "assigned", "en-route", "arrived", "completed"], default: "not-assigned" },
+      driverName: { type: String, default: "", trim: true },
+      driverPhone: { type: String, default: "", trim: true },
+      confirmedAt: Date,
+    },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

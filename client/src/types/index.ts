@@ -1,3 +1,5 @@
+import type { StatusInfo } from "../hooks/useStatusCatalog";
+
 export type Role = "student" | "admin" | "partner" | "parent" | "university" | "employee";
 
 export type EmployeeRole =
@@ -226,6 +228,10 @@ export interface Program extends ArticleContent {
   applicationDeadline?: string;
   intake?: string;
   requirements?: string[];
+  careerOpportunities?: string[];
+  // Returned by GET /programs/:id only (PRD 21).
+  offeredAt?: Array<{ _id: string; title: string; university?: { name: string; city?: string; country?: { name: string } } }>;
+  relatedPrograms?: Array<{ _id: string; title: string; university?: { name: string } }>;
   summary?: string;
   popularity?: number;
   coverImage?: string;
@@ -241,6 +247,18 @@ export interface DocumentItem {
   fileName: string;
   filePath: string;
   status: "pending" | "verified" | "rejected";
+  detailedStatus?: string;
+  statusInfo?: StatusInfo;
+  expiresAt?: string | null;
+  reviewedBy?: Pick<User, "name"> & { _id?: string };
+  reviewedAt?: string;
+  __v?: number;
+  // Version history and translation (PRD 29), from GET /students/documents.
+  isLatest?: boolean;
+  replaces?: string;
+  translationOf?: string;
+  versions?: Array<{ _id: string; fileName: string; filePath: string; createdAt: string; statusInfo: StatusInfo }>;
+  translation?: { status: "required" | "uploaded" | "approved" | "needs-attention" | "not-required"; documentId: string | null; statusInfo?: StatusInfo } | null;
   mimeType?: string;
   size?: number;
   reviewNote?: string;
@@ -264,12 +282,27 @@ export interface ApplicantProfileSnapshot {
   };
 }
 
+// Per-application summary from GET /students/applications (PRD 15/16).
+export interface ApplicationStageSummary { status: string; labelAr: string; labelEn: string; tone: string }
+export interface ApplicationCard {
+  university: string; program: string; degreeLevel: string; language: string; duration: string;
+  country: string; city: string; campus: string; intake: string;
+  applicationStatus: StatusInfo;
+  admissionStatus: ApplicationStageSummary | null; documentsStatus: ApplicationStageSummary | null; paymentStatus: ApplicationStageSummary | null;
+  visaStatus: { status: string; labelAr: string; labelEn: string } | null;
+  consultant: string | null; lastUpdate: string | null;
+  nextAction: { code: string; titleAr: string; titleEn: string; descriptionAr: string; destination: string; waiting: boolean } | null;
+  applicationId: string;
+}
+
 export interface Application {
   _id: string;
+  card?: ApplicationCard;
   status: string;
   // NEW — already present in the API response; added here so the
   // university portal pages can read it with full type safety.
   detailedStatus?: string;
+  statusInfo?: StatusInfo;
   university?: { _id: string; name: string; city?: string } | string;
   notes?: string;
   submittedAt?: string;
@@ -478,7 +511,37 @@ export interface KnowledgeBaseItem {
   createdAt?: string;
 }
 
+// Home screen payload built by server/src/utils/studentHome.js.
+export interface StudentHomeDate {
+  key: string; date: string; daysLeft: number; overdue: boolean; critical: boolean;
+  titleAr: string; titleEn: string; destination: string; entityId: string;
+}
+export interface StudentHome {
+  greeting: { name: string };
+  context: { key: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; destination: string };
+  statusCard: {
+    statusInfo: StatusInfo | null; labelAr: string; labelEn: string; nextStepAr: string; nextStepEn: string;
+    nextStepDescriptionAr: string; nextStepDescriptionEn: string; destination: string; waiting: boolean;
+  };
+  currentJourney: { applicationId: string; country: string; city: string; university: string; program: string } | null;
+  progressPercent: number;
+  importantDates: StudentHomeDate[];
+  sections: {
+    application: { applicationId: string; program: string; statusInfo: StatusInfo } | null;
+    documents: { total: number; approved: number; needsAction: number; underReview: number };
+    admission: { statusInfo: StatusInfo } | null;
+    visa: { status: string; labelAr: string; labelEn: string; appointmentDate: string | null } | null;
+    travel: { arrivalDate: string | null; arrivalStatus: string | null; pickupStatus: string | null; housingStatus: string | null; moveInDate: string | null } | null;
+    payments: { unpaid: number; overdue: number; nextDueDate: string | null; nextDueAmount: number | null };
+    support: { openTickets: number };
+    notifications: { unread: number; latest: { title: string; message: string; createdAt: string } | null };
+    recentActivity: Array<{ at: string; kind: string; titleAr: string; titleEn: string; destination: string; entityId: string }>;
+  };
+  quickActions: Array<{ key: string; labelAr: string; labelEn: string; destination: string }>;
+}
+
 export interface StudentDashboardOverview {
+  home?: StudentHome;
   nextAction?: { code: string; destination: string; titleAr: string; titleEn: string; descriptionAr: string; descriptionEn: string; entityId: string; waiting: boolean; dueDate: string | null };
   profile: StudentProfile | null;
   progress: {
@@ -722,6 +785,7 @@ export interface InvoiceItem {
   status: "unpaid" | "pending-confirmation" | "paid" | "rejected";
   invoiceUrl?: string;
   category?: "application-fee" | "tuition" | "service" | "housing" | "other";
+  walletCreditApplied?: number;
   adminNote?: string;
   reviewedAt?: string;
   reviewedBy?: Pick<User, "_id" | "name" | "email">;
@@ -772,6 +836,13 @@ export interface ArrivalServiceRequestItem {
   };
   status: "draft" | "submitted" | "in-progress" | "completed";
   adminNote?: string;
+  travelAlert?: string;
+  pickup?: {
+    status?: "not-assigned" | "assigned" | "en-route" | "arrived" | "completed";
+    driverName?: string;
+    driverPhone?: string;
+    confirmedAt?: string | null;
+  };
   updatedBy?: Pick<User, "_id" | "name" | "email">;
   createdAt?: string;
   updatedAt?: string;

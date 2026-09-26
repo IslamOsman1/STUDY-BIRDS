@@ -18,6 +18,12 @@ const Program = require("../models/Program");
 const University = require("../models/University");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
+const { expireDueDocuments } = require("../utils/documentExpiry");
+const { studentHome } = require("../utils/studentHome");
+const { applicationCard } = require("../utils/applicationCard");
+const AccommodationBooking = require("../models/AccommodationBooking");
+const { Booking: ConsultationBooking } = require("../models/Consultation");
+const { applicationStatusInfo, documentStatusInfo } = require("../constants/statusCatalog");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
@@ -164,6 +170,18 @@ const uploadDocument = asyncHandler(async (req, res) => {
     throw new Error("File is required");
   }
 
+  // Optional links, checked before anything is stored: a new version of one of
+  // the student's own current files, or a certified translation of one.
+  const { replaces, translationOf } = req.body;
+  if ((replaces && !mongoose.isValidObjectId(replaces)) || (translationOf && !mongoose.isValidObjectId(translationOf)) || (replaces && translationOf)) {
+    return res.status(400).json({ message: "Invalid document link" });
+  }
+  const previous = replaces ? await Document.findOne({ _id: replaces, student: req.user._id }).select("type supersededBy").lean() : null;
+  if (replaces && !previous) return res.status(404).json({ message: "Document to replace not found" });
+  if (previous?.supersededBy) return res.status(409).json({ message: "A newer version of this document already exists" });
+  const original = translationOf ? await Document.exists({ _id: translationOf, student: req.user._id }) : null;
+  if (translationOf && !original) return res.status(404).json({ message: "Document to translate not found" });
+
   const uploadResult = await uploadPrivateDocument(req.file);
   const documentId = new mongoose.Types.ObjectId();
 
@@ -171,24 +189,64 @@ const uploadDocument = asyncHandler(async (req, res) => {
     _id: documentId,
     storage: uploadResult,
     student: req.user._id,
-    type: req.body.type || "general",
+    type: translationOf ? "translation" : req.body.type || previous?.type || "general",
     fileName: req.file.originalname,
     filePath: `/api/documents/${documentId}/access`,
     mimeType: req.file.mimetype,
     size: uploadResult.bytes || req.file.size,
+    ...(previous ? { replaces: previous._id } : {}),
+    ...(translationOf ? { translationOf } : {}),
   });
+  if (previous) {
+    // Guarded so two simultaneous re-uploads can't both claim the old version.
+    const linked = await Document.updateOne({ _id: previous._id, supersededBy: { $exists: false } }, { supersededBy: document._id });
+    if (!linked.modifiedCount) {
+      await Document.updateOne({ _id: document._id }, { $unset: { replaces: 1 } });
+    }
+  }
 
-  const response = document.toObject();
+  const response = (await Document.findById(document._id).lean());
   delete response.storage;
-  res.status(201).json(response);
+  res.status(201).json({ ...response, statusInfo: documentStatusInfo(response) });
 });
 
+// Translation state of a document (PRD 29): required by a reviewer, uploaded,
+// approved, or not required.
+function translationState(document, translations) {
+  const latest = translations.filter((item) => !item.supersededBy).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+  if (latest) {
+    const info = documentStatusInfo(latest);
+    const status = info.status === "approved" ? "approved" : ["rejected", "needs-revision", "expired"].includes(info.status) ? "needs-attention" : "uploaded";
+    return { status, documentId: latest._id, statusInfo: info };
+  }
+  return { status: document.detailedStatus === "needs-translation" ? "required" : "not-required", documentId: null };
+}
+
 const getDocuments = asyncHandler(async (req, res) => {
-  const documents = await Document.find({ student: req.user._id }).sort({ createdAt: -1 });
-  res.json(documents);
+  await expireDueDocuments({ student: req.user._id });
+  const documents = await Document.find({ student: req.user._id }).select("-reviewHistory")
+    .populate("reviewedBy", "name").sort({ createdAt: -1 }).lean();
+  const byId = new Map(documents.map((document) => [String(document._id), document]));
+  res.json(documents.map((document) => {
+    // Older versions, newest first, by following the replaces chain.
+    const versions = [];
+    for (let prior = byId.get(String(document.replaces || "")); prior && versions.length < 20; prior = byId.get(String(prior.replaces || ""))) {
+      versions.push({ _id: prior._id, fileName: prior.fileName, filePath: prior.filePath, createdAt: prior.createdAt, statusInfo: documentStatusInfo(prior) });
+    }
+    const translations = documents.filter((item) => String(item.translationOf || "") === String(document._id));
+    return {
+      ...document,
+      reviewedBy: document.reviewedBy ? { name: document.reviewedBy.name } : undefined,
+      statusInfo: documentStatusInfo(document),
+      isLatest: !document.supersededBy,
+      versions,
+      translation: document.translationOf ? null : translationState(document, translations),
+    };
+  }));
 });
 
 const getApplications = asyncHandler(async (req, res) => {
+  await expireDueDocuments({ student: req.user._id });
   const applications = await Application.find({ student: req.user._id })
     .populate({
       path: "program",
@@ -199,12 +257,26 @@ const getApplications = asyncHandler(async (req, res) => {
     })
     .populate("documents")
     .populate("statusTimeline.changedBy", "name role")
+    .populate("assignedAdvisor", "name isActive")
     .sort({ createdAt: -1 });
 
-  res.json(await hydrateApplicationsWithStudentProfiles(applications));
+  // Card summary per application (PRD 15/16), from the same journey logic as the home screen.
+  const [documents, invoices] = await Promise.all([
+    Document.find({ student: req.user._id }).select("type status detailedStatus").lean(),
+    Invoice.find({ student: req.user._id }).lean(),
+  ]);
+  const plain = applications.map((application) => application.toObject());
+  const journeys = studentJourneys({ applications: plain, documents, invoices });
+  const hydrated = await hydrateApplicationsWithStudentProfiles(applications);
+  res.json(hydrated.map((application, index) => {
+    // The advisor's name is shown via card.consultant; don't send the raw user record.
+    const { assignedAdvisor, ...visible } = application;
+    return { ...visible, card: applicationCard(plain[index], journeys[index]) };
+  }));
 });
 
 const getDashboardOverview = asyncHandler(async (req, res) => {
+  await expireDueDocuments({ student: req.user._id });
   const [profile, applications, documents, notifications, invoices, unreadCount] = await Promise.all([
     StudentProfile.findOne({ user: req.user._id }).lean(),
     Application.find({ student: req.user._id })
@@ -218,11 +290,20 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
       })
       .sort({ createdAt: -1 })
       .lean(),
-    Document.find({ student: req.user._id }).sort({ createdAt: -1 }).lean(),
+    Document.find({ student: req.user._id }).select("-reviewHistory -reviewedBy").sort({ createdAt: -1 }).lean(),
     Notification.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(5).lean(),
     Invoice.find({ student: req.user._id }).lean(),
     Notification.countDocuments({ user: req.user._id, isRead: false }),
   ]);
+  // Extra records for the home screen (travel, housing, consultations, support).
+  const [arrivals, bookings, consultations, openTickets] = await Promise.all([
+    ArrivalServiceRequest.find({ student: req.user._id }).select("arrivalDate status pickup.status createdAt").lean(),
+    AccommodationBooking.find({ student: req.user._id }).select("moveInDate status createdAt").lean(),
+    ConsultationBooking.find({ student: req.user._id, status: "booked", startsAt: { $gte: new Date() } }).select("startsAt").sort({ startsAt: 1 }).limit(3).lean(),
+    SupportTicket.countDocuments({ user: req.user._id, status: { $in: ["open", "in-progress", "answered"] } }),
+  ]);
+  const nextAction = studentNextAction({ applications, documents, invoices });
+  const journeys = studentJourneys({ applications, documents, invoices });
 
   const currentStage = profile?.applicationStage || "file-received";
   const activeStageIndex = Math.max(
@@ -232,8 +313,12 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
 
   res.json({
     profile: profile || null,
-    nextAction: studentNextAction({ applications, documents, invoices }),
-    journeys: studentJourneys({ applications, documents, invoices }),
+    nextAction,
+    journeys,
+    home: studentHome({
+      user: req.user, applications, documents, invoices, arrivals, bookings, consultations, openTickets,
+      unreadNotifications: unreadCount, latestNotification: notifications[0] || null, nextAction, journeys,
+    }),
     progress: {
       currentStage,
       stages: STUDENT_DASHBOARD_STAGES.map((stage, index) => ({
@@ -254,8 +339,8 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
       unreadNotifications: unreadCount,
     },
     latestNotification: notifications[0] || null,
-    recentApplications: applications.slice(0, 5),
-    recentDocuments: documents.slice(0, 6),
+    recentApplications: applications.slice(0, 5).map((application) => ({ ...application, statusInfo: applicationStatusInfo(application) })),
+    recentDocuments: documents.slice(0, 6).map((document) => ({ ...document, statusInfo: documentStatusInfo(document) })),
   });
 });
 

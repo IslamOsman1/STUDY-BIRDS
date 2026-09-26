@@ -100,7 +100,22 @@ const getProgramById = asyncHandler(async (req, res) => {
     throw new Error("Program not found");
   }
 
-  res.json(program);
+  // PRD 21: the same program at other universities, and related programs in
+  // the same field. Title matching is exact (case-insensitive), not fuzzy.
+  const escaped = String(program.title || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const [offeredAt, related] = await Promise.all([
+    Program.find({ _id: { $ne: program._id }, title: new RegExp(`^${escaped}$`, "i") })
+      .select("title degreeLevel tuition language duration university")
+      .populate({ path: "university", select: "name city country", populate: { path: "country", select: "name" } })
+      .limit(10).lean(),
+    program.fieldOfStudy
+      ? Program.find({ _id: { $ne: program._id }, fieldOfStudy: program.fieldOfStudy, title: { $not: new RegExp(`^${escaped}$`, "i") } })
+        .select("title degreeLevel university").populate({ path: "university", select: "name" })
+        .sort({ featured: -1, popularity: -1 }).limit(6).lean()
+      : [],
+  ]);
+
+  res.json({ ...program, offeredAt, relatedPrograms: related });
 });
 
 const handleProgramWriteError = (res) => (error) => {

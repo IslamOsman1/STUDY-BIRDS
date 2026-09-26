@@ -48,6 +48,29 @@ const applicantProfileSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const { STAGES, STATES } = require('../utils/postAdmissionJourney');
+const postAdmissionStageSchema = new mongoose.Schema({
+  status: { type: String, enum: STATES, default: 'not-started' },
+  note: { type: String, maxlength: 2000 },
+  dueAt: Date,
+  reference: { type: String, maxlength: 250 },
+  updatedAt: Date,
+}, { _id: false });
+
+const { VISA_STATES } = require('../utils/visaCase');
+const visaCaseSchema = new mongoose.Schema({
+  status: { type: String, enum: VISA_STATES, default: 'not-started' },
+  requirements: [{ label: { type: String, maxlength: 200 }, done: { type: Boolean, default: false } }],
+  appointment: { date: Date, location: { type: String, maxlength: 250 } },
+  insurance: {
+    provider: { type: String, maxlength: 150 },
+    policyNumber: { type: String, maxlength: 100 },
+    expiresAt: Date,
+  },
+  notes: { type: String, maxlength: 2000 },
+  updatedAt: Date,
+}, { _id: false });
+
 const applicationSchema = new mongoose.Schema(
   {
     student: {
@@ -66,8 +89,29 @@ const applicationSchema = new mongoose.Schema(
       required: true,
     },
     assignedAdvisor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    postAdmission: { type: new mongoose.Schema(Object.fromEntries(Object.keys(STAGES).map(key => [key, postAdmissionStageSchema])), { _id: false }), default: () => ({}) },
+    postAdmissionHistory: [{
+      stage: { type: String, enum: Object.keys(STAGES) },
+      fromStatus: { type: String, enum: STATES },
+      status: { type: String, enum: STATES },
+      note: String, dueAt: Date, reference: String,
+      changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      changedAt: Date,
+    }],
+    visaCase: { type: visaCaseSchema, default: () => ({}) },
+    visaCaseHistory: [{
+      fromStatus: { type: String, enum: VISA_STATES },
+      status: { type: String, enum: VISA_STATES },
+      changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      changedAt: Date,
+    }],
     followUpDueAt: { type: Date, default: null },
-    assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now } }],
+    // First day of classes, set by staff with the registration stage; shown
+    // to the student as an important date with a countdown.
+    studiesStartAt: { type: Date, default: null },
+    // Manually clearing an assignment excludes it until staff explicitly requeues it.
+    autoAssignmentEligible: { type: Boolean, default: false },
+    assignmentHistory: [{ advisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, dueAt: Date, changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, changedAt: { type: Date, default: Date.now }, source: { type: String, enum: ['manual', 'automatic', 'requeued'], default: 'manual' } }],
     documents: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -140,6 +184,7 @@ applicationSchema.index({ detailedStatus: 1, createdAt: -1 });
 applicationSchema.index({ reviewedBy: 1, updatedAt: -1 });
 applicationSchema.index({ university: 1, createdAt: -1 });
 applicationSchema.index({ program: 1, createdAt: -1 });
+applicationSchema.index({ assignedAdvisor: 1, status: 1, createdAt: 1 });
 
 applicationSchema.pre("save", function syncLegacyStatus(next) {
   if (this.isModified("detailedStatus")) {

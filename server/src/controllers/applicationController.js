@@ -1,14 +1,17 @@
 const { requiredDocumentTypesFor, missingDocumentTypes } = require("../utils/applicationRequirements");
+const { onApplicationStatusChange } = require("../utils/journeyAutomation");
 const mongoose = require("mongoose");
 const Application = require("../models/Application");
 const Program = require("../models/Program");
 const Document = require("../models/Document");
 const Notification = require("../models/Notification");
 const asyncHandler = require("../utils/asyncHandler");
-const { ALL_APPLICATION_STATUSES } = require("../constants/roles");
+const { ALL_APPLICATION_STATUSES, ALL_APPLICATION_DETAILED_STATUSES } = require("../constants/roles");
+const { applicationStatusNotice } = require("../constants/statusCatalog");
 const {
   hydrateApplicationsWithStudentProfiles,
 } = require("../utils/hydrateApplications");
+const { qualifyReferral } = require("../utils/studentWallet");
 
 const createApplication = asyncHandler(async (req, res) => {
   const { programId, documentIds = [], notes, applicantProfile } = req.body;
@@ -74,6 +77,10 @@ const createApplication = asyncHandler(async (req, res) => {
     link: `/student/applications`,
   });
 
+  if ((await Application.countDocuments({ student: req.user._id })) === 1) {
+    await qualifyReferral(req.user._id).catch((error) => console.error("Referral qualification failed", error.message));
+  }
+
   const populated = await Application.findById(application._id)
     .populate("student", "-password")
     .populate({
@@ -131,10 +138,16 @@ const getApplicationById = asyncHandler(async (req, res) => {
   res.json(await hydrateApplicationsWithStudentProfiles(application));
 });
 
+// Staff set either a website review status (`status`) or any of the detailed
+// lifecycle statuses (`detailedStatus`); the model keeps both in sync.
 const updateApplicationStatus = asyncHandler(async (req, res) => {
-  const { status, note } = req.body;
-  if (!ALL_APPLICATION_STATUSES.includes(status)) {
+  const { status, detailedStatus, note } = req.body;
+  const useDetailed = detailedStatus !== undefined;
+  if (useDetailed ? !ALL_APPLICATION_DETAILED_STATUSES.includes(detailedStatus) : !ALL_APPLICATION_STATUSES.includes(status)) {
     return res.status(400).json({ message: "Invalid application status" });
+  }
+  if (note !== undefined && (typeof note !== "string" || note.length > 1000)) {
+    return res.status(400).json({ message: "Invalid note" });
   }
   const application = await Application.findById(req.params.id).populate("program");
 
@@ -143,21 +156,23 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
     throw new Error("Application not found");
   }
 
-  application.status = status;
+  if (useDetailed) application.detailedStatus = detailedStatus;
+  else application.status = status;
   application.reviewedBy = req.user._id;
   application.statusTimeline.push({
-    status,
+    status: useDetailed ? detailedStatus : status,
     note,
     changedBy: req.user._id,
   });
 
   await application.save();
 
+  // بند 115: auto-advance journeyStage based on new application status
+  onApplicationStatusChange(application.student, useDetailed ? detailedStatus : status).catch(() => {});
+
   await Notification.create({
     user: application.student,
-    title: "Application updated",
-    message: `Your application status is now ${status} for ${application.program.title}.`,
-    type: status === "accepted" ? "success" : "info",
+    ...applicationStatusNotice(application, application.program?.title),
     link: "/student/applications",
   });
 

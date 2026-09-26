@@ -11,6 +11,7 @@ import 'employee_extra_screens.dart';
 import 'admin_users_access_screen.dart';
 import 'admin_parent_links_screen.dart';
 import 'admin_university_accounts_screen.dart';
+import 'employee_community_screen.dart';
 import 'admin_approval_screens.dart';
 import 'admin_applications_documents_screens.dart';
 import 'admin_simple_lists_screens.dart';

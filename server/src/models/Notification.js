@@ -31,4 +31,20 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Push send-on-create: post('save') runs on every save, but a document's
+// isNew flag has already flipped to false by then, so a pre('save') hook
+// stashes it in $locals for the post hook to read. Never blocks or fails
+// the notification write itself — push delivery is best-effort.
+notificationSchema.pre("save", function captureIsNew(next) {
+  this.$locals.wasNew = this.isNew;
+  next();
+});
+notificationSchema.post("save", function sendPush(doc) {
+  if (!doc.$locals.wasNew) return;
+  const { sendPushToUser, isPushEnabled } = require("../utils/pushNotifications");
+  if (!isPushEnabled()) return;
+  sendPushToUser(doc.user, { title: doc.title, body: doc.message, link: doc.link })
+    .catch((error) => console.error("Push notification send failed", error.message));
+});
+
 module.exports = mongoose.model("Notification", notificationSchema);

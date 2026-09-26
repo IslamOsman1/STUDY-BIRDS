@@ -1,7 +1,11 @@
 import { DocumentFileLink } from '../../components/DocumentFileLink';
+import { StudentPostAdmission } from '../../components/StudentPostAdmission';
+import { StudentVisaCase } from '../../components/StudentVisaCase';
 import { ApplicationDocumentUpdates } from '../../components/ApplicationDocumentUpdates';
 import { useEffect, useState } from "react";
 import { ApplicationStatusBadge } from "../../components/ApplicationStatusBadge";
+import { StatusExplanation } from "../../components/StatusExplanation";
+import { ApplicationCardSummary } from "../../components/ApplicationCardSummary";
 import { EmptyState } from "../../components/EmptyState";
 import { useLanguage } from "../../hooks/useLanguage";
 import { studentService } from "../../services/studentService";
@@ -49,8 +53,12 @@ export const StudentApplicationsPage = () => {
                       {dt(language, "submitted")}: {formatDate(application.submittedAt || application.createdAt)}
                     </p>
                   </div>
-                  <ApplicationStatusBadge status={application.status} />
+                  <ApplicationStatusBadge status={application.detailedStatus || application.status} />
                 </div>
+
+                {/* What this status means for the student now, and what happens next. */}
+                {application.statusInfo ? <div className="mt-4"><StatusExplanation info={application.statusInfo} /></div> : null}
+                {application.card ? <ApplicationCardSummary card={application.card} /> : null}
 
                 {application.notes ? (
                   <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
@@ -92,6 +100,8 @@ export const StudentApplicationsPage = () => {
                   </div>
                 </div>
 
+                <StudentPostAdmission applicationId={application._id} />
+                <StudentVisaCase applicationId={application._id} />
                 <div className="mt-4 rounded-2xl bg-white p-4">
                   <button onClick={() => setEditingId(editingId === application._id ? undefined : application._id)} aria-expanded={editingId === application._id} className="min-h-11 font-semibold">{language === 'ar' ? 'استكمال مستندات الطلب' : 'Update application documents'}</button>
                   {editingId === application._id && <ApplicationDocumentUpdates applicationId={application._id} onUpdated={() => { studentService.getApplications().then(setApplications).catch(() => setFormError(language === 'ar' ? 'تم الإرفاق؛ تعذر تحديث القائمة.' : 'Attached; unable to refresh the list.')); }} />}

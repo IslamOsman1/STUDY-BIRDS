@@ -346,6 +346,46 @@ export const ProgramDetailsPage = () => {
         </div>
       </section>
 
+      {/* PRD 21: careers, where else the program is taught, and related programs. */}
+      {program.careerOpportunities?.length || program.offeredAt?.length || program.relatedPrograms?.length ? (
+        <section className="grid gap-4 lg:grid-cols-3">
+          {program.careerOpportunities?.length ? (
+            <div className="panel p-6">
+              <h2 className="text-xl font-semibold text-slate-900">{language === "ar" ? "مجالات العمل بعد التخرج" : "Career opportunities"}</h2>
+              <ul className="mt-4 list-disc space-y-2 ps-5 text-slate-600">
+                {program.careerOpportunities.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+          ) : null}
+          {program.offeredAt?.length ? (
+            <div className="panel p-6">
+              <h2 className="text-xl font-semibold text-slate-900">{language === "ar" ? "جامعات أخرى تقدّم البرنامج" : "Also offered at"}</h2>
+              <ul className="mt-4 space-y-2 text-slate-600">
+                {program.offeredAt.map((item) => (
+                  <li key={item._id}>
+                    <Link className="font-semibold text-brand-700" to={`/programs/${item._id}`}>{item.university?.name}</Link>
+                    {[item.university?.city, item.university?.country?.name].filter(Boolean).length ? ` — ${[item.university?.city, item.university?.country?.name].filter(Boolean).join("، ")}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {program.relatedPrograms?.length ? (
+            <div className="panel p-6">
+              <h2 className="text-xl font-semibold text-slate-900">{language === "ar" ? "برامج ذات صلة" : "Related programs"}</h2>
+              <ul className="mt-4 space-y-2 text-slate-600">
+                {program.relatedPrograms.map((item) => (
+                  <li key={item._id}>
+                    <Link className="font-semibold text-brand-700" to={`/programs/${item._id}`}>{item.title}</Link>
+                    {item.university?.name ? ` — ${item.university.name}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
       <ArticleContentSection article={program} language={language} />
 
       <section className="panel p-8">

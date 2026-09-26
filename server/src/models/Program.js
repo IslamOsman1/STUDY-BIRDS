@@ -35,6 +35,8 @@ const programSchema = new mongoose.Schema(
     applicationDeadline: Date,
     intake: String,
     requirements: [String],
+    // Career paths and job areas after graduation (PRD 21).
+    careerOpportunities: { type: [String], default: [] },
     requiredDocumentTypes: {
       type: [{ type: String, enum: ['passport', 'biometric-photo', 'latest-qualification', 'transcript', 'language-certificate', 'other'] }],
       default: undefined,

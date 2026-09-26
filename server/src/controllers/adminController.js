@@ -1116,7 +1116,70 @@ const deletePastEvent = asyncHandler(async (req, res) => {
   res.json({ message: "Past event deleted" });
 });
 
+const getMyKpis = asyncHandler(async (req, res) => {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const userId = req.user._id;
+
+  const [processedThisMonth, totalProcessed, teamStats] = await Promise.all([
+    Application.countDocuments({
+      'statusTimeline': {
+        $elemMatch: {
+          changedBy: userId,
+          changedAt: { $gte: startOfMonth },
+        },
+      },
+    }),
+    Application.countDocuments({
+      'statusTimeline.changedBy': userId,
+    }),
+    req.user.role === 'admin' || req.user.employeeRole === 'super_admin'
+      ? Application.aggregate([
+          { $unwind: '$statusTimeline' },
+          {
+            $match: {
+              'statusTimeline.changedAt': { $gte: startOfMonth },
+              'statusTimeline.changedBy': { $ne: null },
+            },
+          },
+          {
+            $group: {
+              _id: '$statusTimeline.changedBy',
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { count: -1 } },
+          { $limit: 10 },
+          {
+            $lookup: {
+              from: 'users',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'user',
+            },
+          },
+          { $unwind: '$user' },
+          {
+            $project: {
+              name: '$user.name',
+              employeeRole: '$user.employeeRole',
+              count: 1,
+            },
+          },
+        ])
+      : Promise.resolve(null),
+  ]);
+
+  res.json({
+    processedThisMonth,
+    totalProcessed,
+    teamStats,
+    month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+  });
+});
+
 module.exports = {
+  getMyKpis,
   updateSectionAccountStatus,
   getOverview,
   getStats,

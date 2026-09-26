@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  getMyKpis,
   getOverview,
   getStats,
   getStudents,
@@ -84,6 +85,7 @@ const {
 const {
   getStudentDetailsAdmin,
   getStudentDocumentsAdmin,
+  reviewStudentDocumentAdmin,
   getStudentNotificationsAdmin,
   getStudentFinancialsAdmin,
   createStudentInvoiceAdmin,
@@ -105,6 +107,15 @@ const {
   getEmployeesAdmin,
   updateEmployeeRoleAdmin,
 } = require("../controllers/adminRoleManagementController");
+const {
+  getAccommodationListingsAdmin, createAccommodationListing, updateAccommodationListing, deleteAccommodationListing,
+  getAccommodationBookingsAdmin, updateAccommodationBookingStatus,
+} = require("../controllers/accommodationController");
+const { getWalletEntriesAdmin, createWalletAdjustmentAdmin } = require("../controllers/studentWalletController");
+const {
+  listPostsAdmin, getPostAdmin, listReportsAdmin, listModerationLogAdmin, moderatePost, moderateComment,
+  listSuspensionsAdmin, suspendUser, liftSuspension, getSettingsAdmin, updateSettingsAdmin,
+} = require("../controllers/communityController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -112,6 +123,7 @@ const router = express.Router();
 const { authorizeAdminSection } = require("../middleware/employeeAccess");
 
 router.use(protect, authorizeAdminSection);
+router.get("/my-kpis", getMyKpis);
 router.get("/overview", getOverview);
 router.get("/stats", getStats);
 router.get("/students", getStudents);
@@ -120,6 +132,12 @@ router.patch("/users/:id", updateUser);
 router.patch("/students/:id/status", updateSectionAccountStatus);
 router.patch("/partners/:id/status", updateSectionAccountStatus);
 router.get("/applications", getAdminApplications);
+router.get("/accommodation-listings", getAccommodationListingsAdmin);
+router.post("/accommodation-listings", createAccommodationListing);
+router.put("/accommodation-listings/:id", updateAccommodationListing);
+router.delete("/accommodation-listings/:id", deleteAccommodationListing);
+router.get("/accommodation-bookings", getAccommodationBookingsAdmin);
+router.patch("/accommodation-bookings/:id", updateAccommodationBookingStatus);
 router.get("/countries", getCountriesAdmin);
 router.post("/countries/upload-image", upload.single("file"), uploadCountryHeroImage);
 router.post("/countries", createCountry);
@@ -187,10 +205,24 @@ router.delete("/knowledge-base/:id", deleteKnowledgeBaseItemAdmin);
 router.get("/student-financials", getStudentFinancialsAdmin);
 router.get("/students/:id", getStudentDetailsAdmin);
 router.get("/student-documents", getStudentDocumentsAdmin);
+router.patch("/student-documents/:id", reviewStudentDocumentAdmin);
 router.get("/student-notifications", getStudentNotificationsAdmin);
 router.post("/student-financials/invoices", createStudentInvoiceAdmin);
 router.patch("/student-financials/invoices/:id", updateStudentInvoiceAdmin);
 router.patch("/student-financials/payment-proofs/:id", reviewPaymentProofAdmin);
+router.get("/student-financials/wallet-entries", getWalletEntriesAdmin);
+router.post("/student-financials/wallet-entries", createWalletAdjustmentAdmin);
+router.get("/community-posts", listPostsAdmin);
+router.get("/community-posts/:id", getPostAdmin);
+router.patch("/community-posts/:id", moderatePost);
+router.patch("/community-comments/:id", moderateComment);
+router.get("/community-reports", listReportsAdmin);
+router.get("/community-moderation-log", listModerationLogAdmin);
+router.get("/community-suspensions", listSuspensionsAdmin);
+router.post("/community-suspensions", suspendUser);
+router.delete("/community-suspensions/:userId", liftSuspension);
+router.get("/community-settings", getSettingsAdmin);
+router.put("/community-settings", updateSettingsAdmin);
 router.get("/student-arrival-requests", getArrivalRequestsAdmin);
 router.patch("/student-arrival-requests/:id", updateArrivalRequestAdmin);
 router.get("/student-favorites", getStudentFavoritesAdmin);

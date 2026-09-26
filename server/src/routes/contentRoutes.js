@@ -28,6 +28,11 @@ const { cacheRoute } = require("../utils/responseCache");
 
 const router = express.Router();
 
+// Student-facing status copy (labels, meaning, next step) for every client.
+router.get("/status-catalog", cacheRoute(300_000), (req, res) => {
+  const { APPLICATION_STATUS_COPY, DOCUMENT_STATUS_COPY } = require("../constants/statusCatalog");
+  res.json({ applications: APPLICATION_STATUS_COPY, documents: DOCUMENT_STATUS_COPY });
+});
 router.get("/home", cacheRoute(60_000), getHomePageContent);
 router.get("/countries", cacheRoute(60_000), getCountries);
 router.get("/testimonials", cacheRoute(60_000), getTestimonials);

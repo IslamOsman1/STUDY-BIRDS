@@ -4,7 +4,8 @@ const CLOSED = new Set(['rejected', 'completed']);
 const id = (record) => String(record?._id || record || '');
 const status = (record) => record.status === 'rejected' ? 'rejected' : record.detailedStatus || record.status;
 const { missingDocumentTypes } = require('./applicationRequirements');
-const documentLabels = { passport: 'جواز السفر', 'biometric-photo': 'الصورة الشخصية', 'latest-qualification': 'آخر مؤهل دراسي', transcript: 'كشف الدرجات', 'language-certificate': 'شهادة اللغة', other: 'مستند إضافي' };
+const { postAdmissionNextAction } = require('./postAdmissionJourney');
+const { documentLabel } = require('../constants/documentTypes');
 
 function studentNextAction({ applications = [], documents = [], invoices = [] }, now = new Date()) {
   const actions = [];
@@ -35,10 +36,12 @@ function studentNextAction({ applications = [], documents = [], invoices = [] },
   for (const doc of relevant) {
     if (['rejected', 'needs-revision', 'needs-translation', 'expired', 'missing'].includes(status(doc))) {
       add('document-correction', 'documents', 'استكمال مستند', 'Update a document',
-        `راجع المستند المطلوب: ${documentLabels[doc.type] || doc.type}`, `Review the required document: ${doc.type}`, doc, 10);
+        `راجع المستند المطلوب: ${documentLabel(doc.type)}`, `Review the required document: ${doc.type}`, doc, 10);
     }
   }
   for (const app of active) {
+    const postAdmissionAction = postAdmissionNextAction(app, now);
+    if (postAdmissionAction) actions.push(postAdmissionAction);
     for (const request of app.documentRequests || []) {
       if (request.status === 'requested') add('additional-document-request', 'applications', 'مستند إضافي مطلوب', 'Additional document requested', request.note, request.note, app, 5);
       if (request.status === 'submitted') add('additional-document-review', 'applications', 'بانتظار مراجعة المستند الإضافي', 'Additional document under review', request.note, request.note, app, 65, true);
@@ -47,7 +50,7 @@ function studentNextAction({ applications = [], documents = [], invoices = [] },
     const missing = missingDocumentTypes(app.requiredDocumentTypes || [], documents.filter(doc => attachedIds.has(id(doc))));
     if (missing.length && ['draft', 'documents-missing', 'ready-to-apply', 'submitted', 'additional-documents-required'].includes(status(app))) {
       add('documents-required', 'applications', 'مستندات مطلوبة للطلب', 'Application documents required',
-        `راجع مستندات الطلب: ${missing.map(type => documentLabels[type] || type).join('، ')}`, `Review application documents: ${missing.join(', ')}`, app, 15);
+        `راجع مستندات الطلب: ${missing.map(type => documentLabel(type)).join('، ')}`, `Review application documents: ${missing.join(', ')}`, app, 15);
     }
     if (status(app) === 'documents-missing' && Array.isArray(app.requiredDocumentTypes) && !missing.length) {
       add('document-review', 'applications', 'بانتظار مراجعة المستندات', 'Documents awaiting review', 'تم إرفاق المستندات المطلوبة. تابع مراجعة الفريق.', 'Required documents are attached. Await team review.', app, 75, true);

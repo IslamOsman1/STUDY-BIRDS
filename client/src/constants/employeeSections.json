@@ -316,5 +316,51 @@
     "resources": [
       "university-accounts"
     ]
+  },
+  {
+    "key": "consultations",
+    "ar": "الاستشارات والمواعيد",
+    "en": "Consultations",
+    "pages": [
+      "consultations"
+    ],
+    "resources": []
+  },
+  {
+    "key": "visa",
+    "ar": "معالجة التأشيرات",
+    "en": "Visa processing",
+    "pages": [
+      "visa"
+    ],
+    "resources": []
+  },
+  {
+    "key": "housing",
+    "ar": "السكن الطلابي",
+    "en": "Student housing",
+    "pages": [
+      "housing"
+    ],
+    "resources": [
+      "accommodation-listings",
+      "accommodation-bookings"
+    ]
+  },
+  {
+    "key": "community",
+    "ar": "مجتمع الطلاب",
+    "en": "Student community",
+    "pages": [
+      "community"
+    ],
+    "resources": [
+      "community-posts",
+      "community-comments",
+      "community-reports",
+      "community-moderation-log",
+      "community-suspensions",
+      "community-settings"
+    ]
   }
 ]

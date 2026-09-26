@@ -59,6 +59,11 @@ export const adminService = {
     const { data } = await api.get<DocumentItem[]>("/admin/student-documents");
     return data;
   },
+  // `version` is the document's __v; a stale version returns 409.
+  reviewStudentDocument: async (id: string, payload: { detailedStatus: string; reviewNote?: string; expiresAt?: string | null; version: number }) => {
+    const { data } = await api.patch<DocumentItem>(`/admin/student-documents/${id}`, payload);
+    return data;
+  },
   getStudentNotifications: async () => {
     const { data } = await api.get<NotificationItem[]>("/admin/student-notifications");
     return data;

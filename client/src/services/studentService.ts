@@ -29,10 +29,13 @@ export const studentService = {
     const { data } = await api.put<StudentProfile>("/students/profile", payload);
     return data;
   },
-  uploadDocument: async (file: File, type: string) => {
+  // `link.replaces` uploads a new version of a document; `link.translationOf` a certified translation of it.
+  uploadDocument: async (file: File, type: string, link: { replaces?: string; translationOf?: string } = {}) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("type", type);
+    if (type) formData.append("type", type);
+    if (link.replaces) formData.append("replaces", link.replaces);
+    if (link.translationOf) formData.append("translationOf", link.translationOf);
     const { data } = await api.post<DocumentItem>("/students/documents", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });

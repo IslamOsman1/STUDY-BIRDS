@@ -36,6 +36,7 @@ const invoiceSchema = new mongoose.Schema(
       index: true,
     },
     invoiceUrl: String,
+    walletCreditApplied: { type: Number, default: 0, min: 0 },
     category: {
       type: String,
       enum: ["application-fee", "tuition", "service", "housing", "other"],
