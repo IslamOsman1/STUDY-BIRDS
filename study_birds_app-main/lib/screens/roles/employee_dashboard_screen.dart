@@ -116,6 +116,8 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
   bool _loading = true;
   String? _error;
 
+  Map<String, dynamic>? _myKpis;
+
   int _overdueReminders = 0;
   bool _remindersLoading = false;
 
@@ -131,6 +133,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
     } else if (_hasApplications) {
       _loadReminders();
     }
+    _loadMyKpis();
   }
 
   Future<void> _load() async {
@@ -152,6 +155,14 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
         _loading = false;
       });
     }
+  }
+
+  Future<void> _loadMyKpis() async {
+    try {
+      final data = await EmployeeRepository.instance.getMyKpis();
+      if (!mounted) return;
+      setState(() => _myKpis = data);
+    } catch (_) {}
   }
 
   Future<void> _loadReminders() async {
@@ -181,6 +192,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
     } else if (_hasApplications) {
       await _loadReminders();
     }
+    _loadMyKpis();
   }
 
   @override
@@ -242,6 +254,21 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
               ],
             ),
           ),
+          if (_myKpis != null) ...[
+            const SizedBox(height: 8),
+            const Text('أدائي هذا الشهر', style: AppTextStyles.sectionLabel),
+            const SizedBox(height: 10),
+            _KpiRow(kpis: _myKpis!),
+            if (_isFullAdmin &&
+                (_myKpis!['teamStats'] as List?)?.isNotEmpty == true) ...[
+              const SizedBox(height: 8),
+              const Text('أداء الفريق — هذا الشهر',
+                  style: AppTextStyles.sectionLabel),
+              const SizedBox(height: 10),
+              _TeamStatsTable(
+                  rows: (_myKpis!['teamStats'] as List).cast()),
+            ],
+          ],
           if (!_isFullAdmin && _hasApplications) ...[
             const SizedBox(height: 8),
             const Text('ما يجب عليك اليوم', style: AppTextStyles.sectionLabel),
@@ -385,6 +412,97 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
                 ),
               ))
           .toList(),
+    );
+  }
+}
+
+class _KpiRow extends StatelessWidget {
+  final Map<String, dynamic> kpis;
+  const _KpiRow({required this.kpis});
+
+  @override
+  Widget build(BuildContext context) {
+    final thisMonth = kpis['processedThisMonth'] ?? 0;
+    final total = kpis['totalProcessed'] ?? 0;
+    final month = kpis['month'] ?? '';
+    return Row(children: [
+      Expanded(
+        child: AppCard(
+          margin: EdgeInsets.zero,
+          child: Column(children: [
+            Text('$thisMonth',
+                style: AppTextStyles.screenTitle.copyWith(fontSize: 20)),
+            const SizedBox(height: 2),
+            Text('معالج هذا الشهر', style: AppTextStyles.caption,
+                textAlign: TextAlign.center),
+            if (month.isNotEmpty)
+              Text(month, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+          ]),
+        ),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: AppCard(
+          margin: EdgeInsets.zero,
+          child: Column(children: [
+            Text('$total',
+                style: AppTextStyles.screenTitle.copyWith(fontSize: 20)),
+            const SizedBox(height: 2),
+            const Text('إجمالي المعالجة', style: AppTextStyles.caption,
+                textAlign: TextAlign.center),
+          ]),
+        ),
+      ),
+    ]);
+  }
+}
+
+class _TeamStatsTable extends StatelessWidget {
+  final List<Map<String, dynamic>> rows;
+  const _TeamStatsTable({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        children: rows.map((r) {
+          final name = r['name'] as String? ?? '—';
+          final count = r['count'] ?? 0;
+          final role = r['employeeRole'] as String? ?? '';
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(children: [
+              const CircleAvatar(
+                  radius: 14,
+                  backgroundColor: AppColors.border,
+                  child: Icon(Icons.person_outline_rounded,
+                      size: 14, color: AppColors.navy)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: AppTextStyles.cardTitle),
+                      if (role.isNotEmpty)
+                        Text(role, style: AppTextStyles.caption),
+                    ]),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                    color: AppColors.navy.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppRadius.chip)),
+                child: Text('$count طلب',
+                    style: const TextStyle(
+                        color: AppColors.navy,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
+              ),
+            ]),
+          );
+        }).toList(),
+      ),
     );
   }
 }
