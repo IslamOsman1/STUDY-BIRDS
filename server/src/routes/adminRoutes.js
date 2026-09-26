@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  getMyKpis,
   getOverview,
   getStats,
   getStudents,
@@ -122,6 +123,7 @@ const router = express.Router();
 const { authorizeAdminSection } = require("../middleware/employeeAccess");
 
 router.use(protect, authorizeAdminSection);
+router.get("/my-kpis", getMyKpis);
 router.get("/overview", getOverview);
 router.get("/stats", getStats);
 router.get("/students", getStudents);
