@@ -20,7 +20,6 @@ import 'admin_financials_marketing_screens.dart';
 import 'admin_content_crud_screens.dart';
 import 'admin_singleton_hub_screens.dart';
 import 'employee_consultations_screen.dart';
-import 'employee_community_screen.dart';
 
 /// Admin/Employee Home. HONESTY NOTE: the backend has no per-employee
 /// "tasks assigned to me" concept — role="admin" sees the whole platform
