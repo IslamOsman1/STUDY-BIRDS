@@ -29,6 +29,7 @@ dependencies:
   onesignal_flutter: ^5.2.6
   posthog_flutter: ^5.49.0
   google_sign_in: ^7.2.0
+  sentry_flutter: ^8.14.2
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,8 @@
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'core/analytics_service.dart';
 import 'core/google_sign_in_service.dart';
+import 'core/app_config.dart';
 import 'core/currency_service.dart';
 import 'core/device_lock.dart';
 import 'core/api_client.dart';
@@ -68,16 +70,22 @@ final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    debugPrint('[Crash] ${details.exceptionAsString()}');
-  };
-  await PushNotificationService.instance.init();
-  await CurrencyService.instance.load();
-  await AnalyticsService.instance.init();
-  await GoogleSignInService.instance.init();
-  runApp(const StudyBirdsApp());
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = AppConfig.sentryDsn;
+      options.tracesSampleRate = 0.2;
+      options.profilesSampleRate = 0.1;
+      options.attachScreenshot = true;
+      options.attachViewHierarchy = true;
+    },
+    appRunner: () async {
+      await PushNotificationService.instance.init();
+      await CurrencyService.instance.load();
+      await AnalyticsService.instance.init();
+      await GoogleSignInService.instance.init();
+      runApp(SentryWidget(child: const StudyBirdsApp()));
+    },
+  );
 }
 
 class StudyBirdsApp extends StatefulWidget {

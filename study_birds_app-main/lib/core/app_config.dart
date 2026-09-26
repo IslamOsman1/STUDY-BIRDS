@@ -8,6 +8,10 @@ class AppConfig {
   static const posthogApiKey = '';
   static const posthogHost = 'https://us.i.posthog.com';
 
+  // Sentry — crash & performance monitoring (sentry.io > study-birds-mobile > Settings > Client Keys)
+  static const sentryDsn =
+      'https://11e84bec329882ef21415b9149ed2dff@o4512153224216576.ingest.us.sentry.io/4512153236668416';
+
   // Google Sign-In — Web Application client ID from Google Cloud Console.
   // Required on Android (no google-services.json).
   // Also add this value to GOOGLE_CLIENT_ID env var on Render.
