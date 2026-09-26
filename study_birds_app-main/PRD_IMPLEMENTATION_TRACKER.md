@@ -2,6 +2,15 @@
 
 تاريخ البداية: 21 سبتمبر 2026. المرجع: MASTER BRIEF المرفق.
 
+## تحديث 26 سبتمبر 2026 — الجلسة السابعة
+
+**بند 72 (Profile Security — Sign Out All Devices):** أُضيفت دالة `revokeAll()` وزر "تسجيل الخروج من جميع الأجهزة" في `account_security_screen.dart`:
+- يظهر الزر فقط عند وجود أكثر من جلسة نشطة
+- `OutlinedButton` بإطار أحمر + أيقونة خروج
+- يُظهر dialog تأكيد قبل التنفيذ
+- يستدعي `POST /mobile-security/sessions/revoke-all` ثم `AuthSession.instance.logout()`
+- يعود للشاشة الأولى ويُنهي الجلسة الحالية تلقائياً
+
 ## تحديث 26 سبتمبر 2026 — الجلسة السادسة
 
 **بند 67 (Offline Banner):** بانر ظاهر أعلى كل شاشة حين ينقطع الإنترنت، مع إشعار "عاد الاتصال" عند الاستعادة. مبني على `connectivity_plus` في `StudentAppShell`.
