@@ -1,7 +1,6 @@
 ﻿import 'package:url_launcher/url_launcher.dart';
 import '../../core/document_access.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/app_theme.dart';
 import '../../core/status_info.dart';
@@ -139,11 +138,31 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type,
     }
     return true;
   } catch (_) {
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('تعذر رفع المستند، حاول مرة أخرى'),
-          backgroundColor: AppColors.danger));
+    if (!context.mounted) return false;
+    Navigator.of(context, rootNavigator: true).pop();
+    final retry = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('تعذّر رفع المستند',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        content: const Text(
+            'قد يكون السبب ضعف الاتصال أو مشكلة مؤقتة في الخادم.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('إلغاء')),
+          ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navy),
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('إعادة المحاولة',
+                  style: TextStyle(color: Colors.white))),
+        ],
+      ),
+    );
+    if (retry == true && context.mounted) {
+      return pickAndUploadDocument(context, type,
+          replaces: replaces, translationOf: translationOf);
     }
     return false;
   }

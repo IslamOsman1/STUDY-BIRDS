@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_theme.dart';
 import '../../core/feature_ui.dart';
 import '../../core/api_client.dart';
@@ -294,6 +295,167 @@ class _ConversationThreadScreenState extends State<ConversationThreadScreen> {
 
 class EmergencySupportScreen extends StatelessWidget {
   const EmergencySupportScreen({super.key});
+
+  static const _phone = '+905000000000';
+  static const _whatsapp = 'https://wa.me/905000000000';
+
+  Future<void> _launch(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) throw '';
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تعذر فتح التطبيق الخارجي')));
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => const ConversationThreadScreen();
+  Widget build(BuildContext context) {
+    return AppScaffold(
+      title: 'مساعدة عاجلة',
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.danger.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(
+                  color: AppColors.danger.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.emergency_share_rounded,
+                    color: AppColors.danger, size: 28),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('خط الطوارئ متاح 24/7',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: AppColors.danger)),
+                      SizedBox(height: 4),
+                      Text(
+                        'للحالات الحرجة فقط: مشاكل في المطار، أزمات السكن، موعد السفارة الغد.',
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            color: AppColors.textPrimary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('تواصل فوري مع مسؤول الطوارئ',
+              style: AppTextStyles.sectionLabel),
+          const SizedBox(height: 14),
+          _EmergencyButton(
+            icon: Icons.phone_rounded,
+            label: 'اتصل بمسؤول الطوارئ',
+            subtitle: _phone,
+            color: AppColors.success,
+            onTap: () => _launch(context, 'tel:$_phone'),
+          ),
+          const SizedBox(height: 12),
+          _EmergencyButton(
+            icon: Icons.chat_rounded,
+            label: 'تواصل عبر واتساب',
+            subtitle: 'ردّ فوري خلال دقائق',
+            color: const Color(0xFF25D366),
+            onTap: () => _launch(context, _whatsapp),
+          ),
+          const SizedBox(height: 28),
+          const Divider(),
+          const SizedBox(height: 20),
+          const Text('بديل: تذكرة دعم عاجلة',
+              style: AppTextStyles.sectionLabel),
+          const SizedBox(height: 8),
+          const Text(
+            'إذا لم تستطع الاتصال، أرسل تذكرة دعم وسيرد عليك الفريق فور رؤيتها.',
+            style: AppTextStyles.caption,
+          ),
+          const SizedBox(height: 14),
+          PrimaryButton(
+            label: 'إرسال تذكرة عاجلة',
+            icon: Icons.confirmation_number_outlined,
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const NewSupportTicketScreen(
+                    initialSubject: '[عاجل] '))),
+          ),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+          const Text('أو تحدّث مع فريقك',
+              style: AppTextStyles.sectionLabel),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.message_outlined),
+            label: const Text('فتح المحادثة الداخلية'),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const ConversationThreadScreen())),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmergencyButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+  const _EmergencyButton(
+      {required this.icon,
+      required this.label,
+      required this.subtitle,
+      required this.color,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(AppRadius.button),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.button),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15)),
+                    Text(subtitle,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 12.5)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white60, size: 14),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
