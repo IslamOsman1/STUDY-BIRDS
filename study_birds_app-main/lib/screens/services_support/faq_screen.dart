@@ -50,7 +50,11 @@ class _FaqScreenState extends State<FaqScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري التحميل...')
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 5,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _faqs.isEmpty

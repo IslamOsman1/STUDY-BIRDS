@@ -257,7 +257,11 @@ class _VisaStepsScreenState extends State<VisaStepsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const AppScaffold(title: 'مراحل التأشيرة', body: LoadingState());
+    if (_loading) return AppScaffold(title: 'مراحل التأشيرة', body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: 4,
+        itemBuilder: (_, __) => const Padding(
+            padding: EdgeInsets.only(bottom: 12), child: SkeletonCard())));
     if (_error != null) {
       return AppScaffold(
         title: 'مراحل التأشيرة',
@@ -511,7 +515,11 @@ class _AirportPickupScreenState extends State<AirportPickupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const AppScaffold(title: 'استقبال المطار', body: LoadingState());
+    if (_loading) return AppScaffold(title: 'استقبال المطار', body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: 3,
+        itemBuilder: (_, __) => const Padding(
+            padding: EdgeInsets.only(bottom: 12), child: SkeletonCard())));
     if (_error != null) {
       return AppScaffold(
         title: 'استقبال المطار',
@@ -706,7 +714,11 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           onRefresh: _load,
           color: AppColors.navy,
           child: _loading
-              ? const LoadingState(message: 'جاري التحميل...')
+              ? ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: 3,
+                  itemBuilder: (_, __) => const Padding(
+                      padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
               : _error != null
                   ? ErrorState(message: _error!, onRetry: _load)
                   : _data == null
@@ -888,7 +900,11 @@ class _EquivalencyScreenState extends State<EquivalencyScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري التحميل...')
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 3,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _data == null

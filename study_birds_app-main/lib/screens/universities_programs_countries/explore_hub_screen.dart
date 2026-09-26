@@ -198,7 +198,11 @@ class _FavoritesScreenState extends State<FavoritesScreen>
         ),
         body: SafeArea(
           child: _loading
-              ? const LoadingState(message: 'جاري تحميل المفضلة...')
+              ? ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: 4,
+                  itemBuilder: (_, __) => const Padding(
+                      padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
               : TabBarView(
                   controller: _tabs,
                   children: [

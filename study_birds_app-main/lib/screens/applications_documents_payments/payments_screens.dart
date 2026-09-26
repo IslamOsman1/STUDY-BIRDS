@@ -97,7 +97,11 @@ class _PaymentsSummaryScreenState extends State<PaymentsSummaryScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري تحميل بياناتك المالية...')
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _buildContent(context, _financials!),
@@ -397,7 +401,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري تحميل السجل...')
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _proofs.isEmpty

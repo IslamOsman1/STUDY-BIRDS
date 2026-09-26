@@ -2,6 +2,16 @@
 
 تاريخ البداية: 21 سبتمبر 2026. المرجع: MASTER BRIEF المرفق.
 
+## تحديث 26 سبتمبر 2026 — الجلسة الثالثة
+
+**بند 98:** شاشة المواعيد المهمة (`ImportantDatesScreen`) أُعيد تصميمها بالكامل: عداد تنازلي ("اليوم"/"غداً"/"بعد N يوم"/"تأخّر N يوم")، ألوان تحذيرية (danger < 3 أيام، warning < 7، orange < 30، navy أبعد)، Skeleton loading (4 بطاقات)، زر تحديث، RefreshIndicator، وحالة EmptyState صريحة.
+
+**بند 91 (إضافي):** screenView أُضيف لشاشتي: global_search, important_dates.
+
+**بند 69 (إضافي):** Skeleton loading أُضيف لـ 17 مكانًا إضافيًا في: payments_screens (مالية وسجل)، countries_scholarships (قائمة دول وتفاصيل ومنح)، accommodation_arrival (سكن وتسجيل جامعة)، visa_travel (تأشيرة ومطار وتأمين ومعادلة)، profile_account (ملف ومفضلة وإحالة)، knowledge_base (مركز ومقالات)، faq_screen، live_consultation، explore_hub favorites.
+
+**سجل النشاط (تحسين UX):** `ActivityLogScreen` أُعيد بناؤه كـ timeline رأسية مع: أيقونات ذكية بحسب نوع الحدث (طلب/مستند/دفع/استشارة/تأشيرة)، ألوان تعبيرية (أحمر/أخضر/برتقالي)، وتواريخ نسبية ("اليوم"/"أمس"/"منذ N أيام").
+
 ## تحديث 26 سبتمبر 2026 — الجلسة الثانية
 
 **بند 65 (جزئي):** ميزة المفضلة محليًا — `FavoritesService` بـ SharedPreferences، أيقونة إشارة مرجعية على كل كرت جامعة/برنامج في `CatalogBrowser`، وشاشة `FavoritesScreen` بتبويبين (جامعات/برامج) مرتبطة من `ExploreHubScreen`. الحفظ عبر الأجهزة وربط API مفتوحان.

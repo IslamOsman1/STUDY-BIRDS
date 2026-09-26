@@ -86,7 +86,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري تحميل ملفك الشخصي...')
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 5,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _buildContent(context, user),
@@ -490,7 +494,7 @@ class _ReferralProgramScreenState extends State<ReferralProgramScreen> {
           future: future,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done)
-              return const LoadingState();
+              return const Center(child: SkeletonBox(width: 200, height: 120, borderRadius: 16));
             if (snapshot.hasError)
               return ErrorState(
                   message: 'تعذر تحميل رمز الإحالة',
@@ -611,7 +615,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return AppScaffold(
       title: 'المفضلة',
       body: _loading
-          ? const LoadingState(message: 'جاري التحميل...')
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 4,
+              itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
           : _error != null
               ? ErrorState(message: _error!, onRetry: _load)
               : _favorites.isEmpty

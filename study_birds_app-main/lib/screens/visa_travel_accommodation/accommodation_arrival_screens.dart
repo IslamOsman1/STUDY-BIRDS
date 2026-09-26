@@ -83,7 +83,11 @@ class _AccommodationScreenState extends State<AccommodationScreen>
           ),
           body: SafeArea(
             child: _loading
-                ? const LoadingState(message: 'جاري تحميل السكن...')
+                ? ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: 4,
+                    itemBuilder: (_, __) => const Padding(
+                        padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
                 : _error != null
                     ? ErrorState(message: _error!, onRetry: _load)
                     : RefreshIndicator(
@@ -607,7 +611,11 @@ class _UniversityRegistrationScreenState
     return AppScaffold(
       title: 'تسجيل الجامعة',
       body: _loading
-          ? const LoadingState()
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 3,
+              itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
           : RefreshIndicator(
               onRefresh: _load,
               color: AppColors.navy,

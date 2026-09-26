@@ -187,7 +187,11 @@ class _LiveConsultationScreenState extends State<LiveConsultationScreen> {
             icon: const Icon(Icons.refresh))
       ],
       body: loading
-          ? const LoadingState()
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 4,
+              itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
           : RefreshIndicator(
               onRefresh: load,
               color: AppColors.navy,

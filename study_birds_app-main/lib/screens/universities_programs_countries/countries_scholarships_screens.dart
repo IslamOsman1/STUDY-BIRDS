@@ -55,7 +55,13 @@ class _CountriesExplorerScreenState extends State<CountriesExplorerScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري تحميل الدول...')
+            ? GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.3),
+                itemCount: 6,
+                itemBuilder: (_, __) => const SkeletonBox(
+                    width: double.infinity, height: double.infinity, borderRadius: 12))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _countries.isEmpty
@@ -192,7 +198,11 @@ class _CountryDetailScreenState extends State<CountryDetailScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState()
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : ListView(
                 padding: const EdgeInsets.all(16),
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -402,7 +412,11 @@ class _ScholarshipsScreenState extends State<ScholarshipsScreen> {
             onPressed: sending ? null : load, icon: const Icon(Icons.refresh))
       ],
       body: loading
-          ? const LoadingState()
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 3,
+              itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
           : error != null
               ? ErrorState(message: error!, onRetry: load)
               : rows.isEmpty && entries.isEmpty
