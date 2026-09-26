@@ -275,7 +275,7 @@ class ConnectedPrototypeEntry extends StatelessWidget {
     String email,
     String password,
   ) async {
-    late ({AuthUser user, String token}) result;
+    late ({AuthUser user, String token, String? refreshToken}) result;
     try {
       result = await AuthService.instance.loginOrThrow(email, password);
     } on ApiException catch (e) {
@@ -293,7 +293,7 @@ class ConnectedPrototypeEntry extends StatelessWidget {
     final user = result.user;
     final token = result.token;
 
-    await AuthSession.instance.login(user, authToken: token);
+    await AuthSession.instance.login(user, authToken: token, refreshToken: result.refreshToken);
 
     if (!context.mounted) return true;
     Navigator.of(context).pushAndRemoveUntil(
@@ -322,16 +322,18 @@ class ConnectedPrototypeEntry extends StatelessWidget {
   ) async {
     final AuthUser user;
     final String token;
+    String? refreshToken;
     try {
       final result = await AuthService.instance
           .register(name: name, email: email, password: password);
       user = result.user;
       token = result.token;
+      refreshToken = result.refreshToken;
     } catch (_) {
       return false; // RegisterScreen shows its generic "couldn't create account" message.
     }
 
-    await AuthSession.instance.login(user, authToken: token);
+    await AuthSession.instance.login(user, authToken: token, refreshToken: refreshToken);
     if (!context.mounted) return true;
     final navigator = Navigator.of(context);
     navigator.pushAndRemoveUntil(
