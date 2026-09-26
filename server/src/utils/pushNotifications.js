@@ -1,42 +1,44 @@
-// Sends push notifications via Firebase Cloud Messaging. Disabled (a no-op)
-// until FIREBASE_SERVICE_ACCOUNT_JSON is set in the environment — matches
-// the same "build the integration, ship it inert" pattern already used for
-// consultation reminders and the AI assistant in this codebase. See
-// PUSH_NOTIFICATIONS.md for the deployment checklist.
-let firebaseApp = null;
+// Sends push notifications via OneSignal REST API.
+// No-op until ONESIGNAL_APP_ID and ONESIGNAL_REST_API_KEY are set — same
+// "ship it inert" pattern used elsewhere in this codebase.
+// The mobile app sets externalUserId = MongoDB _id via OneSignal SDK,
+// so we address notifications by that ID directly — no token storage needed.
 
 function isPushEnabled() {
-  return Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+  return Boolean(process.env.ONESIGNAL_APP_ID && process.env.ONESIGNAL_REST_API_KEY);
 }
-
-function getMessaging() {
-  if (!isPushEnabled()) return null;
-  const admin = require("firebase-admin");
-  if (!firebaseApp) {
-    const credentials = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    firebaseApp = admin.apps.length ? admin.app() : admin.initializeApp({ credential: admin.credential.cert(credentials) });
-  }
-  return admin.messaging(firebaseApp);
-}
-
-const INVALID_TOKEN_ERRORS = ["messaging/invalid-registration-token", "messaging/registration-token-not-registered"];
 
 async function sendPushToUser(userId, { title, body, link }) {
-  const messaging = getMessaging();
-  if (!messaging) return { sent: 0, disabled: true };
-  const PushToken = require("../models/PushToken");
-  const tokens = await PushToken.find({ user: userId }).select("token").lean();
-  if (!tokens.length) return { sent: 0 };
-  const response = await messaging.sendEachForMulticast({
-    tokens: tokens.map((t) => t.token),
-    notification: { title, body },
-    data: link ? { link } : undefined,
-  });
-  const invalidTokens = response.responses
-    .map((r, i) => (!r.success && INVALID_TOKEN_ERRORS.includes(r.error?.code) ? tokens[i].token : null))
-    .filter(Boolean);
-  if (invalidTokens.length) await PushToken.deleteMany({ token: { $in: invalidTokens } });
-  return { sent: response.successCount };
+  if (!isPushEnabled()) return { sent: 0, disabled: true };
+
+  const payload = {
+    app_id: process.env.ONESIGNAL_APP_ID,
+    include_aliases: { external_id: [String(userId)] },
+    target_channel: 'push',
+    headings: { en: title, ar: title },
+    contents: { en: body, ar: body },
+    data: { screen: link || '', link: link || '' },
+  };
+
+  try {
+    const res = await fetch('https://api.onesignal.com/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Key ${process.env.ONESIGNAL_REST_API_KEY}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      console.error('[Push] OneSignal error:', JSON.stringify(json));
+      return { sent: 0 };
+    }
+    return { sent: json.recipients ?? 1 };
+  } catch (err) {
+    console.error('[Push] Failed to send push:', err.message);
+    return { sent: 0 };
+  }
 }
 
 module.exports = { sendPushToUser, isPushEnabled };
