@@ -3,9 +3,10 @@ import 'api_client.dart';
 import 'auth_session.dart';
 
 /// Favorites — local-first with API sync.
-/// All writes hit the local cache immediately (optimistic) and attempt a
-/// server sync in the background. Reads prefer the server when online but
-/// fall back gracefully to the local cache so the feature works offline.
+/// Adapts to the server's FavoriteItem format:
+///   GET /students/favorites → List of { itemType, university: {_id,...}, program: {_id,...} }
+///   POST /students/favorites/toggle → { itemType, universityId|programId }
+///                                   → { removed: true, id } | full FavoriteItem
 class FavoritesService {
   FavoritesService._();
   static final instance = FavoritesService._();
@@ -27,11 +28,22 @@ class FavoritesService {
     await prefs.setStringList(key, ids.toList());
   }
 
-  void _cacheFromServer(Map<String, dynamic> favs) {
-    final unis = (favs['universities'] as List?)?.map((e) => '$e').toSet() ?? <String>{};
-    final progs = (favs['programs'] as List?)?.map((e) => '$e').toSet() ?? <String>{};
-    _localSave(_keyUniversities, unis);
-    _localSave(_keyPrograms, progs);
+  /// Parses the server's FavoriteItem list and updates local cache.
+  Future<void> _cacheFromServerList(List<dynamic> list) async {
+    final unis = <String>{};
+    final progs = <String>{};
+    for (final item in list.whereType<Map<String, dynamic>>()) {
+      final type = item['itemType'] as String?;
+      if (type == 'university') {
+        final id = (item['university'] as Map<String, dynamic>?)?['_id']?.toString();
+        if (id != null && id.isNotEmpty) unis.add(id);
+      } else if (type == 'program') {
+        final id = (item['program'] as Map<String, dynamic>?)?['_id']?.toString();
+        if (id != null && id.isNotEmpty) progs.add(id);
+      }
+    }
+    await _localSave(_keyUniversities, unis);
+    await _localSave(_keyPrograms, progs);
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -55,15 +67,19 @@ class FavoritesService {
     final token = _token;
     if (token != null) {
       try {
+        final body = university
+            ? {'itemType': 'university', 'universityId': id}
+            : {'itemType': 'program', 'programId': id};
         final res = await ApiClient.instance.post(
           '/students/favorites/toggle',
           token: token,
-          body: {'type': university ? 'university' : 'program', 'id': id},
+          body: body,
         ) as Map<String, dynamic>;
-        if (res['favorites'] != null) _cacheFromServer(res['favorites'] as Map<String, dynamic>);
-        return res['added'] == true;
+        // { removed: true } means item was deleted → not a favorite
+        // anything else means it was added → is a favorite
+        return res['removed'] != true;
       } catch (_) {
-        // Server not ready yet — local state is already updated
+        // Server error — local optimistic state stands
       }
     }
     return !wasIn;
@@ -76,11 +92,19 @@ class FavoritesService {
     final token = _token;
     if (token != null) {
       try {
-        final res = await ApiClient.instance.get('/students/favorites', token: token)
-            as Map<String, dynamic>;
-        _cacheFromServer(res);
-        final key = university ? 'universities' : 'programs';
-        return (res[key] as List?)?.map((e) => '$e').toSet() ?? {};
+        final res = await ApiClient.instance.get('/students/favorites', token: token);
+        final list = res as List<dynamic>;
+        await _cacheFromServerList(list);
+        final type = university ? 'university' : 'program';
+        return list
+            .whereType<Map<String, dynamic>>()
+            .where((item) => item['itemType'] == type)
+            .map((item) {
+              final ref = item[type] as Map<String, dynamic>?;
+              return ref?['_id']?.toString() ?? '';
+            })
+            .where((id) => id.isNotEmpty)
+            .toSet();
       } catch (_) {
         // Fall through to local cache
       }
