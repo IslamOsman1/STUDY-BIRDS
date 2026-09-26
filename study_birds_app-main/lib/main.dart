@@ -1,5 +1,6 @@
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/analytics_service.dart';
+import 'core/google_sign_in_service.dart';
 import 'core/currency_service.dart';
 import 'core/device_lock.dart';
 import 'core/api_client.dart';
@@ -75,6 +76,7 @@ void main() async {
   await PushNotificationService.instance.init();
   await CurrencyService.instance.load();
   await AnalyticsService.instance.init();
+  await GoogleSignInService.instance.init();
   runApp(const StudyBirdsApp());
 }
 
@@ -244,6 +246,12 @@ class ConnectedPrototypeEntry extends StatelessWidget {
               onRegisterAttempt: (name, email, password) =>
                   _attemptRegister(ctx2, name, email, password)),
         )),
+        onGoogleSignInSuccess: () {
+          if (!ctx.mounted) return;
+          Navigator.of(ctx).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const RootChooserScreen()),
+              (route) => false);
+        },
       ),
     ));
   }

@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/app_theme.dart';
+import '../../core/google_sign_in_service.dart';
+import '../../core/api_client.dart';
 
 class _AppTextField extends StatelessWidget {
   final String label;
@@ -57,13 +59,16 @@ class LoginScreen extends StatefulWidget {
   final VoidCallback? onGoRegister;
   final VoidCallback? onForgotPassword;
   final String? prefillHint;
+  /// Called after a successful Google Sign-In to navigate to the home screen.
+  final VoidCallback? onGoogleSignInSuccess;
 
   const LoginScreen(
       {super.key,
       this.onLoginAttempt,
       this.onGoRegister,
       this.onForgotPassword,
-      this.prefillHint});
+      this.prefillHint,
+      this.onGoogleSignInSuccess});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -73,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
+  bool _googleLoading = false;
   String? _error;
 
   @override
@@ -80,6 +86,26 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _googleSignIn() async {
+    if (!GoogleSignInService.instance.isAvailable) {
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BrowserSignInScreen()));
+      return;
+    }
+    setState(() { _googleLoading = true; _error = null; });
+    try {
+      final ok = await GoogleSignInService.instance.signIn();
+      if (!mounted) return;
+      if (ok) widget.onGoogleSignInSuccess?.call();
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'حدث خطأ أثناء تسجيل الدخول عبر Google');
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -176,10 +202,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const BrowserSignInScreen())),
-                  icon: const Icon(Icons.g_mobiledata_rounded, size: 24),
-                  label: const Text('المتابعة عبر Google'),
+                  onPressed: (_loading || _googleLoading) ? null : _googleSignIn,
+                  icon: _googleLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.g_mobiledata_rounded, size: 24),
+                  label: Text(_googleLoading ? 'جارٍ الدخول...' : 'المتابعة عبر Google'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
                     side: const BorderSide(color: AppColors.border),
