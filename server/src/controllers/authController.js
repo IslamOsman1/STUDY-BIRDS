@@ -1,4 +1,5 @@
 const { sendCode, consume } = require('../utils/mobileEmailCodes');
+const { randomBytes, createHash } = require('node:crypto');
 const User = require("../models/User");
 const StudentProfile = require("../models/StudentProfile");
 const { OAuth2Client } = require("google-auth-library");
@@ -59,10 +60,8 @@ const register = asyncHandler(async (req, res) => {
     await recordReferralSignup(user._id, req.body.referralCode).catch((error) => console.error("Referral signup failed", error.message));
   }
 
-  res.status(201).json({
-    token: generateToken(user._id, user.tokenVersion),
-    user: serializeUser(user),
-  });
+  const tokens = await issueTokenPair(user);
+  res.status(201).json({ ...tokens, user: serializeUser(user) });
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -96,10 +95,8 @@ const login = asyncHandler(async (req, res) => {
   user.lastLoginAt = new Date();
   await user.save();
 
-  res.json({
-    token: generateToken(user._id, user.tokenVersion),
-    user: serializeUser(user),
-  });
+  const tokens = await issueTokenPair(user);
+  res.json({ ...tokens, user: serializeUser(user) });
 });
 
 const googleLogin = asyncHandler(async (req, res) => {
@@ -178,10 +175,8 @@ const googleLogin = asyncHandler(async (req, res) => {
     await ensureStudentProfile(user._id);
   }
 
-  res.json({
-    token: generateToken(user._id, user.tokenVersion),
-    user: serializeUser(user),
-  });
+  const tokens = await issueTokenPair(user);
+  res.json({ ...tokens, user: serializeUser(user) });
 });
 
 const me = asyncHandler(async (req, res) => {
@@ -252,12 +247,57 @@ const changePassword = asyncHandler(async (req, res) => {
   res.json({ message: "Password updated successfully" });
 });
 
+const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function makeRefreshToken() {
+  return randomBytes(32).toString('hex');
+}
+
+function hashToken(token) {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+async function issueTokenPair(user) {
+  const refresh = makeRefreshToken();
+  user.refreshTokenHash = hashToken(refresh);
+  user.refreshTokenExpiry = new Date(Date.now() + REFRESH_TTL_MS);
+  await user.save();
+  return { token: generateToken(user._id, user.tokenVersion), refreshToken: refresh };
+}
+
+const refresh = asyncHandler(async (req, res) => {
+  const raw = req.body.refreshToken;
+  if (typeof raw !== 'string' || !raw.trim()) {
+    res.status(400);
+    throw new Error('refreshToken required');
+  }
+  const hash = hashToken(raw.trim());
+  const user = await User.findOne({ refreshTokenHash: hash, refreshTokenExpiry: { $gt: new Date() } }).select('+refreshTokenHash');
+  if (!user || !user.isActive) {
+    res.status(401);
+    throw new Error('Invalid or expired refresh token');
+  }
+  const tokens = await issueTokenPair(user);
+  res.json({ ...tokens, user: serializeUser(user) });
+});
+
+const logout = asyncHandler(async (req, res) => {
+  const raw = req.body.refreshToken;
+  if (typeof raw === 'string' && raw.trim()) {
+    await User.updateOne({ refreshTokenHash: hashToken(raw.trim()) }, { $unset: { refreshTokenHash: 1, refreshTokenExpiry: 1 } });
+  }
+  res.json({ ok: true });
+});
+
 module.exports = {
   serializeUser,
   ensureStudentProfile,
+  issueTokenPair,
   register,
   login,
   googleLogin,
   me,
   changePassword,
+  refresh,
+  logout,
 };

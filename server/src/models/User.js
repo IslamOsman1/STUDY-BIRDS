@@ -89,6 +89,8 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     tokenVersion: { type: Number, default: 0 },
     twoFactorEnabled: { type: Boolean, default: false },
+    refreshTokenHash: { type: String, select: false },
+    refreshTokenExpiry: { type: Date },
   },
   { timestamps: true }
 );

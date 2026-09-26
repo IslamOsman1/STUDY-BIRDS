@@ -139,6 +139,25 @@ app.use("/api/content", requireDatabaseConnection, contentRoutes);
 app.use("/api/parents", requireDatabaseConnection, parentRoutes);
 app.use("/api/university-portal", requireDatabaseConnection, universityPortalRoutes);
 
+// #55-57: Alumni network
+app.use('/api/alumni', requireDatabaseConnection, require('./routes/alumniRoutes'));
+
+// #68: Android App Links verification + iOS Universal Links
+// Set ANDROID_SHA256_FINGERPRINT and IOS_BUNDLE_ID env vars on Render.
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  const fingerprint = process.env.ANDROID_SHA256_FINGERPRINT || 'REPLACE_WITH_SHA256_FINGERPRINT';
+  res.setHeader('Content-Type', 'application/json');
+  res.json([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: 'com.studybirds.app', sha256_cert_fingerprints: [fingerprint] } }]);
+});
+app.get('/.well-known/apple-app-site-association', (req, res) => {
+  const bundleId = process.env.IOS_BUNDLE_ID || 'com.studybirds.app';
+  res.setHeader('Content-Type', 'application/json');
+  res.json({ applinks: { apps: [], details: [{ appID: bundleId, paths: ['/student/*', '/admin/*', '/partner/*'] }] }, webcredentials: { apps: [bundleId] } });
+});
+
+// #34: Stripe payment gateway (set STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET on Render)
+app.use('/api/payments/stripe', requireDatabaseConnection, require('./routes/stripeRoutes'));
+
 app.use(notFound);
 app.use(errorHandler);
 

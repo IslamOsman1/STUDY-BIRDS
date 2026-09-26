@@ -1,4 +1,5 @@
 const { onPaymentApproved } = require("../utils/journeyAutomation");
+const { sendPushToUser } = require("../utils/pushNotifications");
 const User = require("../models/User");
 const StudentProfile = require("../models/StudentProfile");
 const Application = require("../models/Application");
@@ -81,6 +82,7 @@ const reviewStudentDocumentAdmin = asyncHandler(async (req, res) => {
   }
   const notice = documentStatusNotice(updated, documentLabel(updated.type));
   await Notification.create({ user: updated.student._id, ...notice, link: "/student/documents" });
+  sendPushToUser(updated.student._id, { title: notice.title, body: notice.message || 'تحقق من حالة مستنداتك.', link: '/student/documents' }).catch(() => {});
   res.json({ ...updated, statusInfo: documentStatusInfo(updated) });
 });
 
@@ -260,12 +262,14 @@ const reviewPaymentProofAdmin = asyncHandler(async (req, res) => {
     onPaymentApproved(proof.student).catch(() => {});
   }
 
+  const paymentPushTitle = nextStatus === 'approved' ? 'تمت الموافقة على إثبات الدفع' : nextStatus === 'rejected' ? 'تم رفض إثبات الدفع' : 'تم تحديث حالة الدفع';
   await Notification.create({
     user: proof.student,
-    title: "Payment proof reviewed",
+    title: paymentPushTitle,
     message: `Your payment proof has been ${nextStatus}.`,
     type: nextStatus === "rejected" ? "warning" : "success",
   });
+  sendPushToUser(proof.student, { title: paymentPushTitle, body: `تم ${nextStatus === 'approved' ? 'قبول' : nextStatus === 'rejected' ? 'رفض' : 'مراجعة'} إثبات الدفع.`, link: '/student/payments' }).catch(() => {});
 
   res.json(await PaymentProof.findById(proof._id).populate("student", "name email").populate("invoice", "invoiceNumber description amount status").populate("reviewedBy", "name email"));
 });
