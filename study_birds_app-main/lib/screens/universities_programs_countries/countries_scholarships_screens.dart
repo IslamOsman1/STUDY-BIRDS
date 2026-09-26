@@ -4,6 +4,7 @@ import '../../core/auth_session.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/catalog_repository.dart';
+import '../../core/analytics_service.dart';
 import 'universities_screens.dart' show UniversitiesExplorerScreen;
 
 class CountriesExplorerScreen extends StatefulWidget {
@@ -143,6 +144,8 @@ class _CountryDetailScreenState extends State<CountryDetailScreen> {
   void initState() {
     super.initState();
     _country = widget.country;
+    AnalyticsService.instance.screenView(
+        'country_detail_${(_country['_id'] ?? _country['name'] ?? 'unknown')}');
   }
 
   Future<void> _load() async {

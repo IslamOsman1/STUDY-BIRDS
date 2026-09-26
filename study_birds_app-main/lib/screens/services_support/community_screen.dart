@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/auth_session.dart';
+import '../../core/analytics_service.dart';
 import '../../core/community_repository.dart';
 
 /// Arabic message for a failed community call; server messages are English.
@@ -55,6 +56,7 @@ class _StudentCommunityScreenState extends State<StudentCommunityScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('community');
     load();
     loadLookups();
     loadStatus();

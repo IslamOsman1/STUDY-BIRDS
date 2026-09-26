@@ -5,6 +5,7 @@ import '../applications_documents_payments/payments_screens.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/auth_session.dart';
+import '../../core/analytics_service.dart';
 import '../../core/student_repository.dart';
 import 'security_settings_screen.dart';
 import 'edit_profile_screen.dart';
@@ -35,6 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('profile');
     _load();
   }
 

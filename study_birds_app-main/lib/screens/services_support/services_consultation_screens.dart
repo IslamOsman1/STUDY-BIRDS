@@ -38,7 +38,18 @@ class _ServicesCenterScreenState extends State<ServicesCenterScreen> {
           future: future,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const LoadingState();
+              return GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.1),
+                itemCount: 6,
+                itemBuilder: (_, __) => const SkeletonBox(
+                    width: double.infinity, height: double.infinity,
+                    borderRadius: 14),
+              );
             }
             if (snapshot.hasError) {
               return ErrorState(

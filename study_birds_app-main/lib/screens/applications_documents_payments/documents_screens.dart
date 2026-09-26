@@ -302,52 +302,84 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                         ctaLabel: 'رفع مستند',
                         onCta: _pickTypeAndUpload,
                       )
-                    : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _docs.length,
-                      itemBuilder: (context, i) {
-                        final d = _docs[i] as Map<String, dynamic>;
-                        final meta = docStatusMeta(d);
-                        final info = StatusInfo.of(d);
-                        // Surface what to fix without opening the document.
-                        final needsAction = info != null &&
-                            (info.tone == 'action' || info.tone == 'danger');
-                        return AppCard(
-                          onTap: () async {
-                            // The detail pops true after a new version or
-                            // translation was uploaded.
-                            final changed = await Navigator.of(context)
-                                .push<bool>(MaterialPageRoute(
-                                    builder: (_) =>
-                                        DocumentDetailScreen(document: d)));
-                            if (changed == true) _load();
-                          },
-                          child: Row(
-                            children: [
-                              _DocThumb(document: d),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                  child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(docTypeLabel(d['type'] as String?),
-                                      style: AppTextStyles.cardTitle),
-                                  if (needsAction)
-                                    Text(info.meaning,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTextStyles.caption
-                                            .copyWith(color: meta.color)),
-                                ],
-                              )),
-                              const SizedBox(width: 8),
-                              StatusBadge(label: meta.label, color: meta.color),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    : _buildDocsList(),
       ),
+    );
+  }
+
+  Widget _buildDocsList() {
+    final now = DateTime.now();
+    final expiringSoon = _docs.whereType<Map<String, dynamic>>().where((d) {
+      final exp = DateTime.tryParse('${d['expiresAt'] ?? ''}');
+      return exp != null && exp.isAfter(now) && exp.difference(now).inDays <= 30;
+    }).toList();
+    final hasBanner = expiringSoon.isNotEmpty;
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _docs.length + (hasBanner ? 1 : 0),
+      itemBuilder: (context, i) {
+        if (hasBanner && i == 0) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded,
+                    color: AppColors.warning, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'لديك ${expiringSoon.length} مستند${expiringSoon.length > 1 ? 'ات' : ''} ستنتهي صلاحيتها خلال 30 يومًا.',
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.warning),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        final docIndex = hasBanner ? i - 1 : i;
+        final d = _docs[docIndex] as Map<String, dynamic>;
+        final meta = docStatusMeta(d);
+        final info = StatusInfo.of(d);
+        final needsAction = info != null &&
+            (info.tone == 'action' || info.tone == 'danger');
+        return AppCard(
+          onTap: () async {
+            final changed = await Navigator.of(context)
+                .push<bool>(MaterialPageRoute(
+                    builder: (_) => DocumentDetailScreen(document: d)));
+            if (changed == true) _load();
+          },
+          child: Row(
+            children: [
+              _DocThumb(document: d),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(docTypeLabel(d['type'] as String?),
+                      style: AppTextStyles.cardTitle),
+                  if (needsAction)
+                    Text(info.meaning,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.caption
+                            .copyWith(color: meta.color)),
+                ],
+              )),
+              const SizedBox(width: 8),
+              StatusBadge(label: meta.label, color: meta.color),
+            ],
+          ),
+        );
+      },
     );
   }
 }

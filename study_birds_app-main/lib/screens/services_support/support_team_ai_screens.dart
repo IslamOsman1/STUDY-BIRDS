@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/app_theme.dart';
+import '../../core/analytics_service.dart';
 import '../../core/student_repository.dart';
 import 'faq_screen.dart';
 import 'knowledge_base_screen.dart';
@@ -275,6 +276,7 @@ class _SupportTicketsListScreenState extends State<SupportTicketsListScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('support_tickets');
     _load();
   }
 
@@ -307,7 +309,11 @@ class _SupportTicketsListScreenState extends State<SupportTicketsListScreen> {
         onRefresh: _load,
         color: AppColors.navy,
         child: _loading
-            ? const LoadingState(message: 'جاري تحميل تذاكرك...')
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
             : _error != null
                 ? ErrorState(message: _error!, onRetry: _load)
                 : _tickets.isEmpty

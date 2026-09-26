@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
+import '../../core/analytics_service.dart';
 import '../../core/student_events.dart';
 
 class ActivityLogScreen extends StatefulWidget {
@@ -11,6 +12,13 @@ class ActivityLogScreen extends StatefulWidget {
 class _ActivityLogScreenState extends State<ActivityLogScreen> {
   late Future<List<StudentEvent>> future = loadActivityEvents();
   void refresh() => setState(() => future = loadActivityEvents());
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.instance.screenView('activity_log');
+  }
+
   @override
   Widget build(BuildContext context) => AppScaffold(
         title: 'سجل الأنشطة',
@@ -24,7 +32,12 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
             future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done)
-                return const LoadingState();
+                return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: 5,
+                    itemBuilder: (_, __) => const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: SkeletonCard()));
               if (snapshot.hasError)
                 return ErrorState(
                     message: 'تعذر تحميل الأنشطة', onRetry: refresh);
