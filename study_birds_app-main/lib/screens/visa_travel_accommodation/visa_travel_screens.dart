@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/student_repository.dart';
+import '../../core/catalog_repository.dart';
 import '../../core/feature_ui.dart';
 import '../../core/analytics_service.dart';
 
@@ -65,6 +66,8 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
   String? _error;
   String _currentStage = '';
   Set<String> _uploadedDocKeys = {};
+  List<({String docKey, String label})> _requirements = kVisaRequirements;
+  Map<String, dynamic>? _countryData;
 
   @override
   void initState() {
@@ -82,14 +85,51 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
       final results = await Future.wait([
         StudentRepository.instance.getOverview(),
         StudentRepository.instance.getDocuments(),
+        StudentRepository.instance.getProfile(),
+        CatalogRepository.instance.getCountries(),
       ]);
       final overview = results[0] as DashboardOverview;
       final docs = results[1] as List<dynamic>;
+      final profile = results[2] as Map<String, dynamic>?;
+      final countries = results[3] as List<dynamic>;
+
+      final targetCountries = (profile?['targetCountries'] as List?)?.cast<String>() ?? [];
+      Map<String, dynamic>? matchedCountry;
+      if (targetCountries.isNotEmpty) {
+        final target = targetCountries.first.toLowerCase();
+        for (final c in countries) {
+          final map = c as Map<String, dynamic>;
+          final name = (map['name'] as String? ?? '').toLowerCase();
+          final slug = (map['slug'] as String? ?? '').toLowerCase();
+          if (name == target || slug == target || name.contains(target) || target.contains(name)) {
+            matchedCountry = map;
+            break;
+          }
+        }
+      }
+
+      List<({String docKey, String label})> reqs = kVisaRequirements;
+      if (matchedCountry != null) {
+        final raw = matchedCountry['visaRequirements'] as List?;
+        if (raw != null && raw.isNotEmpty) {
+          reqs = raw
+              .cast<Map>()
+              .map((r) => (
+                    docKey: r['docKey']?.toString() ?? '',
+                    label: r['label']?.toString() ?? '',
+                  ))
+              .where((r) => r.docKey.isNotEmpty)
+              .toList();
+        }
+      }
+
       if (!mounted) return;
       setState(() {
         _currentStage = overview.currentStage;
         _uploadedDocKeys =
             docs.map((d) => (d as Map)['type']?.toString() ?? '').toSet();
+        _requirements = reqs;
+        _countryData = matchedCountry;
         _loading = false;
       });
     } on ApiException catch (e) {
@@ -122,6 +162,12 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
         .firstWhere((s) => s['key'] == _currentStage,
             orElse: () => {'title': _currentStage})['title'] ??
         _currentStage;
+
+    final countryName = _countryData?['name'] as String?;
+    final processingDays = (_countryData?['processingDays'] as num?)?.toInt() ?? 0;
+    final visaFeeUsd = (_countryData?['visaFeeUsd'] as num?)?.toInt() ?? 0;
+    final langReqs = (_countryData?['languageRequirements'] as List?)?.cast<String>() ?? [];
+    final notesList = (_countryData?['visaNotesList'] as List?)?.cast<String>() ?? [];
 
     return AppScaffold(
       title: 'مركز التأشيرة',
@@ -159,12 +205,60 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
               ],
             ),
           ),
+          if (countryName != null) ...[
+            const SizedBox(height: 12),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    const Icon(Icons.flag_rounded, color: AppColors.navy, size: 18),
+                    const SizedBox(width: 8),
+                    Text(countryName, style: AppTextStyles.cardTitle),
+                  ]),
+                  if (processingDays > 0 || visaFeeUsd > 0) ...[
+                    const SizedBox(height: 10),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+                    Row(children: [
+                      if (processingDays > 0) ...[
+                        const Icon(Icons.schedule_rounded, size: 15, color: AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        Text('$processingDays يوم معالجة', style: AppTextStyles.caption),
+                        const SizedBox(width: 16),
+                      ],
+                      if (visaFeeUsd > 0) ...[
+                        const Icon(Icons.attach_money_rounded, size: 15, color: AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        Text('$visaFeeUsd \$', style: AppTextStyles.caption),
+                      ],
+                    ]),
+                  ],
+                  if (langReqs.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    const Divider(height: 1),
+                    const SizedBox(height: 8),
+                    Text('متطلبات اللغة', style: AppTextStyles.caption),
+                    const SizedBox(height: 6),
+                    ...langReqs.map((r) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(children: [
+                        const Icon(Icons.translate_rounded, size: 14, color: AppColors.info),
+                        const SizedBox(width: 6),
+                        Expanded(child: Text(r, style: AppTextStyles.body)),
+                      ]),
+                    )),
+                  ],
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           const Text('المستندات المطلوبة للتأشيرة', style: AppTextStyles.sectionLabel),
           const SizedBox(height: 10),
           AppCard(
             child: Column(
-              children: kVisaRequirements
+              children: _requirements
                   .map((req) {
                     final done = _uploadedDocKeys.contains(req.docKey);
                     return Padding(
@@ -189,6 +283,26 @@ class _VisaCenterScreenState extends State<VisaCenterScreen> {
                   .toList(),
             ),
           ),
+          if (notesList.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('ملاحظات التأشيرة', style: AppTextStyles.sectionLabel),
+                  const SizedBox(height: 8),
+                  ...notesList.map((note) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Icon(Icons.info_outline_rounded, size: 15, color: AppColors.info),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text(note, style: AppTextStyles.body)),
+                    ]),
+                  )),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           const InlineNotice(
               'الموعد الدقيق لمقابلة القنصلية يُحدَّد من قِبل فريق Study Birds وسيتم إبلاغك عبر الإشعارات.'),
