@@ -535,6 +535,11 @@ const buildCountryPayload = (body) => ({
   articleHeadings: Array.isArray(body.articleHeadings) ? body.articleHeadings : [],
   articleBodies: Array.isArray(body.articleBodies) ? body.articleBodies : [],
   featured: Boolean(body.featured),
+  visaRequirements: Array.isArray(body.visaRequirements) ? body.visaRequirements : [],
+  processingDays: Number.isFinite(Number(body.processingDays)) ? Number(body.processingDays) : 0,
+  visaFeeUsd: Number.isFinite(Number(body.visaFeeUsd)) ? Number(body.visaFeeUsd) : 0,
+  languageRequirements: Array.isArray(body.languageRequirements) ? body.languageRequirements : [],
+  visaNotesList: Array.isArray(body.visaNotesList) ? body.visaNotesList : [],
 });
 
 const createCountry = asyncHandler(async (req, res) => {
