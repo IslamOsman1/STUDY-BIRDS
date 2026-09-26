@@ -423,7 +423,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   ),
                   _HeroIconButton(
                     icon: Icons.notifications_none_rounded,
-                    showDot: overview.stats.unreadNotifications > 0,
+                    badgeCount: overview.stats.unreadNotifications,
                     onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (_) => const NotificationsScreen())),
@@ -717,31 +717,50 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 class _HeroIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
-  final bool showDot;
+  final int badgeCount;
   const _HeroIconButton(
-      {required this.icon, required this.onPressed, this.showDot = false});
+      {required this.icon,
+      required this.onPressed,
+      this.badgeCount = 0});
 
   @override
   Widget build(BuildContext context) {
+    final hasBadge = badgeCount > 0;
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Container(
           decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12), shape: BoxShape.circle),
+              color: Colors.white.withValues(alpha: 0.12),
+              shape: BoxShape.circle),
           child: IconButton(
               onPressed: onPressed,
               icon: Icon(icon, color: Colors.white, size: 20)),
         ),
-        if (showDot)
+        if (hasBadge)
           Positioned(
-            right: 6,
-            top: 6,
-            child: Container(
-                width: 7,
-                height: 7,
-                decoration: const BoxDecoration(
-                    color: AppColors.orange, shape: BoxShape.circle)),
+            right: 4,
+            top: 4,
+            child: badgeCount > 0
+                ? Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                        color: AppColors.orange,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Text(
+                      badgeCount > 99 ? '99+' : '$badgeCount',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800),
+                    ),
+                  )
+                : Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                        color: AppColors.orange, shape: BoxShape.circle)),
           ),
       ],
     );
