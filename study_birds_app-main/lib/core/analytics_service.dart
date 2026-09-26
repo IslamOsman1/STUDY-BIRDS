@@ -1,41 +1,65 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
+import 'app_config.dart';
 import 'auth_session.dart';
 
-/// Lightweight analytics layer that:
-/// 1. Logs events to console in debug mode.
-/// 2. Queues events in SharedPreferences for later upload (or a 3rd-party SDK).
-///
-/// To wire up a real provider (Mixpanel, PostHog, Firebase Analytics):
-/// override [_dispatch] — the rest of the call sites don't change.
+/// Analytics layer wired to PostHog.
+/// Set AppConfig.posthogApiKey before release to activate.
+/// All calls are fire-and-forget and never throw to the caller.
 ///
 /// PRD بند 91: Product Analytics
 class AnalyticsService {
   AnalyticsService._();
   static final AnalyticsService instance = AnalyticsService._();
 
-  static const _queueKey = 'sb_analytics_queue';
-  static const _maxQueue = 200;
+  bool _ready = false;
+
+  Future<void> init() async {
+    if (AppConfig.posthogApiKey.isEmpty) return;
+    try {
+      final config = PostHogConfig(AppConfig.posthogApiKey)
+        ..host = AppConfig.posthogHost
+        ..debug = kDebugMode
+        ..captureApplicationLifecycleEvents = true;
+      await Posthog().setup(config);
+      _ready = true;
+    } catch (e) {
+      if (kDebugMode) print('[Analytics] PostHog init failed: $e');
+    }
+  }
+
+  Future<void> identify(String userId, {Map<String, dynamic>? traits}) async {
+    if (!_ready) return;
+    try {
+      final props = traits?.map((k, v) => MapEntry(k, v as Object));
+      await Posthog().identify(userId: userId, userProperties: props);
+    } catch (_) {}
+  }
+
+  Future<void> reset() async {
+    if (!_ready) return;
+    try { await Posthog().reset(); } catch (_) {}
+  }
 
   Future<void> track(String event, [Map<String, dynamic>? props]) async {
-    final payload = {
-      'event': event,
-      'userId': AuthSession.instance.currentUser?.id ?? 'anonymous',
-      'ts': DateTime.now().toUtc().toIso8601String(),
-      if (props != null) ...props,
-    };
-    if (kDebugMode) {
-      // ignore: avoid_print
-      print('[Analytics] $event ${props ?? ''}');
-    }
-    await _dispatch(payload);
+    final userId = AuthSession.instance.currentUser?.id ?? 'anonymous';
+    if (kDebugMode) print('[Analytics] $event ${props ?? ''}');
+    if (!_ready) return;
+    try {
+      await Posthog().capture(
+        eventName: event,
+        properties: {'userId': userId, ...?props},
+      );
+    } catch (_) {}
   }
 
   // ── convenience wrappers ──────────────────────────────────────────────────
 
-  Future<void> screenView(String screenName) =>
-      track('screen_view', {'screen': screenName});
+  Future<void> screenView(String screenName) async {
+    if (kDebugMode) print('[Analytics] screen: $screenName');
+    if (!_ready) return;
+    try { await Posthog().screen(screenName: screenName); } catch (_) {}
+  }
 
   Future<void> buttonTap(String button, {String? screen}) =>
       track('button_tap', {'button': button, if (screen != null) 'screen': screen});
@@ -70,32 +94,4 @@ class AnalyticsService {
       track('referral_shared', {'code': code});
 
   Future<void> birdAiOpened() => track('bird_ai_opened');
-
-  // ── internal ──────────────────────────────────────────────────────────────
-
-  /// Override this to send to a real analytics backend.
-  Future<void> _dispatch(Map<String, dynamic> payload) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getStringList(_queueKey) ?? [];
-      raw.add(jsonEncode(payload));
-      // Keep queue bounded
-      if (raw.length > _maxQueue) raw.removeRange(0, raw.length - _maxQueue);
-      await prefs.setStringList(_queueKey, raw);
-    } catch (_) {}
-  }
-
-  /// Returns queued events (useful for a batch-upload job).
-  Future<List<Map<String, dynamic>>> drainQueue() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getStringList(_queueKey) ?? [];
-      await prefs.remove(_queueKey);
-      return raw
-          .map((s) => jsonDecode(s) as Map<String, dynamic>)
-          .toList();
-    } catch (_) {
-      return [];
-    }
-  }
 }

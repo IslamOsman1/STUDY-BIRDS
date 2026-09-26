@@ -1,3 +1,5 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/analytics_service.dart';
 import 'core/currency_service.dart';
 import 'core/device_lock.dart';
 import 'core/api_client.dart';
@@ -72,6 +74,7 @@ void main() async {
   };
   await PushNotificationService.instance.init();
   await CurrencyService.instance.load();
+  await AnalyticsService.instance.init();
   runApp(const StudyBirdsApp());
 }
 
@@ -127,6 +130,13 @@ class _StudyBirdsAppState extends State<StudyBirdsApp> {
     return MaterialApp(
       title: 'Study Birds',
       navigatorKey: rootNavigatorKey,
+      locale: const Locale('ar'),
+      supportedLocales: const [Locale('ar')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       builder: (context, child) => DeviceLockGate(
           child: OfflineBannerWrapper(
               child: child ?? const SizedBox.shrink())),
@@ -207,7 +217,18 @@ class ConnectedPrototypeEntry extends StatelessWidget {
   static void _goOnboardingServices(BuildContext context) {
     Navigator.of(context).pushReplacement(MaterialPageRoute(
       builder: (ctx) =>
-          OnboardingServicesScreen(onContinue: () => _goLogin(ctx)),
+          OnboardingServicesScreen(onContinue: () => _goAccountType(ctx)),
+    ));
+  }
+
+  static void _goAccountType(BuildContext context) {
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+      builder: (ctx) => AccountTypeSelectionScreen(
+        onSelected: (_) {
+          AnalyticsService.instance.onboardingCompleted();
+          _goLogin(ctx);
+        },
+      ),
     ));
   }
 

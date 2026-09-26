@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'analytics_service.dart';
 import 'device_lock.dart';
 import 'push_notification_service.dart';
 import 'package:flutter/material.dart';
@@ -260,6 +261,7 @@ class AuthSession extends ChangeNotifier {
     currentUser = user;
     token = authToken;
     PushNotificationService.instance.setUser(user.id);
+    AnalyticsService.instance.identify(user.id, traits: {'role': user.role.name, 'name': user.name});
     notifyListeners();
   }
 
@@ -271,6 +273,7 @@ class AuthSession extends ChangeNotifier {
     await const FlutterSecureStorage().delete(key: 'active_session_token');
     await DeviceLock.instance.clear();
     PushNotificationService.instance.clearUser();
+    AnalyticsService.instance.reset();
     notifyListeners();
   }
 }
