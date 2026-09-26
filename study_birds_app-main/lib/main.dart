@@ -3,6 +3,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'core/analytics_service.dart';
 import 'core/google_sign_in_service.dart';
 import 'core/app_config.dart';
+import 'core/realtime_sync_service.dart';
 import 'core/currency_service.dart';
 import 'core/device_lock.dart';
 import 'core/api_client.dart';
@@ -83,6 +84,7 @@ void main() async {
       await CurrencyService.instance.load();
       await AnalyticsService.instance.init();
       await GoogleSignInService.instance.init();
+      RealtimeSyncService.instance.start();
       runApp(SentryWidget(child: const StudyBirdsApp()));
     },
   );

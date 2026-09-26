@@ -5,6 +5,7 @@ import '../../core/animations.dart';
 import '../../core/student_repository.dart';
 import '../../core/auth_session.dart';
 import '../../core/analytics_service.dart';
+import '../../core/realtime_sync_service.dart';
 import '../../main.dart' show RootChooserScreen;
 import '../profile_account/profile_account_screens.dart';
 import 'notifications_screen.dart';
@@ -43,7 +44,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   DashboardOverview? _overview;
   bool _loading = true;
   String? _error;
-  Timer? _pollTimer;
+  StreamSubscription<DateTime>? _syncSub;
 
   // Mock — in production this list comes from the admin panel/CMS (spec
   // points 75/76). No /banners endpoint exists on the backend yet.
@@ -63,7 +64,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     super.initState();
     _load();
     AnalyticsService.instance.screenView('home_dashboard');
-    _pollTimer = Timer.periodic(const Duration(minutes: 3), (_) {
+    _syncSub = RealtimeSyncService.instance.onTick.listen((_) {
       StudentRepository.instance
           .getOverview(forceRefresh: true)
           .then((data) { if (mounted) setState(() => _overview = data); })
@@ -73,7 +74,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    _syncSub?.cancel();
     super.dispose();
   }
 

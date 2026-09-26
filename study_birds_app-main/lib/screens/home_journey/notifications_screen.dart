@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
 import '../../core/analytics_service.dart';
+import '../../core/realtime_sync_service.dart';
 import '../services_support/services_consultation_screens.dart';
 import '../services_support/support_team_ai_screens.dart';
 import '../services_support/community_screen.dart';
@@ -89,12 +91,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   List<dynamic> _notifications = [];
   bool _loading = true;
   String? _error;
+  StreamSubscription<DateTime>? _syncSub;
 
   @override
   void initState() {
     super.initState();
     AnalyticsService.instance.screenView('notifications');
     _load();
+    _syncSub = RealtimeSyncService.instance.onTick.listen((_) {
+      StudentRepository.instance.getNotifications()
+          .then((data) { if (mounted) setState(() => _notifications = data); })
+          .catchError((_) {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _syncSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
