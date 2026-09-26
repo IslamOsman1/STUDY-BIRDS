@@ -352,6 +352,37 @@ class _ConsultationConfirmationScreenState
     }
   }
 
+  Future<void> _addToCalendar(BuildContext ctx) async {
+    final startsAt = DateTime.tryParse('${slot['startsAt'] ?? ''}');
+    if (startsAt == null) return;
+    final endsAt = startsAt.add(const Duration(minutes: 30));
+    String fmt(DateTime d) =>
+        d.toUtc().toIso8601String().replaceAll(RegExp(r'[-:]|\.\d+'), '');
+    final advisor = '${slot['advisor']?['name'] ?? 'المستشار'}';
+    final mode = kConsultationModes[slot['mode']] ?? '${slot['mode']}';
+    final meetingUrl = '${slot['meetingUrl'] ?? ''}';
+    final details = meetingUrl.startsWith('https://')
+        ? 'استشارة $mode مع $advisor\nرابط الاجتماع: $meetingUrl'
+        : 'استشارة $mode مع $advisor';
+
+    final uri = Uri.https('calendar.google.com', '/calendar/render', {
+      'action': 'TEMPLATE',
+      'text': 'استشارة Study Birds مع $advisor',
+      'dates': '${fmt(startsAt)}/${fmt(endsAt)}',
+      'details': details,
+    });
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw StateError('unavailable');
+      }
+    } catch (_) {
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+            const SnackBar(content: Text('تعذر فتح تطبيق التقويم.')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final meetingUrl = '${slot['meetingUrl'] ?? ''}';
@@ -409,6 +440,17 @@ class _ConsultationConfirmationScreenState
             const SizedBox(height: 16),
             const Text('سيتم إرسال تذكير لك قبل الموعد.',
                 style: AppTextStyles.caption),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.navy),
+              label: const Text('أضف للتقويم', style: TextStyle(color: AppColors.navy)),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+                side: const BorderSide(color: AppColors.navy),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+              ),
+              onPressed: () => _addToCalendar(context),
+            ),
           ],
         ),
       ),

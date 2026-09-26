@@ -6,6 +6,7 @@ import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
 import '../../core/notification_scheduler.dart';
 import '../../core/analytics_service.dart';
+import '../../core/currency_service.dart';
 
 class InvoiceStatusMeta {
   final String label;
@@ -39,7 +40,7 @@ InvoiceStatusMeta paymentProofStatusMeta(String? status) {
   }
 }
 
-String _money(num? amount) => '${(amount ?? 0).toStringAsFixed(0)}\$';
+String _money(num? amount) => CurrencyService.instance.formatAmount(amount);
 
 class PaymentsSummaryScreen extends StatefulWidget {
   const PaymentsSummaryScreen({super.key});
@@ -57,6 +58,7 @@ class _PaymentsSummaryScreenState extends State<PaymentsSummaryScreen> {
   void initState() {
     super.initState();
     AnalyticsService.instance.screenView('payments_summary');
+    CurrencyService.instance.refreshRatesInBackground();
     _load();
   }
 

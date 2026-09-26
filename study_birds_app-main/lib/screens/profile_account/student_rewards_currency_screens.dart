@@ -1,12 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/api_client.dart';
 import '../../core/auth_session.dart';
 import '../../core/app_theme.dart';
+import '../../core/currency_service.dart';
 
 // ─── بند 53: مكافآت الطالب ────────────────────────────────────────────────────
 
@@ -212,56 +210,6 @@ class _RewardEntryCard extends StatelessWidget {
 
 // ─── بند 74: تحويل العملات ───────────────────────────────────────────────────
 
-const _supportedCurrencies = {
-  'USD': 'الدولار الأمريكي',
-  'EUR': 'اليورو',
-  'GBP': 'الجنيه الإسترليني',
-  'TRY': 'الليرة التركية',
-  'AED': 'الدرهم الإماراتي',
-  'EGP': 'الجنيه المصري',
-  'SAR': 'الريال السعودي',
-  'JOD': 'الدينار الأردني',
-};
-
-const _prefKeySelectedCurrency = 'selected_display_currency';
-
-class CurrencyService {
-  CurrencyService._();
-  static final instance = CurrencyService._();
-
-  String _selected = 'USD';
-  String get selected => _selected;
-
-  final ValueNotifier<String> notifier = ValueNotifier('USD');
-
-  Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    _selected = prefs.getString(_prefKeySelectedCurrency) ?? 'USD';
-    notifier.value = _selected;
-  }
-
-  Future<void> select(String currency) async {
-    _selected = currency;
-    notifier.value = currency;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefKeySelectedCurrency, currency);
-  }
-
-  Future<Map<String, double>> fetchRates(String base) async {
-    final others =
-        _supportedCurrencies.keys.where((c) => c != base).join(',');
-    final uri = Uri.parse(
-        'https://api.frankfurter.app/latest?from=$base&to=$others');
-    final resp = await http.get(uri).timeout(const Duration(seconds: 8));
-    if (resp.statusCode != 200) throw Exception('Failed to fetch rates');
-    final body = jsonDecode(resp.body) as Map;
-    final rates = Map<String, double>.from(
-        (body['rates'] as Map).map((k, v) => MapEntry(k as String, (v as num).toDouble())));
-    rates[base] = 1.0;
-    return rates;
-  }
-}
-
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
   @override
@@ -422,7 +370,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
               const SizedBox(height: 10),
               AppCard(
                 child: Column(
-                  children: _supportedCurrencies.keys
+                  children: supportedCurrencies.keys
                       .where((c) => c != _from)
                       .map((c) {
                     final amount = double.tryParse(_controller.text) ?? 1;
@@ -432,7 +380,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                       child: Row(children: [
                         Expanded(
                             child: Text(
-                                _supportedCurrencies[c] ?? c,
+                                supportedCurrencies[c] ?? c,
                                 style: AppTextStyles.body)),
                         Text('${converted.toStringAsFixed(2)} $c',
                             style: const TextStyle(
@@ -472,7 +420,7 @@ class _CurrencyDropdown extends StatelessWidget {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             ),
-            items: _supportedCurrencies.keys
+            items: supportedCurrencies.keys
                 .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                 .toList(),
             onChanged: onChanged,

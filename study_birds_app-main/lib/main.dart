@@ -1,3 +1,4 @@
+import 'core/currency_service.dart';
 import 'core/device_lock.dart';
 import 'core/api_client.dart';
 import 'core/deep_link_service.dart';
@@ -70,6 +71,7 @@ void main() async {
     debugPrint('[Crash] ${details.exceptionAsString()}');
   };
   await PushNotificationService.instance.init();
+  await CurrencyService.instance.load();
   runApp(const StudyBirdsApp());
 }
 
