@@ -1,3 +1,4 @@
+const { onPaymentApproved } = require("../utils/journeyAutomation");
 const User = require("../models/User");
 const StudentProfile = require("../models/StudentProfile");
 const Application = require("../models/Application");
@@ -252,6 +253,11 @@ const reviewPaymentProofAdmin = asyncHandler(async (req, res) => {
     invoice.reviewedAt = new Date();
     invoice.reviewedBy = req.user._id;
     await invoice.save();
+  }
+
+  // بند 115: auto-advance journeyStage to first-payment when payment is approved
+  if (nextStatus === "approved") {
+    onPaymentApproved(proof.student).catch(() => {});
   }
 
   await Notification.create({

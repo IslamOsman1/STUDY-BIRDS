@@ -1,4 +1,5 @@
 const { requiredDocumentTypesFor, missingDocumentTypes } = require("../utils/applicationRequirements");
+const { onApplicationStatusChange } = require("../utils/journeyAutomation");
 const mongoose = require("mongoose");
 const Application = require("../models/Application");
 const Program = require("../models/Program");
@@ -165,6 +166,9 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
   });
 
   await application.save();
+
+  // بند 115: auto-advance journeyStage based on new application status
+  onApplicationStatusChange(application.student, useDetailed ? detailedStatus : status).catch(() => {});
 
   await Notification.create({
     user: application.student,
