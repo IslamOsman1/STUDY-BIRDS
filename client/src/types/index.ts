@@ -93,6 +93,11 @@ export interface Country extends ArticleContent {
   averageTuition?: number;
   featured?: boolean;
   createdAt?: string;
+  visaRequirements?: { docKey: string; label: string }[];
+  processingDays?: number;
+  visaFeeUsd?: number;
+  languageRequirements?: string[];
+  visaNotesList?: string[];
 }
 
 export interface SiteSettings {

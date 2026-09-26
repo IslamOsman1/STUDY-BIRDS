@@ -6,6 +6,7 @@ const Notification = require('../models/Notification');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { requireSection, hasSection } = require('../middleware/employeeAccess');
 const run = require('../utils/asyncHandler');
+const { sendPushToUser } = require('../utils/pushNotifications');
 const router = express.Router();
 const HALF_HOUR = 1800000;
 const advisors = { role: 'employee', isActive: true, permissions: 'consultations' };
@@ -74,6 +75,7 @@ router.post('/bookings', authorize('student'), run(async (req, res) => {
       history: [{ action: 'booked', slot: slot._id, startsAt: slot.startsAt, changedBy: req.user._id, changedAt: new Date() }] }], { session });
     await notify(booking, 'booked', session); return booking;
   });
+  sendPushToUser(result.student, { title: 'تم تأكيد موعد الاستشارة', body: 'تم حجز موعد استشارتك بنجاح.', link: '/student/consultations' }).catch(() => {});
   res.status(201).json(result);
 }));
 router.post('/bookings/:id/cancel', (req, res, next) => req.user.role === 'student' || hasSection(req.user, 'consultations') ? next() : res.status(403).json({ message: 'Access denied' }), run(async (req, res) => {
@@ -89,6 +91,7 @@ router.post('/bookings/:id/cancel', (req, res, next) => req.user.role === 'stude
     await Slot.updateOne({ _id: booking.slot, reservation: booking._id }, { $set: { reservation: null }, $inc: { __v: 1 } }, { session });
     await notify(cancelled, 'cancelled', session); return cancelled;
   });
+  sendPushToUser(result.student, { title: 'تم إلغاء موعد الاستشارة', body: 'تم إلغاء حجزك بنجاح.', link: '/student/consultations' }).catch(() => {});
   res.json(result);
 }));
 router.post('/bookings/:id/reschedule', authorize('student'), run(async (req, res) => {
@@ -111,6 +114,7 @@ router.post('/bookings/:id/reschedule', authorize('student'), run(async (req, re
     }
     await notify(updated, 'rescheduled', session); return updated;
   });
+  sendPushToUser(result.student, { title: 'تم تغيير موعد الاستشارة', body: 'تم تحديث موعد استشارتك بنجاح.', link: '/student/consultations' }).catch(() => {});
   res.json(result);
 }));
 router.use('/staff', requireSection('consultations'));
