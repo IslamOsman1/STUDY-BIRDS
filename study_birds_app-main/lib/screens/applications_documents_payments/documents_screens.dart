@@ -110,15 +110,30 @@ Future<bool> pickAndUploadDocument(BuildContext context, String type,
   }
 
   if (context.mounted) {
+    final sizeKb = file.size ~/ 1024;
+    final sizeStr = sizeKb >= 1024
+        ? '${(sizeKb / 1024).toStringAsFixed(1)} MB'
+        : '$sizeKb KB';
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: Row(children: [
-          CircularProgressIndicator(color: AppColors.navy),
-          SizedBox(width: 16),
-          Text('جاري رفع المستند...'),
-        ]),
+      builder: (_) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(children: [
+              CircularProgressIndicator(color: AppColors.navy),
+              SizedBox(width: 16),
+              Text('جاري رفع المستند...'),
+            ]),
+            const SizedBox(height: 10),
+            Text(file.name,
+                style: AppTextStyles.caption,
+                overflow: TextOverflow.ellipsis),
+            Text(sizeStr, style: AppTextStyles.caption),
+          ],
+        ),
       ),
     );
   }
@@ -403,12 +418,43 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
   }
 }
 
-class DocumentDetailScreen extends StatelessWidget {
+class DocumentDetailScreen extends StatefulWidget {
   final Map<String, dynamic> document;
   const DocumentDetailScreen({super.key, required this.document});
 
   @override
+  State<DocumentDetailScreen> createState() => _DocumentDetailScreenState();
+}
+
+class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
+  Uri? _previewUri;
+  bool _loadingPreview = false;
+
+  bool get _isImage {
+    final name = (widget.document['fileName'] as String? ?? '').toLowerCase();
+    return name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isImage && widget.document['filePath'] is String) _loadPreview();
+  }
+
+  Future<void> _loadPreview() async {
+    setState(() => _loadingPreview = true);
+    try {
+      final uri = await resolveDocumentDownload(widget.document['filePath'] as String);
+      if (mounted) setState(() => _previewUri = uri);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _loadingPreview = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final document = widget.document;
     final meta = docStatusMeta(document);
     final info = StatusInfo.of(document);
     final reviewNote = document['reviewNote'] as String?;
@@ -445,14 +491,32 @@ class DocumentDetailScreen extends StatelessWidget {
             Container(
               height: 180,
               width: double.infinity,
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: AppColors.navy.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(AppRadius.card),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Center(
-                  child: Icon(Icons.description_outlined,
-                      size: 48, color: AppColors.textSecondary)),
+              child: _loadingPreview
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.navy))
+                  : _previewUri != null
+                      ? Image.network(
+                          _previewUri.toString(),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(Icons.description_outlined,
+                                  size: 48, color: AppColors.textSecondary)),
+                        )
+                      : Center(
+                          child: Icon(
+                            _isImage
+                                ? Icons.image_outlined
+                                : Icons.description_outlined,
+                            size: 48,
+                            color: AppColors.textSecondary,
+                          )),
             ),
             const SizedBox(height: 16),
             AppCard(
