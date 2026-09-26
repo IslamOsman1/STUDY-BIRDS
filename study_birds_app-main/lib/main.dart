@@ -2,6 +2,7 @@ import 'core/device_lock.dart';
 import 'core/api_client.dart';
 import 'core/deep_link_service.dart';
 import 'core/notification_scheduler.dart';
+import 'core/push_notification_service.dart';
 import 'screens/auth/email_challenge_screen.dart';
 import 'package:flutter/material.dart';
 import 'core/app_theme.dart';
@@ -62,14 +63,13 @@ final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 /// screens without a BuildContext.
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    // Queue crash event for later drain to monitoring provider.
-    // ignore: invalid_use_of_visible_for_testing_member
     debugPrint('[Crash] ${details.exceptionAsString()}');
   };
+  await PushNotificationService.instance.init();
   runApp(const StudyBirdsApp());
 }
 
@@ -86,6 +86,38 @@ class _StudyBirdsAppState extends State<StudyBirdsApp> {
     super.initState();
     DeepLinkService.instance.init(rootNavigatorKey);
     NotificationScheduler.instance.init();
+    PushNotificationService.instance.setTapHandler(_onPushTap);
+  }
+
+  void _onPushTap(String screen, Map<String, dynamic> data) {
+    final nav = rootNavigatorKey.currentState;
+    if (nav == null) return;
+    switch (screen) {
+      case 'payments':
+        nav.push(MaterialPageRoute(
+            builder: (_) => const PaymentsSummaryScreen()));
+      case 'documents':
+        nav.push(MaterialPageRoute(
+            builder: (_) => const MyDocumentsScreen()));
+      case 'applications':
+        nav.push(MaterialPageRoute(
+            builder: (_) => const ApplicationsListScreen()));
+      case 'notifications':
+        nav.push(MaterialPageRoute(
+            builder: (_) => const NotificationsScreen()));
+      case 'consultation':
+        nav.push(MaterialPageRoute(
+            builder: (_) => const ConsultationBookingScreen()));
+      case 'support':
+        nav.push(MaterialPageRoute(
+            builder: (_) => const SupportTicketsListScreen()));
+      case 'journey':
+        nav.push(MaterialPageRoute(
+            builder: (_) => const JourneyTrackerScreen()));
+      default:
+        nav.push(MaterialPageRoute(
+            builder: (_) => const NotificationsScreen()));
+    }
   }
 
   @override

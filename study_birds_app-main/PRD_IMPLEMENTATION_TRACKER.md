@@ -2,6 +2,17 @@
 
 تاريخ البداية: 21 سبتمبر 2026. المرجع: MASTER BRIEF المرفق.
 
+## تحديث 26 سبتمبر 2026 — الجلسة الرابعة
+
+**بند 48 (Push Notifications — OneSignal):**
+- أُضيف `onesignal_flutter: ^5.2.6` (ثُبِّت 5.7.0)
+- `PushNotificationService` singleton — يهيئ SDK، يطلب إذن التنبيهات، يربط كل جوال بـ `externalUserId` = MongoDB `_id` للمستخدم
+- `auth_session.dart`: `setUser(id)` عند تسجيل الدخول، `clearUser()` عند الخروج
+- `main.dart`: `PushNotificationService.instance.init()` قبل `runApp`، وـ`_onPushTap` يُوجّه لـ 7 شاشات حسب `screen` في بيانات الإشعار (payments, documents, applications, notifications, consultation, support, journey)
+- `AndroidManifest.xml`: إذن `POST_NOTIFICATIONS` كان موجودًا
+- `build.gradle.kts`: `minSdk = 21` (مطلوب لـ OneSignal)
+- **ما يتبقى للسيرفر:** إضافة `ONESIGNAL_APP_ID` و`ONESIGNAL_REST_API_KEY` كمتغيري بيئة في Render، واستدعاء OneSignal REST API عند تغيير الحالات والإشعارات
+
 ## تحديث 26 سبتمبر 2026 — الجلسة الثالثة
 
 **بند 98:** شاشة المواعيد المهمة (`ImportantDatesScreen`) أُعيد تصميمها بالكامل: عداد تنازلي ("اليوم"/"غداً"/"بعد N يوم"/"تأخّر N يوم")، ألوان تحذيرية (danger < 3 أيام، warning < 7، orange < 30، navy أبعد)، Skeleton loading (4 بطاقات)، زر تحديث، RefreshIndicator، وحالة EmptyState صريحة.
