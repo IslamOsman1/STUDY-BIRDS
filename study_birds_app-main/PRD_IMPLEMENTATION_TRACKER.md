@@ -2,6 +2,26 @@
 
 تاريخ البداية: 21 سبتمبر 2026. المرجع: MASTER BRIEF المرفق.
 
+## تحديث 26 سبتمبر 2026 — الجلسة الثامنة
+
+**بند 65 (Add to Calendar — Google Calendar):** زر "أضف للتقويم" في `ConsultationConfirmationScreen`:
+- يفتح Google Calendar عبر URL scheme (لا يحتاج OAuth)
+- يملأ: العنوان، التاريخ/الوقت، المدة (30 دقيقة)، رابط الاجتماع في التفاصيل
+- يعرض snackbar عند فشل فتح التطبيق
+
+**بند 27/99 (Favorites API Sync):** `FavoritesService` أُعيد كتابته بنمط local-first:
+- كل toggle → local optimistic update → background sync مع `POST /students/favorites/toggle`
+- `getAllUniversityIds/ProgramIds` → يجرب API أولاً ويحدّث الكاش المحلي، يرجع للمحلي عند الفشل
+- يعمل بدون اتصال وبدون API endpoint جاهز (graceful degradation)
+
+**بند 74 (Currency Display in Payments):** `CurrencyService` singleton جديد في `lib/core/currency_service.dart`:
+- يحوّل المبالغ من USD للعملة المختارة (8 عملات مدعومة)
+- Fallback rates مدمجة + تحديث live من frankfurter.app
+- `formatAmount()` يُرجع الرمز الصحيح تلقائياً ($ € £ ₺ د.إ ج.م ر.س د.أ)
+- `main.dart`: `load()` عند بدء التطبيق
+- `payments_screens.dart`: `_money()` → `formatAmount()` + `refreshRatesInBackground()` في initState
+- `student_rewards_currency_screens.dart`: نُقل الـ CurrencyService منها للـ core
+
 ## تحديث 26 سبتمبر 2026 — الجلسة السابعة
 
 **بند 72 (Profile Security — Sign Out All Devices):** أُضيفت دالة `revokeAll()` وزر "تسجيل الخروج من جميع الأجهزة" في `account_security_screen.dart`:
