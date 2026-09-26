@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/app_theme.dart';
 import '../../core/student_repository.dart';
+import '../../core/notification_scheduler.dart';
+import '../../core/analytics_service.dart';
+import '../../core/currency_service.dart';
 
 class InvoiceStatusMeta {
   final String label;
@@ -37,7 +40,7 @@ InvoiceStatusMeta paymentProofStatusMeta(String? status) {
   }
 }
 
-String _money(num? amount) => '${(amount ?? 0).toStringAsFixed(0)}\$';
+String _money(num? amount) => CurrencyService.instance.formatAmount(amount);
 
 class PaymentsSummaryScreen extends StatefulWidget {
   const PaymentsSummaryScreen({super.key});
@@ -54,6 +57,8 @@ class _PaymentsSummaryScreenState extends State<PaymentsSummaryScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('payments_summary');
+    CurrencyService.instance.refreshRatesInBackground();
     _load();
   }
 
@@ -90,11 +95,19 @@ class _PaymentsSummaryScreenState extends State<PaymentsSummaryScreen> {
               MaterialPageRoute(builder: (_) => const PaymentHistoryScreen())),
         ),
       ],
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل بياناتك المالية...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _buildContent(context, _financials!),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _buildContent(context, _financials!),
+      ),
     );
   }
 
@@ -203,6 +216,31 @@ class PaymentDetailScreen extends StatefulWidget {
 
 class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   bool _uploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.instance.paymentInitiated(
+        '${widget.invoice['_id'] ?? ''}',
+        widget.invoice['amount']?.toDouble() ?? 0.0);
+    _schedulePaymentReminder();
+  }
+
+  void _schedulePaymentReminder() {
+    final inv = widget.invoice;
+    final id = '${inv['_id'] ?? ''}';
+    final dueRaw = inv['dueDate'] ?? inv['due_date'];
+    final due = DateTime.tryParse('$dueRaw');
+    final status = '${inv['status'] ?? ''}';
+    if (id.isEmpty || due == null) return;
+    if (status == 'verified' || status == 'paid') return;
+    final amount = inv['amount']?.toString() ?? '';
+    NotificationScheduler.instance.schedulePaymentDue(
+      invoiceId: id,
+      amount: amount,
+      dueDate: due,
+    );
+  }
 
   Future<void> _uploadProof() async {
     final result = await FilePicker.platform.pickFiles(
@@ -361,16 +399,23 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'سجل الدفعات',
-      body: _loading
-          ? const LoadingState(message: 'جاري تحميل السجل...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _proofs.isEmpty
-                  ? const EmptyState(
-                      icon: Icons.history_rounded,
-                      title: 'لا يوجد سجل بعد',
-                      message: 'ستظهر هنا كل إيصالات الدفع اللي رفعتها.')
-                  : ListView.builder(
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12), child: SkeletonCard()))
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _proofs.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.history_rounded,
+                        title: 'لا يوجد سجل بعد',
+                        message: 'ستظهر هنا كل إيصالات الدفع اللي رفعتها.')
+                    : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _proofs.length,
                       itemBuilder: (context, i) {
@@ -437,6 +482,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                         );
                       },
                     ),
+      ),
     );
   }
 }

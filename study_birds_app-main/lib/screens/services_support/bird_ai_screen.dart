@@ -3,6 +3,7 @@ import '../../core/api_client.dart';
 import '../../core/auth_session.dart';
 import '../../core/app_theme.dart';
 import '../../core/feature_ui.dart';
+import '../../core/analytics_service.dart';
 
 class BirdAssistantScreen extends StatefulWidget {
   const BirdAssistantScreen({super.key});
@@ -19,6 +20,7 @@ class _BirdAssistantScreenState extends State<BirdAssistantScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.birdAiOpened();
     loadThreads();
   }
 

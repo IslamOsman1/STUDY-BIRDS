@@ -1,6 +1,7 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
+import '../../core/analytics_service.dart';
 import '../../core/catalog_repository.dart';
 import '../universities_programs_countries/universities_screens.dart';
 import '../universities_programs_countries/programs_screens.dart';
@@ -33,6 +34,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.screenView('global_search');
     _loadAll();
     _controller.addListener(() {
       _debounce?.cancel();
@@ -267,7 +269,7 @@ class _ResultTile extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-                color: AppColors.navy.withOpacity(0.08),
+                color: AppColors.navy.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, size: 17, color: AppColors.navy),
           ),

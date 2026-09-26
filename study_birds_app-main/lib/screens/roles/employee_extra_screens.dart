@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_client.dart';
 import '../../core/employee_repository.dart';
+import '../services_support/messaging_and_emergency_screens.dart' show ConversationThreadScreen;
 
 /// Real data from GET /api/admin/students — ALL students on the platform.
 /// Relabeled honestly: the backend has no per-employee assignment, so this
@@ -146,14 +147,15 @@ class MessagesInboxScreen extends StatelessWidget {
           if (i == 0) {
             return Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
               child: const Text('بيانات توضيحية — الباك اند لسه مفيهوش نظام رسائل حقيقي بين الموظف والطالب.', style: TextStyle(color: AppColors.warning, fontSize: 12)),
             );
           }
           final t = _threads[i - 1];
           return AppCard(
             margin: EdgeInsets.zero,
-            onTap: () {},
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => ConversationThreadScreen(contactName: t.name))),
             child: Row(
               children: [
                 const CircleAvatar(radius: 20, backgroundColor: AppColors.border, child: Icon(Icons.person_rounded, color: AppColors.navy, size: 18)),
@@ -230,11 +232,15 @@ class _ManagerOverviewScreenState extends State<ManagerOverviewScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'نظرة عامة على المنصة',
-      body: _loading
-          ? const LoadingState(message: 'جاري التحميل...')
-          : _error != null
-              ? ErrorState(message: _error!, onRetry: _load)
-              : _buildContent(_overview!),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.navy,
+        child: _loading
+            ? const LoadingState(message: 'جاري التحميل...')
+            : _error != null
+                ? ErrorState(message: _error!, onRetry: _load)
+                : _buildContent(_overview!),
+      ),
     );
   }
 
@@ -255,7 +261,7 @@ class _ManagerOverviewScreenState extends State<ManagerOverviewScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         const Text(
-          'أرقام المنصة بالكامل (مش مخصصة لك وحدك — الباك اند مفيهوش نظام "مهام لكل موظف" لسه).',
+          'إجماليات المنصة — نظرة عامة على جميع الحسابات والطلبات.',
           style: AppTextStyles.caption,
         ),
         const SizedBox(height: 12),

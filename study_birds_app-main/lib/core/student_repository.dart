@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_client.dart';
 import 'auth_session.dart';
 
@@ -145,10 +147,40 @@ class StudentRepository {
     return token;
   }
 
-  Future<DashboardOverview> getOverview() async {
+  static const _overviewCacheKey = 'sb_overview_cache';
+
+  Future<DashboardOverview> getOverview({bool forceRefresh = false}) async {
+    if (!forceRefresh) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final cached = prefs.getString(_overviewCacheKey);
+        if (cached != null) {
+          final map = jsonDecode(cached) as Map<String, dynamic>;
+          // Try fresh in background; return cache immediately
+          _fetchAndCacheOverview().ignore();
+          return DashboardOverview.fromJson(map);
+        }
+      } catch (_) {}
+    }
+    return _fetchAndCacheOverview();
+  }
+
+  Future<DashboardOverview> _fetchAndCacheOverview() async {
     final data =
         await ApiClient.instance.get('/students/overview', token: _token);
-    return DashboardOverview.fromJson(data as Map<String, dynamic>);
+    final map = data as Map<String, dynamic>;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_overviewCacheKey, jsonEncode(map));
+    } catch (_) {}
+    return DashboardOverview.fromJson(map);
+  }
+
+  Future<void> clearOverviewCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_overviewCacheKey);
+    } catch (_) {}
   }
 
   Future<Map<String, dynamic>?> getProfile() async {
@@ -402,6 +434,20 @@ class StudentRepository {
       if (desiredDegreeLevel != null) 'desiredDegreeLevel': desiredDegreeLevel,
       if (avoidFields != null) 'avoidFields': avoidFields,
     });
+    return data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>?> getInsurance() async {
+    final data = await ApiClient.instance
+        .get('/students/insurance', token: _token);
+    if (data == null) return null;
+    return data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>?> getEquivalency() async {
+    final data = await ApiClient.instance
+        .get('/students/equivalency', token: _token);
+    if (data == null) return null;
     return data as Map<String, dynamic>;
   }
 }
